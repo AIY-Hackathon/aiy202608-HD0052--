@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import HealthScoreRing from "../components/shared/HealthScoreRing";
 import GeneCard from "../components/shared/GeneCard";
 import RiskBar from "../components/shared/RiskBar";
 import RiskRadar from "../components/charts/RiskRadar";
 import { useLocation } from "../components/layout/PageTransition";
-import { healthSummary, geneCards, riskDimensions, geneticProfile, riskSummaryCards } from "../data/mockData";
+import { getProfile } from "../api/client";
+import { geneticProfile, riskSummaryCards, healthSummary, geneCards, riskDimensions } from "../data/mockData";
 import { Dna, ShieldAlert, ArrowRight } from "lucide-react";
 
 /* ── Trait chip for the genetic profile section ── */
@@ -50,9 +51,46 @@ function RiskSummaryCard({ card, index = 0 }) {
   );
 }
 
+/* ── Skeleton placeholder for loading state ── */
+function SkeletonBlock({ className = "" }) {
+  return (
+    <div className={`animate-pulse bg-gray-100 rounded-xl ${className}`} />
+  );
+}
+
 export default function GeneMap() {
   const { goTo } = useLocation();
   const [expandedGene, setExpandedGene] = useState(null);
+
+  // 从 API 加载的数据
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await getProfile();
+        if (!cancelled) {
+          setProfileData(data);
+          setError(false);
+        }
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  // 降级：API 失败或无数据时使用 mock
+  const summary = profileData?.summary || healthSummary;
+  const genes = profileData?.geneCards || geneCards;
+  const risks = profileData?.riskDimensions || riskDimensions;
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-24">
@@ -123,21 +161,27 @@ export default function GeneMap() {
 
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Score ring */}
-          <motion.div
-            className="flex-shrink-0"
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <HealthScoreRing
-              score={healthSummary.score}
-              size={210}
-              strokeWidth={11}
-              label="Genetic Health Index"
-              subtitle="/100"
-              showGlow
-            />
-          </motion.div>
+          {loading ? (
+            <div className="flex-shrink-0 flex flex-col items-center gap-3">
+              <SkeletonBlock className="w-[210px] h-[210px] rounded-full" />
+            </div>
+          ) : (
+            <motion.div
+              className="flex-shrink-0"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <HealthScoreRing
+                score={summary.score}
+                size={210}
+                strokeWidth={11}
+                label="Genetic Health Index"
+                subtitle="/100"
+                showGlow
+              />
+            </motion.div>
+          )}
 
           {/* Methodology — right side on desktop, below on mobile */}
           <div className="flex-1 max-w-xs lg:max-w-none mx-auto lg:mx-0">
@@ -229,19 +273,27 @@ export default function GeneMap() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {geneCards.map((gene, i) => (
-            <GeneCard
-              key={gene.id}
-              gene={gene}
-              index={i}
-              isExpanded={expandedGene === gene.id}
-              onToggle={() =>
-                setExpandedGene(expandedGene === gene.id ? null : gene.id)
-              }
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonBlock key={i} className="h-48 rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {genes.map((gene, i) => (
+              <GeneCard
+                key={gene.id}
+                gene={gene}
+                index={i}
+                isExpanded={expandedGene === gene.id}
+                onToggle={() =>
+                  setExpandedGene(expandedGene === gene.id ? null : gene.id)
+                }
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ================================================================
@@ -260,29 +312,40 @@ export default function GeneMap() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div className="premium-card p-6">
-            <RiskRadar data={riskDimensions} height={320} />
-          </div>
-
-          <div className="space-y-6">
-            {riskDimensions.map((dim) => (
-              <RiskBar
-                key={dim.key}
-                label={dim.label}
-                score={dim.score}
-                baseline={dim.baseline}
-              />
-            ))}
-            <div className="pt-3">
-              <p className="text-[12px] text-text-tertiary leading-relaxed bg-gray-50 rounded-xl p-3">
-                Scores above <span className="font-semibold text-risk-moderate">70%</span> indicate elevated genetic influence.
-                This does not guarantee any health outcome —{" "}
-                <span className="font-semibold text-accent">lifestyle factors</span> play a major role.
-              </p>
+        {loading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <SkeletonBlock className="h-[320px] rounded-2xl" />
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <SkeletonBlock key={i} className="h-14 rounded-xl" />
+              ))}
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div className="premium-card p-6">
+              <RiskRadar data={risks} height={320} />
+            </div>
+
+            <div className="space-y-6">
+              {risks.map((dim) => (
+                <RiskBar
+                  key={dim.key}
+                  label={dim.label}
+                  score={dim.score}
+                  baseline={dim.baseline}
+                />
+              ))}
+              <div className="pt-3">
+                <p className="text-[12px] text-text-tertiary leading-relaxed bg-gray-50 rounded-xl p-3">
+                  Scores above <span className="font-semibold text-risk-moderate">70%</span> indicate elevated genetic influence.
+                  This does not guarantee any health outcome —{" "}
+                  <span className="font-semibold text-accent">lifestyle factors</span> play a major role.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

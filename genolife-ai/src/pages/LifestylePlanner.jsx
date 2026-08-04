@@ -1,12 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AIBadge from "../components/shared/AIBadge";
-import { thirtyDayPlan } from "../data/mockData";
+import { getRecommendations } from "../api/client";
+import { thirtyDayPlan as mockPlan } from "../data/mockData";
 import { ChevronDown, Target, Clock, Star, CheckCircle2, TrendingUp } from "lucide-react";
+
+/* ── Skeleton placeholder ── */
+function SkeletonBlock({ className = "" }) {
+  return (
+    <div className={`animate-pulse bg-gray-100 rounded-xl ${className}`} />
+  );
+}
 
 export default function LifestylePlanner() {
   const [checkedTasks, setCheckedTasks] = useState(new Set());
   const [expandedWeek, setExpandedWeek] = useState(0);
+
+  // API 数据
+  const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await getRecommendations();
+        if (!cancelled && data?.thirtyDayPlan) {
+          setPlan(data.thirtyDayPlan);
+        }
+      } catch {
+        // 降级到 mock
+        if (!cancelled) setPlan(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const thirtyDayPlan = plan || mockPlan;
 
   const toggleTask = (id) => {
     setCheckedTasks((prev) => {
@@ -45,16 +79,20 @@ export default function LifestylePlanner() {
         </p>
 
         {/* Goal card */}
-        <div className="premium-card inline-flex items-center gap-4 px-6 py-5">
-          <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
-            <Target size={20} className="text-accent" />
+        {loading ? (
+          <SkeletonBlock className="inline-flex h-16 w-96 rounded-2xl" />
+        ) : (
+          <div className="premium-card inline-flex items-center gap-4 px-6 py-5">
+            <div className="w-10 h-10 rounded-xl bg-accent-light flex items-center justify-center">
+              <Target size={20} className="text-accent" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Primary Goal</p>
+              <p className="text-[15px] font-semibold text-text leading-snug">{thirtyDayPlan.goal}</p>
+            </div>
+            <AIBadge />
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Primary Goal</p>
-            <p className="text-[15px] font-semibold text-text leading-snug">{thirtyDayPlan.goal}</p>
-          </div>
-          <AIBadge />
-        </div>
+        )}
       </motion.section>
 
       {/* ================================================================
@@ -120,139 +158,147 @@ export default function LifestylePlanner() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {thirtyDayPlan.weeks.map((week, wi) => {
-            const weekComplete = week.tasks.every((_, ti) => checkedTasks.has(`${wi}-${ti}`));
-            const weekTaskIds = week.tasks.map((_, ti) => `${wi}-${ti}`);
-            const weekProgress = weekTaskIds.filter((id) => checkedTasks.has(id)).length;
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonBlock key={i} className="h-20 rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {thirtyDayPlan.weeks.map((week, wi) => {
+              const weekComplete = week.tasks.every((_, ti) => checkedTasks.has(`${wi}-${ti}`));
+              const weekTaskIds = week.tasks.map((_, ti) => `${wi}-${ti}`);
+              const weekProgress = weekTaskIds.filter((id) => checkedTasks.has(id)).length;
 
-            return (
-              <motion.div
-                key={wi}
-                className={`premium-card overflow-hidden ${
-                  weekComplete ? "ring-2 ring-accent/20 bg-accent-light/10" : ""
-                }`}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18 + wi * 0.06 }}
-              >
-                {/* Week header */}
-                <button
-                  className="w-full flex items-center justify-between px-6 py-5 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
-                  style={{ background: "none", border: "none" }}
-                  onClick={() => setExpandedWeek(expandedWeek === wi ? -1 : wi)}
+              return (
+                <motion.div
+                  key={wi}
+                  className={`premium-card overflow-hidden ${
+                    weekComplete ? "ring-2 ring-accent/20 bg-accent-light/10" : ""
+                  }`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 + wi * 0.06 }}
                 >
-                  <div className="flex items-center gap-4">
-                    {/* Week number badge */}
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-display font-bold text-[15px] shadow-sm ${
-                      weekComplete
-                        ? "bg-accent text-white"
-                        : "bg-primary-light text-primary"
-                    }`}>
-                      {weekComplete ? <CheckCircle2 size={18} /> : wi + 1}
-                    </div>
-                    <div>
-                      <p className={`text-[13px] font-bold uppercase tracking-[0.08em] ${
-                        weekComplete ? "text-accent" : "text-text-tertiary"
+                  {/* Week header */}
+                  <button
+                    className="w-full flex items-center justify-between px-6 py-5 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
+                    style={{ background: "none", border: "none" }}
+                    onClick={() => setExpandedWeek(expandedWeek === wi ? -1 : wi)}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Week number badge */}
+                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-display font-bold text-[15px] shadow-sm ${
+                        weekComplete
+                          ? "bg-accent text-white"
+                          : "bg-primary-light text-primary"
                       }`}>
-                        {week.label}
-                      </p>
-                      <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{week.theme}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {/* Mini progress */}
-                    <div className="hidden sm:flex items-center gap-1.5">
-                      <span className="text-[11px] text-text-tertiary font-medium">
-                        {weekProgress}/{week.tasks.length}
-                      </span>
-                      <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-accent transition-all duration-500"
-                          style={{ width: `${(weekProgress / week.tasks.length) * 100}%` }}
-                        />
+                        {weekComplete ? <CheckCircle2 size={18} /> : wi + 1}
+                      </div>
+                      <div>
+                        <p className={`text-[13px] font-bold uppercase tracking-[0.08em] ${
+                          weekComplete ? "text-accent" : "text-text-tertiary"
+                        }`}>
+                          {week.label}
+                        </p>
+                        <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{week.theme}</p>
                       </div>
                     </div>
-                    <motion.span
-                      animate={{ rotate: expandedWeek === wi ? 180 : 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="text-text-tertiary"
-                    >
-                      <ChevronDown size={20} />
-                    </motion.span>
-                  </div>
-                </button>
 
-                {/* Week tasks */}
-                <AnimatePresence>
-                  {expandedWeek === wi && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-5 space-y-3 border-t border-gray-100 pt-4">
-                        {week.tasks.map((task, ti) => {
-                          const taskId = `${wi}-${ti}`;
-                          const done = checkedTasks.has(taskId);
-                          return (
-                            <motion.div
-                              key={taskId}
-                              className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 cursor-pointer ${
-                                done
-                                  ? "bg-accent-light/30 border border-accent/20"
-                                  : "hover:bg-gray-50 border border-transparent"
-                              }`}
-                              onClick={() => toggleTask(taskId)}
-                              whileHover={{ scale: 1.01 }}
-                            >
-                              <button
-                                className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                    <div className="flex items-center gap-3">
+                      {/* Mini progress */}
+                      <div className="hidden sm:flex items-center gap-1.5">
+                        <span className="text-[11px] text-text-tertiary font-medium">
+                          {weekProgress}/{week.tasks.length}
+                        </span>
+                        <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-accent transition-all duration-500"
+                            style={{ width: `${(weekProgress / week.tasks.length) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                      <motion.span
+                        animate={{ rotate: expandedWeek === wi ? 180 : 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="text-text-tertiary"
+                      >
+                        <ChevronDown size={20} />
+                      </motion.span>
+                    </div>
+                  </button>
+
+                  {/* Week tasks */}
+                  <AnimatePresence>
+                    {expandedWeek === wi && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-5 space-y-3 border-t border-gray-100 pt-4">
+                          {week.tasks.map((task, ti) => {
+                            const taskId = `${wi}-${ti}`;
+                            const done = checkedTasks.has(taskId);
+                            return (
+                              <motion.div
+                                key={taskId}
+                                className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 cursor-pointer ${
                                   done
-                                    ? "bg-accent border-accent text-white shadow-lg shadow-accent/25"
-                                    : "border-gray-200 hover:border-accent/50 bg-white"
+                                    ? "bg-accent-light/30 border border-accent/20"
+                                    : "hover:bg-gray-50 border border-transparent"
                                 }`}
+                                onClick={() => toggleTask(taskId)}
+                                whileHover={{ scale: 1.01 }}
                               >
-                                {done && (
-                                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                    <path d="M2.5 6.5L5.5 9.5L10.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
-                                )}
-                              </button>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
-                                    done ? "bg-accent text-white" : "bg-gray-100 text-text-tertiary"
-                                  }`}>
-                                    {task.day}
-                                  </span>
-                                  <span className={`font-semibold text-[14px] ${
-                                    done ? "text-accent" : "text-text"
-                                  }`}>
-                                    {task.title}
-                                  </span>
+                                <button
+                                  className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                                    done
+                                      ? "bg-accent border-accent text-white shadow-lg shadow-accent/25"
+                                      : "border-gray-200 hover:border-accent/50 bg-white"
+                                  }`}
+                                >
+                                  {done && (
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                      <path d="M2.5 6.5L5.5 9.5L10.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  )}
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
+                                      done ? "bg-accent text-white" : "bg-gray-100 text-text-tertiary"
+                                    }`}>
+                                      {task.day}
+                                    </span>
+                                    <span className={`font-semibold text-[14px] ${
+                                      done ? "text-accent" : "text-text"
+                                    }`}>
+                                      {task.title}
+                                    </span>
+                                  </div>
+                                  <p className="text-[13px] text-text-secondary leading-relaxed">
+                                    {task.desc}
+                                  </p>
                                 </div>
-                                <p className="text-[13px] text-text-secondary leading-relaxed">
-                                  {task.desc}
-                                </p>
-                              </div>
-                              {done && (
-                                <CheckCircle2 size={18} className="text-accent flex-shrink-0 mt-0.5" />
-                              )}
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
+                                {done && (
+                                  <CheckCircle2 size={18} className="text-accent flex-shrink-0 mt-0.5" />
+                                )}
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* ================================================================

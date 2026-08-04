@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import HealthScoreRing from "../components/shared/HealthScoreRing";
 import AnimatedNumber from "../components/shared/AnimatedNumber";
@@ -6,6 +6,7 @@ import SliderControl from "../components/shared/SliderControl";
 import RecommendationCard from "../components/shared/RecommendationCard";
 import RiskTrendLine from "../components/charts/RiskTrendLine";
 import BeforeAfterBar from "../components/charts/BeforeAfterBar";
+import { simulate } from "../api/client";
 import {
   simulationDefaults,
   simulationFactors,
@@ -20,14 +21,45 @@ export default function LifeSimulation() {
   const [factors, setFactors] = useState(simulationDefaults);
   const [checkedRecs, setCheckedRecs] = useState(new Set());
 
-  const healthScore = useMemo(() => calculateHealthScore(factors), [factors]);
-  const optimizedFactors = { sleep: 8, exercise: 5, diet: 8, stress: 3 };
-  const optimizedScore = useMemo(() => calculateHealthScore(optimizedFactors), []);
+  // API 状态
+  const [apiResult, setApiResult] = useState(null);
+  const [simLoading, setSimLoading] = useState(false);
 
-  const currentRisks = useMemo(() => calculateRiskDimensions(factors), [factors]);
-  const optimizedRisks = useMemo(() => calculateRiskDimensions(optimizedFactors), []);
-  const trendData = useMemo(() => generateTrendData(factors), [factors]);
-  const recommendations = useMemo(() => generateRecommendations(factors), [factors]);
+  // 防抖 timer
+  const debounceRef = useRef(null);
+
+  // 初始加载 + 每次 factors 变化后防抖请求
+  useEffect(() => {
+    // 清除上一次的 timer
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    let cancelled = false;
+    debounceRef.current = setTimeout(async () => {
+      setSimLoading(true);
+      try {
+        const result = await simulate(factors);
+        if (!cancelled) setApiResult(result);
+      } catch {
+        // 降级到本地计算
+        if (!cancelled) setApiResult(null);
+      } finally {
+        if (!cancelled) setSimLoading(false);
+      }
+    }, 300);
+
+    return () => { cancelled = true; };
+  }, [factors]);
+
+  // 优先用 API 结果，降级本地计算
+  const healthScore = apiResult?.healthScore ?? calculateHealthScore(factors);
+  const optimizedScore = apiResult?.optimizedScore ?? calculateHealthScore({ sleep: 8, exercise: 5, diet: 8, stress: 3 });
+  const currentRisks = apiResult?.riskDimensions ?? calculateRiskDimensions(factors);
+  const optimizedFactors = { sleep: 8, exercise: 5, diet: 8, stress: 3 };
+  const optimizedRisks = apiResult?.riskDimensions
+    ? calculateRiskDimensions(optimizedFactors) // API 不返回 optimized risk dimensions
+    : calculateRiskDimensions(optimizedFactors);
+  const trendData = apiResult?.trendData ?? generateTrendData(factors);
+  const recommendations = apiResult?.recommendations ?? generateRecommendations(factors);
 
   const handleFactorChange = useCallback((key, value) => {
     setFactors((prev) => ({ ...prev, [key]: value }));
@@ -77,7 +109,7 @@ export default function LifeSimulation() {
             score={healthScore}
             size={220}
             strokeWidth={10}
-            label="Current Score"
+            label={simLoading ? "Calculating..." : "Current Score"}
             subtitle={`/100`}
             showGlow
           />

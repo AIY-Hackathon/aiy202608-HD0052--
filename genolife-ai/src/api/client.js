@@ -32,13 +32,13 @@ export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/
 const FORCE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 // 后端可用状态（启动时检测）
-let _backendAvailable: boolean | null = null;
+let _backendAvailable = null;
 
 /**
  * 检测后端是否可达。
  * 结果缓存，整个生命周期只检测一次。
  */
-export async function isBackendAvailable(): Promise<boolean> {
+export async function isBackendAvailable() {
   if (FORCE_MOCK) return false;
   if (_backendAvailable !== null) return _backendAvailable;
 
@@ -67,7 +67,7 @@ export async function isBackendAvailable(): Promise<boolean> {
 /**
  * 检查是否应该使用 mock（后端不可达时自动降级）。
  */
-async function shouldUseMock(): Promise<boolean> {
+async function shouldUseMock() {
   if (FORCE_MOCK) return true;
   return !(await isBackendAvailable());
 }
@@ -77,7 +77,7 @@ async function shouldUseMock(): Promise<boolean> {
  * - 解析统一响应格式 {success, data, error}
  * - 非成功时抛错
  */
-async function request(path: string, options: RequestInit = {}) {
+async function request(path, options = {}) {
   const resp = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
@@ -113,7 +113,7 @@ export async function getProfile() {
 
 // ============ GET /api/analysis/{report_id} — 分析结果 ============
 
-export async function getAnalysis(reportId: string) {
+export async function getAnalysis(reportId) {
   if (await shouldUseMock()) {
     await delay(300);
     return {
@@ -153,7 +153,7 @@ export async function getAnalysis(reportId: string) {
 
 // ============ POST /api/upload — 上传 VCF ============
 
-export async function uploadReport(file: File) {
+export async function uploadReport(file) {
   if (await shouldUseMock()) {
     await delay(800);
     return {
@@ -174,7 +174,7 @@ export async function uploadReport(file: File) {
 
 // ============ POST /api/simulate — 生活方式模拟 ============
 
-export async function simulate(factors: Record<string, number>) {
+export async function simulate(factors) {
   if (await shouldUseMock()) {
     await delay(200);
     const optimizedFactors = { sleep: 8, exercise: 5, diet: 8, stress: 3 };
@@ -194,7 +194,7 @@ export async function simulate(factors: Record<string, number>) {
 
 // ============ GET /api/recommendations — 建议 + 30 天计划 ============
 
-export async function getRecommendations(factors: Record<string, number> = {}) {
+export async function getRecommendations(factors = {}) {
   if (await shouldUseMock()) {
     await delay(200);
     return {
@@ -210,7 +210,7 @@ export async function getRecommendations(factors: Record<string, number> = {}) {
 
 // ============ 工具 ============
 
-function delay(ms: number) {
+function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
