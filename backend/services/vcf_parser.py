@@ -38,9 +38,9 @@ class VCFParseError(Exception):
 
 
 def is_vcf(filepath: str) -> bool:
-    """检测文件是否为 VCF 格式（检查文件头）。"""
+    """检测文件是否为 VCF 格式（检查文件头，支持 gzip/普通文本）。"""
     try:
-        with gzip.open(filepath, "rt", errors="ignore") as f:
+        with open_maybe_gzip(filepath) as f:
             for line in f:
                 if line.startswith("##fileformat=VCF"):
                     return True
