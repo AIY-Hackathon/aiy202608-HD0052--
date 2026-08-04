@@ -1,112 +1,150 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Shield, Sparkles } from "lucide-react";
 
-const riskColors = {
-  advantage: "bg-accent-light border-accent/30",
-  low: "bg-accent-light border-accent/30",
-  moderate: "bg-amber-50 border-amber-200",
-  elevated: "bg-orange-50 border-orange-200",
-  high: "bg-red-50 border-red-200",
+const riskStyles = {
+  advantage: {
+    bg: "bg-accent-light/50 border-accent/20",
+    dot: "bg-accent",
+    label: "Genetic Advantage",
+    labelColor: "text-accent",
+  },
+  low: {
+    bg: "bg-accent-light/40 border-accent/15",
+    dot: "bg-accent",
+    label: "Low Genetic Influence",
+    labelColor: "text-accent",
+  },
+  moderate: {
+    bg: "bg-amber-50/70 border-amber-100",
+    dot: "bg-risk-moderate",
+    label: "Moderate Genetic Influence",
+    labelColor: "text-risk-moderate",
+  },
+  elevated: {
+    bg: "bg-orange-50/70 border-orange-100",
+    dot: "bg-orange-500",
+    label: "Elevated Genetic Influence",
+    labelColor: "text-orange-500",
+  },
+  high: {
+    bg: "bg-red-50/70 border-red-100",
+    dot: "bg-risk-high",
+    label: "High Genetic Influence",
+    labelColor: "text-risk-high",
+  },
 };
 
-const riskLabels = {
-  advantage: "Genetic Advantage",
-  low: "Low Genetic Influence",
-  moderate: "Moderate Genetic Influence",
-  elevated: "Elevated Genetic Influence",
-  high: "High Genetic Influence",
-};
-
-const riskDotColors = {
-  advantage: "bg-accent",
-  low: "bg-accent",
-  moderate: "bg-risk-moderate",
-  elevated: "bg-orange-500",
-  high: "bg-risk-high",
-};
-
-/**
- * Gene insight card — shows gene symbol, what it means, expands for details.
- */
 export default function GeneCard({ gene, index = 0, isExpanded, onToggle }) {
-  const open = isExpanded;
+  const style = riskStyles[gene.riskLevel] || riskStyles.moderate;
 
   return (
     <motion.div
-      className={`card-reveal rounded-2xl border p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md ${
-        riskColors[gene.riskLevel] || riskColors.moderate
+      className={`card-reveal premium-card p-6 cursor-pointer overflow-hidden group ${
+        isExpanded ? "ring-2 ring-primary/10" : ""
       }`}
       style={{ animationDelay: `${index * 80}ms` }}
       onClick={onToggle}
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 280, damping: 24 }}
     >
+      {/* Card background accent */}
+      <div className={`absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-[0.04] pointer-events-none ${style.dot}`} />
+
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="relative flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <span className="text-3xl">{gene.icon}</span>
+          {/* Gene icon */}
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm ${
+            isExpanded ? style.bg : "bg-gray-50"
+          }`}>
+            {gene.icon}
+          </div>
+
           <div>
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-mono text-sm font-semibold text-primary tracking-wide bg-primary-light/60 px-2 py-0.5 rounded-md">
+              <span className="font-mono text-[12px] font-bold text-primary/70 tracking-wide bg-primary-light/40 px-2 py-0.5 rounded-md">
                 {gene.symbol}
               </span>
-              <span className={`w-2 h-2 rounded-full ${riskDotColors[gene.riskLevel]}`} />
+              <span className={`w-2 h-2 rounded-full ${style.dot} shadow-sm`} />
             </div>
-            <h3 className="font-display font-semibold text-lg text-text leading-tight">
+            <h3 className="font-display font-semibold text-[17px] text-text leading-tight">
               {gene.name}
             </h3>
-            <p className="text-sm text-text-secondary mt-0.5">{gene.category}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className={`text-[11px] font-semibold ${style.labelColor} uppercase tracking-wider`}>
+                {style.label}
+              </span>
+            </div>
           </div>
         </div>
+
         <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="text-text-tertiary mt-1"
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
+          className="text-text-tertiary mt-2 opacity-50 group-hover:opacity-100 transition-opacity"
         >
-          <ChevronDown size={20} />
+          <ChevronDown size={18} />
         </motion.span>
       </div>
 
-      {/* Summary (always visible) */}
-      <p className="mt-4 text-[15px] text-text-secondary leading-relaxed">
-        {gene.summary}
-      </p>
+      {/* Summary */}
+      <div className="relative mt-5">
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-primary/8" />
+        <p className="pl-4 text-[14px] text-text-secondary leading-relaxed">
+          {gene.summary}
+        </p>
+      </div>
 
       {/* Expandable detail */}
       <AnimatePresence>
-        {open && (
+        {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden relative"
           >
-            <div className="mt-5 pt-5 border-t border-gray-200/60 space-y-4">
+            <div className="mt-6 pt-6 border-t border-gray-100 space-y-5">
+              {/* What this means */}
               <div>
-                <h4 className="text-sm font-semibold text-text uppercase tracking-wider mb-2">
-                  What this means
-                </h4>
-                <p className="text-[15px] text-text-secondary leading-relaxed">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles size={15} className="text-ai" />
+                  <h4 className="text-[12px] font-bold text-text uppercase tracking-[0.1em]">
+                    What This Means
+                  </h4>
+                </div>
+                <p className="text-[14px] text-text-secondary leading-relaxed bg-gray-50/50 rounded-xl p-4">
                   {gene.interpretation}
                 </p>
               </div>
+
+              {/* Actions */}
               <div>
-                <h4 className="text-sm font-semibold text-text uppercase tracking-wider mb-2">
-                  Recommended Actions
-                </h4>
+                <div className="flex items-center gap-2 mb-3">
+                  <Shield size={15} className="text-accent" />
+                  <h4 className="text-[12px] font-bold text-text uppercase tracking-[0.1em]">
+                    Recommended Actions
+                  </h4>
+                </div>
                 <ul className="space-y-2">
                   {gene.recommendations.map((rec, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[15px] text-text-secondary">
-                      <span className="text-accent mt-0.5">•</span>
+                    <li
+                      key={i}
+                      className="flex items-start gap-3 text-[14px] text-text-secondary bg-white rounded-xl p-3 border border-gray-100"
+                    >
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-light text-accent flex items-center justify-center text-[10px] font-bold mt-0.5">
+                        {i + 1}
+                      </span>
                       {rec}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ai-light text-ai text-xs font-medium">
+
+              {/* AI badge */}
+              <div className="flex items-center gap-2 pt-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ai-light text-ai text-[11px] font-semibold">
                   🤖 AI-generated interpretation
                 </span>
               </div>

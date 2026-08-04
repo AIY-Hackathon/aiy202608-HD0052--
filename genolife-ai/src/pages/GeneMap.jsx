@@ -6,39 +6,50 @@ import RiskBar from "../components/shared/RiskBar";
 import AIBadge from "../components/shared/AIBadge";
 import RiskRadar from "../components/charts/RiskRadar";
 import { healthSummary, geneCards, riskDimensions } from "../data/mockData";
+import { Activity, Dna, ShieldAlert } from "lucide-react";
 
 export default function GeneMap() {
   const [expandedGene, setExpandedGene] = useState(null);
 
+  const levelDot =
+    healthSummary.level === "low" ? "bg-risk-low shadow-risk-low/40" :
+    healthSummary.level === "moderate" ? "bg-risk-moderate shadow-risk-moderate/40" :
+    "bg-risk-high shadow-risk-high/40";
+
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-24">
-      {/* ─────────────────────────────────────────────
-          Hero: Health Score + AI Summary
-         ───────────────────────────────────────────── */}
+      {/* ================================================================
+          HERO — Health Score + AI Summary
+         ================================================================ */}
       <motion.section
-        className="text-center mb-20"
+        className="text-center mb-24"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        <p className="text-[13px] font-semibold text-text-tertiary uppercase tracking-[0.15em] mb-6">
-          Your Genetic Health Profile
-        </p>
-
-        <div className="flex justify-center mb-8">
-          <HealthScoreRing score={healthSummary.score} size={220} strokeWidth={10} />
+        {/* Section label */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-light/60 text-primary mb-8">
+          <Dna size={14} />
+          <span className="text-[12px] font-bold uppercase tracking-[0.12em]">Your Genetic Health Profile</span>
         </div>
 
+        {/* Score ring */}
+        <div className="flex justify-center mb-8">
+          <HealthScoreRing
+            score={healthSummary.score}
+            size={240}
+            strokeWidth={12}
+            label="Health Score"
+            subtitle="/100"
+            showGlow
+          />
+        </div>
+
+        {/* Summary text */}
         <div className="max-w-xl mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <span
-              className={`inline-block w-2.5 h-2.5 rounded-full ${
-                healthSummary.level === "low" ? "bg-risk-low" :
-                healthSummary.level === "moderate" ? "bg-risk-moderate" :
-                "bg-risk-high"
-              }`}
-            />
-            <span className="text-[15px] font-semibold text-text tracking-wide">
+          <div className="flex items-center justify-center gap-2.5 mb-4">
+            <span className={`inline-block w-2.5 h-2.5 rounded-full shadow-lg ${levelDot}`} />
+            <span className="text-[15px] font-semibold text-text">
               {healthSummary.levelLabel}
             </span>
           </div>
@@ -51,16 +62,17 @@ export default function GeneMap() {
         </div>
       </motion.section>
 
-      {/* ─────────────────────────────────────────────
-          Gene Cards (2x2 grid)
-         ───────────────────────────────────────────── */}
-      <section className="mb-20">
-        <div className="flex items-center justify-between mb-6">
+      {/* ================================================================
+          GENE CARDS — 2x2 grid
+         ================================================================ */}
+      <section className="mb-24">
+        <div className="flex items-center gap-3 mb-8">
+          <Activity size={17} className="text-accent" />
           <div>
-            <p className="text-[13px] font-semibold text-text-tertiary uppercase tracking-[0.15em]">
+            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
               Your Genetic Traits
             </p>
-            <h2 className="font-display font-semibold text-2xl text-text mt-1">
+            <h2 className="font-display font-bold text-[26px] text-text tracking-tight mt-0.5">
               What your genes say about you
             </h2>
           </div>
@@ -81,25 +93,30 @@ export default function GeneMap() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────
-          Risk Radar + Risk Bars
-         ───────────────────────────────────────────── */}
+      {/* ================================================================
+          RISK PROFILE — Radar + Bars
+         ================================================================ */}
       <section>
-        <p className="text-[13px] font-semibold text-text-tertiary uppercase tracking-[0.15em] mb-1">
-          Risk Profile
-        </p>
-        <h2 className="font-display font-semibold text-2xl text-text mb-8">
-          Your genetic risk across five dimensions
-        </h2>
+        <div className="flex items-center gap-3 mb-8">
+          <ShieldAlert size={17} className="text-risk-moderate" />
+          <div>
+            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
+              Risk Profile
+            </p>
+            <h2 className="font-display font-bold text-[26px] text-text tracking-tight mt-0.5">
+              Your genetic risk across five dimensions
+            </h2>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Radar */}
-          <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-sm">
-            <RiskRadar data={riskDimensions} height={300} />
+          {/* Radar chart */}
+          <div className="premium-card p-6">
+            <RiskRadar data={riskDimensions} height={320} />
           </div>
 
-          {/* Bars */}
-          <div className="space-y-5">
+          {/* Risk bars */}
+          <div className="space-y-6">
             {riskDimensions.map((dim) => (
               <RiskBar
                 key={dim.key}
@@ -108,10 +125,13 @@ export default function GeneMap() {
                 baseline={dim.baseline}
               />
             ))}
-            <p className="text-[13px] text-text-tertiary pt-2">
-              Scores above 70% indicate elevated genetic influence. This does not
-              guarantee any health outcome — lifestyle factors play a major role.
-            </p>
+            <div className="pt-3">
+              <p className="text-[12px] text-text-tertiary leading-relaxed bg-gray-50 rounded-xl p-3">
+                Scores above <span className="font-semibold text-risk-moderate">70%</span> indicate elevated genetic influence.
+                This does not guarantee any health outcome —{" "}
+                <span className="font-semibold text-accent">lifestyle factors</span> play a major role.
+              </p>
+            </div>
           </div>
         </div>
       </section>
