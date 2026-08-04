@@ -1,7 +1,7 @@
 """
-Pydantic 请求/响应模型 — API 数据契约
-======================================
-对齐前端 frontend/mock_data.py 与 api_client.py 的数据结构。
+Pydantic 请求/响应模型 — 对齐 GenoLife AI 新前端
+===================================================
+数据契约来源：genolife-ai/src/data/mockData.js
 
 统一响应格式：
     {"success": bool, "data": {...} | None, "error": {...} | None}
@@ -31,101 +31,153 @@ class ApiResponse(BaseModel, Generic[T]):
         return cls(success=False, data=None, error={"code": code, "message": message})
 
 
-# ============ 变异 ============
+# ============ 用户档案（mockData.userProfile）============
 
-class VariantOut(BaseModel):
-    """分析结果中的单条变异。"""
+class UserProfile(BaseModel):
+    """用户档案概览。"""
+
+    name: str = "用户"
+    healthScore: int = Field(0, ge=0, le=100)
+    geneticAge: int = Field(0, ge=0)
+    chronologicalAge: int = Field(0, ge=0)
+
+
+# ============ 健康概览（mockData.healthSummary）============
+
+class HealthSummary(BaseModel):
+    """健康概览摘要。"""
+
+    score: int = Field(0, ge=0, le=100)
+    level: str = "moderate"  # low / moderate / high
+    levelLabel: str = ""
+    aiSummary: str = ""
+
+
+# ============ 基因卡片（mockData.geneCards[]）============
+
+class GeneCard(BaseModel):
+    """单张基因卡片。"""
 
     id: str
-    chromosome: str
-    position: int
-    reference: str
-    alternative: str
-    rs_id: str | None = None
-    gene_name: str | None = None
+    symbol: str  # 基因符号，如 APOE
+    name: str  # 展示名，如 Cognitive Health
+    category: str  # 类别，如 Brain & Longevity
+    riskLevel: str  # low / moderate / elevated / advantage
+    summary: str = ""
+    interpretation: str = ""
+    recommendations: list[str] = Field(default_factory=list)
+    icon: str = "🧬"
+    # 真实分析附加字段（前端可选）
     clinvar_significance: str | None = None
-    clinvar_review_status: str | None = None
     odds_ratio: float | None = None
-    population_frequency: float | None = None
-    quality_score: float | None = None
-    risk_score: float | None = None
+    genotype: str | None = None
 
 
-class AnalysisResult(BaseModel):
-    """GET /api/analysis/{report_id} 返回。"""
+# ============ 风险维度（mockData.riskDimensions[]）============
 
-    report_id: str
-    variants: list[VariantOut]
-    risk_scores: dict[str, float] = Field(default_factory=dict)
-    overall_risk_level: str = "low"  # low / moderate / high
-    confidence_intervals: dict[str, list[float]] = Field(default_factory=dict)
-    quality_score: float = 0.0
+class RiskDimension(BaseModel):
+    """单维度风险评分。"""
 
-
-# ============ 上传 ============
-
-class UploadResult(BaseModel):
-    """POST /api/upload 返回。"""
-
-    report_id: str
-    variant_count: int = 0
-    status: str = "completed"
-    original_filename: str
-    created_at: str
+    key: str  # metabolic / cognitive / cardiovascular / athletic / sleep
+    label: str  # Metabolic / Cognitive / ...
+    score: int = Field(0, ge=0, le=100)
+    baseline: int = Field(50, ge=0, le=100)
 
 
-# ============ 模拟 ============
+# ============ 基因档案（GET /api/profile 返回）============
 
-class SimulationRequest(BaseModel):
+class GeneticProfile(BaseModel):
+    """完整基因分析档案。"""
+
+    user: UserProfile
+    summary: HealthSummary
+    geneCards: list[GeneCard] = Field(default_factory=list)
+    riskDimensions: list[RiskDimension] = Field(default_factory=list)
+
+
+# ============ 模拟（mockData.simulation*）============
+
+class SimulationFactor(BaseModel):
+    """模拟因子定义。"""
+
+    key: str  # sleep / exercise / diet / stress
+    label: str
+    icon: str
+    min: float
+    max: float
+    step: float
+    unit: str
+    description: str = ""
+
+
+class SimulateRequest(BaseModel):
     """POST /api/simulate 请求体。"""
 
-    report_id: str
-    environmental_factors: dict[str, float] = Field(
+    factors: dict[str, float] = Field(
         default_factory=dict,
-        description="环境因素：exercise_freq/bmi/smoking/alcohol/diet_quality",
+        description="生活因素：sleep/exercise/diet/stress",
     )
 
 
+class TrendPoint(BaseModel):
+    """趋势数据点。"""
+
+    year: int
+    current: int
+    optimized: int
+
+
 class SimulationResult(BaseModel):
-    """POST /api/simulate 返回。"""
+    """POST /api/simulate 返回（对齐 mockData 计算函数输出）。"""
 
-    scenario_id: str
-    health_trajectory: list[dict] = Field(default_factory=list)
-    confidence_intervals: dict[str, list[float]] = Field(default_factory=dict)
+    healthScore: int = Field(0, ge=0, le=100)
+    riskDimensions: list[RiskDimension] = Field(default_factory=list)
+    trendData: list[TrendPoint] = Field(default_factory=list)
+    recommendations: list["RecommendationOut"] = Field(default_factory=list)
+    optimizedScore: int = Field(0, ge=0, le=100)
 
 
-# ============ 建议 ============
-
-class RecommendationRequest(BaseModel):
-    """POST /api/recommendations 请求体。"""
-
-    report_id: str
-    preferences: dict | None = None
-
+# ============ 建议（mockData.generateRecommendations 输出）============
 
 class RecommendationOut(BaseModel):
-    """单条建议。"""
+    """单条个性化建议。"""
 
     id: str
-    recommendation_type: str
+    pillar: str  # sleep / exercise / diet / stress / general
+    icon: str = "🎯"
     title: str
     description: str
-    evidence_level: str | None = None
-    evidence_links: list[str] = Field(default_factory=list)
-    priority_score: int | None = None
-    difficulty_level: str | None = None
-    status: str = "pending"
+    difficulty: str = "moderate"  # easy / moderate / hard
+    impact: int = Field(1, ge=1, le=5)
+    time: str = ""
 
 
 class RecommendationList(BaseModel):
-    """POST /api/recommendations 返回。"""
+    """GET /api/recommendations 返回。"""
 
     recommendations: list[RecommendationOut] = Field(default_factory=list)
 
 
-# ============ 报告导出 ============
+# ============ 30 天计划（mockData.thirtyDayPlan）============
 
-class ExportQuery(BaseModel):
-    """GET /api/report/{report_id}/export 查询参数。"""
+class TaskItem(BaseModel):
+    """计划任务。"""
 
-    format: str = "html"  # pdf / html
+    day: str
+    title: str
+    desc: str
+
+
+class WeekPlan(BaseModel):
+    """每周计划。"""
+
+    label: str
+    theme: str
+    tasks: list[TaskItem] = Field(default_factory=list)
+
+
+class ThirtyDayPlan(BaseModel):
+    """30 天健康计划。"""
+
+    goal: str
+    weeks: list[WeekPlan] = Field(default_factory=list)
