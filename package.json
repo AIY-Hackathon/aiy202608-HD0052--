@@ -1,0 +1,9 @@
+{
+  "name": "aiy-program",
+  "private": true,
+  "scripts": {
+    "dev": "cd genolife-ai && npm run dev",
+    "build": "cd genolife-ai && npm run build",
+    "install": "cd genolife-ai && npm install"
+  }
+}
