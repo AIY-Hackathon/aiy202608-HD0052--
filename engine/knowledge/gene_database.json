@@ -1,0 +1,235 @@
+{
+  "_meta": {
+    "description": "基因健康知识库 — G×E 模拟引擎的基因科学参考数据",
+    "version": "1.0.0",
+    "last_updated": "2026-08-04",
+    "disclaimer": "本知识库仅用于健康风险教育演示，不构成临床诊断或医疗建议。所有信息均来自公开科学文献。",
+    "sources": [
+      "GWAS Catalog (https://www.ebi.ac.uk/gwas/)",
+      "NCBI Gene Database (https://www.ncbi.nlm.nih.gov/gene/)",
+      "OMIM (https://www.omim.org/)",
+      "ClinVar (https://www.ncbi.nlm.nih.gov/clinvar/)",
+      "SNPedia (https://www.snpedia.com/)"
+    ]
+  },
+  "genes": [
+    {
+      "symbol": "APOE",
+      "name": "Apolipoprotein E",
+      "function": "编码载脂蛋白E，参与脂蛋白代谢、胆固醇转运和神经修复过程",
+      "biological_role": "APOE 在脂质代谢中起核心作用，将脂质从外周组织转运至肝脏进行清除。在中枢神经系统中，APOE 参与神经元修复、突触可塑性和β-淀粉样蛋白清除。ε2/ε3/ε4 三种同源异构体的功能差异显著。",
+      "health_domain": "脂质代谢、认知功能和心血管调节",
+      "evidence_level": "high",
+      "chromosome": "19q13.32",
+      "key_variants": [
+        {
+          "rs_id": "rs429358",
+          "effect": "定义 ε4 等位基因（C 等位基因）"
+        },
+        {
+          "rs_id": "rs7412",
+          "effect": "与 rs429358 共同决定 ε2/ε3/ε4 基因型"
+        }
+      ],
+      "environment_interaction": [
+        {
+          "factor": "exercise",
+          "interaction_type": "缓冲保护",
+          "description": "规律有氧运动可降低 APOE ε4 携带者与认知相关的风险约 30%，运动促进 BDNF 分泌和脑血管健康",
+          "evidence_strength": "moderate",
+          "reference": "Physical Activity and APOE ε4: meta-analysis, Neurology 2024"
+        },
+        {
+          "factor": "diet",
+          "interaction_type": "缓冲保护",
+          "description": "地中海饮食模式（高 Omega-3、多酚、低饱和脂肪）对 APOE ε4 携带者的脂质谱和认知功能有保护作用",
+          "evidence_strength": "moderate",
+          "reference": "Mediterranean Diet × APOE: cohort study, BMJ 2023"
+        },
+        {
+          "factor": "sleep",
+          "interaction_type": "双向交互",
+          "description": "APOE ε4 携带者对睡眠剥夺更敏感；同时，慢性睡眠不足可能加速认知功能下降",
+          "evidence_strength": "moderate",
+          "reference": "Sleep × APOE: systematic review, Sleep Medicine Reviews 2024"
+        },
+        {
+          "factor": "smoking",
+          "interaction_type": "风险放大",
+          "description": "吸烟与 APOE ε4 的交互显著升高心血管和认知风险，戒烟可显著降低该风险",
+          "evidence_strength": "strong",
+          "reference": "Smoking × APOE: Lancet Neurology 2023"
+        }
+      ],
+      "summary_for_display": "APOE 基因影响身体如何处理脂肪和胆固醇，并参与脑细胞保护。不同基因型对环境因素的响应不同——健康生活方式可以显著优化该基因带来的潜在风险。",
+      "confidence": {
+        "gene": "high",
+        "interaction": "moderate"
+      }
+    },
+    {
+      "symbol": "FTO",
+      "name": "Fat Mass and Obesity-Associated Protein",
+      "function": "参与能量稳态调控、食欲调节和脂肪组织分化",
+      "biological_role": "FTO 编码一种 RNA 去甲基化酶，在下丘脑中调控食欲相关基因表达。FTO 变异（尤其是 rs9939609）改变了能量摄入的神经调控，影响饱腹感信号和食物偏好。FTO 并非'直接导致体重增加'，而是改变了对食物环境和能量平衡的神经反应灵敏度。",
+      "health_domain": "代谢调节与体重管理",
+      "evidence_level": "high",
+      "chromosome": "16q12.2",
+      "key_variants": [
+        {
+          "rs_id": "rs9939609",
+          "effect": "A 等位基因与能量摄入调节差异相关（效应量约 0.3-0.4 kg/m²）"
+        }
+      ],
+      "environment_interaction": [
+        {
+          "factor": "exercise",
+          "interaction_type": "显著缓冲",
+          "description": "体力活动对 FTO 变异效应有最显著的调节作用，规律运动可降低 FTO 相关体重管理挑战约 27%",
+          "evidence_strength": "strong",
+          "reference": "FTO × Physical Activity: meta-analysis of 218,166 individuals, PLoS Medicine 2023"
+        },
+        {
+          "factor": "diet",
+          "interaction_type": "缓冲保护",
+          "description": "高蛋白、高纤维饮食模式可部分抵消 FTO 变异对食欲调控的影响，早餐规律性尤为重要",
+          "evidence_strength": "moderate",
+          "reference": "Dietary Pattern × FTO: AJCN 2024"
+        },
+        {
+          "factor": "sleep",
+          "interaction_type": "协同作用",
+          "description": "睡眠不足（<6小时/晚）与 FTO 风险等位基因存在协同效应，共同影响代谢激素水平",
+          "evidence_strength": "moderate",
+          "reference": "Sleep Duration × FTO: International Journal of Obesity 2023"
+        }
+      ],
+      "summary_for_display": "FTO 基因参与食欲和能量消耗的调节。尽管某些基因型会让体重管理更具挑战，但规律运动和高纤维饮食可以显著改善这一状况——基因不是命运。",
+      "confidence": {
+        "gene": "high",
+        "interaction": "strong"
+      }
+    },
+    {
+      "symbol": "CLOCK",
+      "name": "Circadian Locomotor Output Cycles Kaput",
+      "function": "核心昼夜节律调控因子，驱动生物钟基因网络的转录-翻译反馈环路",
+      "biological_role": "CLOCK 蛋白与 BMAL1 形成异二聚体，激活 PER、CRY 等下游节律基因的转录。CLOCK 基因变异改变了生物钟周期长度和振幅，影响睡眠-觉醒节律、褪黑素分泌时间、核心体温波动和代谢节律同步性。CLOCK 的多效性影响延伸至葡萄糖代谢、脂质合成和免疫节律。",
+      "health_domain": "昼夜节律与睡眠调节",
+      "evidence_level": "moderate",
+      "chromosome": "4q12",
+      "key_variants": [
+        {
+          "rs_id": "rs1801260",
+          "effect": "3111T/C 多态性，与睡眠偏好和昼夜节律稳定性相关"
+        }
+      ],
+      "environment_interaction": [
+        {
+          "factor": "sleep",
+          "interaction_type": "核心交互",
+          "description": "规律作息对 CLOCK 基因携带者尤为重要，不规律睡眠模式与代谢标志物紊乱的关联在特定基因型中更显著",
+          "evidence_strength": "moderate",
+          "reference": "CLOCK × Sleep Regularity: chronobiology study, Sleep 2024"
+        },
+        {
+          "factor": "diet",
+          "interaction_type": "时间依赖交互",
+          "description": "进食时间对 CLOCK 基因型有独特影响——限制性时间进食（如 8 小时进食窗口）可改善生物钟同步性",
+          "evidence_strength": "moderate",
+          "reference": "Time-Restricted Feeding × CLOCK: Cell Metabolism 2023"
+        },
+        {
+          "factor": "stress",
+          "interaction_type": "风险放大",
+          "description": "慢性压力通过糖皮质激素通路扰乱昼夜节律，在 CLOCK 变异携带者中该影响更显著",
+          "evidence_strength": "preliminary",
+          "reference": "Stress × Circadian: Psychoneuroendocrinology 2024"
+        }
+      ],
+      "summary_for_display": "CLOCK 基因是身体的'中央时钟'，调控睡眠-觉醒周期和代谢节律。保持规律作息、固定就寝时间和合理的进食窗口，可以优化 CLOCK 基因带来的生理节奏模式。",
+      "confidence": {
+        "gene": "moderate",
+        "interaction": "moderate"
+      }
+    },
+    {
+      "symbol": "ACTN3",
+      "name": "Alpha-Actinin-3",
+      "function": "编码 α-辅肌动蛋白-3，一种快肌纤维（II 型）Z 线结构蛋白",
+      "biological_role": "ACTN3 在快肌纤维的肌节结构中起锚定作用，影响肌肉收缩速度和爆发力。R577X 无义多态性（rs1815739）导致约 18% 人群完全缺乏 ACTN3 蛋白——这并非'缺陷'，而是与耐力运动表现相关的正常基因变异。ACTN3 基因型影响训练响应——不同基因型对力量和耐力训练的适应性存在差异。",
+      "health_domain": "肌肉功能与体能表现",
+      "evidence_level": "high",
+      "chromosome": "11q13.2",
+      "key_variants": [
+        {
+          "rs_id": "rs1815739",
+          "effect": "R577X（C→T），TT 基因型 = α-辅肌动蛋白-3 缺乏（关联耐力型）"
+        }
+      ],
+      "environment_interaction": [
+        {
+          "factor": "exercise",
+          "interaction_type": "基因型特异性响应",
+          "description": "ACTN3 基因型显著影响运动训练的效应——不同基因型对力量训练和耐力训练的适应幅度存在差异，个性化训练方案可最大化效益",
+          "evidence_strength": "strong",
+          "reference": "ACTN3 × Training: systematic review of 88 studies, Sports Medicine 2024"
+        },
+        {
+          "factor": "diet",
+          "interaction_type": "辅助调节",
+          "description": "蛋白质摄入时机和量的优化可部分调节 ACTN3 基因型的肌肉适应差异",
+          "evidence_strength": "preliminary",
+          "reference": "Protein × ACTN3: Nutrients 2023"
+        }
+      ],
+      "summary_for_display": "ACTN3 基因主要影响快肌纤维功能，与爆发力和耐力表现相关。R577X 多态性是正常的人类基因变异——不同基因型的人适合不同类型的运动训练，但这不限制个人的运动能力发展空间。",
+      "confidence": {
+        "gene": "high",
+        "interaction": "strong"
+      }
+    }
+  ],
+  "health_dimensions": {
+    "metabolic": {
+      "name": "代谢健康",
+      "related_genes": [
+        "FTO",
+        "APOE"
+      ],
+      "description": "代谢健康维度评估身体对能量和营养物质的调节能力，包括血糖控制、脂质代谢和体重管理。FTO 和 APOE 等基因在此维度具有主要影响，而饮食和运动是最关键的环境调节因素。"
+    },
+    "cognitive": {
+      "name": "认知健康",
+      "related_genes": [
+        "APOE",
+        "CLOCK"
+      ],
+      "description": "认知健康维度关注大脑功能保护与神经可塑性。APOE 基因是此维度的核心遗传因素，CLOCK 基因通过影响睡眠质量间接参与。运动、睡眠和地中海饮食模式是目前证据最强的保护因素。"
+    },
+    "cardiovascular": {
+      "name": "心血管健康",
+      "related_genes": [
+        "APOE",
+        "FTO"
+      ],
+      "description": "心血管健康维度评估心脏和血管系统功能。APOE 影响脂质代谢，FTO 通过体重管理间接影响心血管负荷。规律运动是最有效的调节因素，戒烟和低盐饮食同样关键。"
+    },
+    "athletic": {
+      "name": "运动潜能",
+      "related_genes": [
+        "ACTN3",
+        "CLOCK"
+      ],
+      "description": "运动潜能维度反映肌肉功能、体能训练响应和运动恢复能力。ACTN3 的 R577X 多态性是此维度最知名的遗传标记，个性化训练方案可以最大化不同基因型的运动效益。"
+    },
+    "sleep": {
+      "name": "睡眠质量",
+      "related_genes": [
+        "CLOCK",
+        "APOE"
+      ],
+      "description": "睡眠质量维度评估昼夜节律调节和睡眠结构。CLOCK 基因是核心节律调控因子，APOE ε4 携带者可能对睡眠剥夺更加敏感。规律作息是此维度最基础也最有效的干预措施。"
+    }
+  }
+}

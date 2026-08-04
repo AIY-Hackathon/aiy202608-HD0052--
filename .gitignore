@@ -25,3 +25,5 @@ Thumbs.db
 uploads/
 exports/
 *.log
+gene_assistant.db
+output/
