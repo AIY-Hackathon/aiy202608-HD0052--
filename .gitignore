@@ -1,0 +1,27 @@
+# === Python ===
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# === 虚拟环境 ===
+.env
+.env.local
+
+# === 数据文件（184MB，不入库）===
+data/
+*.vcf
+*.vcf.gz
+*.tbi
+
+# === IDE / 系统 ===
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === 运行时文件 ===
+uploads/
+exports/
+*.log
