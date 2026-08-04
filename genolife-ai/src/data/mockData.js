@@ -18,6 +18,26 @@ export const healthSummary = {
     "Your genetic profile indicates a moderate tendency toward metabolic risk, balanced by favorable cognitive and athletic gene variants. Lifestyle choices can significantly shift your projected health trajectory.",
 };
 
+export const healthMetrics = [
+  { key: "metabolic", label: "Metabolism Risk", score: 68, suffix: "%", status: "moderate" },
+  { key: "sleep", label: "Sleep Rhythm", score: 82, suffix: "%", status: "low" },
+  { key: "fitness", label: "Fitness Potential", score: 76, suffix: "%", status: "low" },
+  { key: "cognitive", label: "Cognitive Risk", score: 42, suffix: "%", status: "low" },
+];
+
+export const geneticProfile = [
+  { key: "metabolic", icon: "⚡", label: "Metabolism", trait: "Moderate tendency", detail: "FTO variant — higher sensitivity to sugar & refined carbs" },
+  { key: "sleep", icon: "🌙", label: "Sleep Rhythm", trait: "Evening type", detail: "CLOCK variant — natural energy peak later in the day" },
+  { key: "fitness", icon: "💪", label: "Fitness", trait: "Power-oriented", detail: "ACTN3 RR genotype — optimized for explosive movement" },
+  { key: "cognitive", icon: "🧠", label: "Cognitive", trait: "Slightly elevated risk", detail: "APOE ε4 carrier — offset by lifestyle choices" },
+];
+
+export const riskSummaryCards = [
+  { key: "metabolic", label: "Metabolism", level: "Moderate Risk", levelColor: "text-risk-moderate", bg: "bg-amber-50/60", border: "border-amber-100", desc: "Your FTO variant increases sensitivity to diet. Physical activity reduces its effect by ~30%." },
+  { key: "sleep", label: "Sleep & Recovery", level: "Optimization Opportunity", levelColor: "text-primary", bg: "bg-primary-light/60", border: "border-primary/10", desc: "Evening chronotype. Morning light exposure can shift your rhythm earlier." },
+  { key: "fitness", label: "Fitness", level: "Genetic Advantage", levelColor: "text-accent", bg: "bg-accent-light/60", border: "border-accent/20", desc: "Power-oriented muscle profile. Responds well to strength and sprint training." },
+];
+
 export const geneCards = [
   {
     id: "apoe",

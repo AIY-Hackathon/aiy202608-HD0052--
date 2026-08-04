@@ -3,77 +3,228 @@ import { motion } from "framer-motion";
 import HealthScoreRing from "../components/shared/HealthScoreRing";
 import GeneCard from "../components/shared/GeneCard";
 import RiskBar from "../components/shared/RiskBar";
-import AIBadge from "../components/shared/AIBadge";
 import RiskRadar from "../components/charts/RiskRadar";
-import { healthSummary, geneCards, riskDimensions } from "../data/mockData";
-import { Activity, Dna, ShieldAlert } from "lucide-react";
+import { useLocation } from "../components/layout/PageTransition";
+import { healthSummary, geneCards, riskDimensions, geneticProfile, riskSummaryCards } from "../data/mockData";
+import { Dna, ShieldAlert, ArrowRight } from "lucide-react";
+
+/* ── Trait chip for the genetic profile section ── */
+function TraitCard({ trait, index = 0 }) {
+  return (
+    <motion.div
+      className="premium-card px-5 py-4 flex items-center gap-4"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15 + index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -3 }}
+    >
+      <span className="text-2xl flex-shrink-0">{trait.icon}</span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
+          {trait.label}
+        </p>
+        <p className="text-[14px] font-semibold text-text leading-snug">{trait.trait}</p>
+        <p className="text-[12px] text-text-tertiary truncate">{trait.detail}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Risk summary card ── */
+function RiskSummaryCard({ card, index = 0 }) {
+  return (
+    <motion.div
+      className={`premium-card px-6 py-5 border-l-3 ${card.bg} ${card.border}`}
+      style={{ borderLeftWidth: 3, borderLeftColor: "var(--tw-border-color, currentColor)" }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.45 + index * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -3 }}
+    >
+      <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em] mb-1">
+        {card.label}
+      </p>
+      <p className={`text-[13px] font-bold ${card.levelColor} mb-2`}>{card.level}</p>
+      <p className="text-[12px] text-text-secondary leading-relaxed">{card.desc}</p>
+    </motion.div>
+  );
+}
 
 export default function GeneMap() {
+  const { goTo } = useLocation();
   const [expandedGene, setExpandedGene] = useState(null);
-
-  const levelDot =
-    healthSummary.level === "low" ? "bg-risk-low shadow-risk-low/40" :
-    healthSummary.level === "moderate" ? "bg-risk-moderate shadow-risk-moderate/40" :
-    "bg-risk-high shadow-risk-high/40";
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-24">
       {/* ================================================================
-          HERO — Health Score + AI Summary
+          1. HERO — Product Identity
+          "Who are we and what does this report tell you?"
          ================================================================ */}
       <motion.section
-        className="text-center mb-24"
-        initial={{ opacity: 0, y: 20 }}
+        className="mb-16"
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* Section label */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-light/60 text-primary mb-8">
-          <Dna size={14} />
-          <span className="text-[12px] font-bold uppercase tracking-[0.12em]">Your Genetic Health Profile</span>
-        </div>
-
-        {/* Score ring */}
-        <div className="flex justify-center mb-8">
-          <HealthScoreRing
-            score={healthSummary.score}
-            size={240}
-            strokeWidth={12}
-            label="Health Score"
-            subtitle="/100"
-            showGlow
-          />
-        </div>
-
-        {/* Summary text */}
-        <div className="max-w-xl mx-auto">
-          <div className="flex items-center justify-center gap-2.5 mb-4">
-            <span className={`inline-block w-2.5 h-2.5 rounded-full shadow-lg ${levelDot}`} />
-            <span className="text-[15px] font-semibold text-text">
-              {healthSummary.levelLabel}
-            </span>
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          {/* Left: brand + tagline */}
+          <div>
+            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.18em] mb-3">
+              GenoLife AI
+            </p>
+            <h1 className="font-display font-bold text-[26px] sm:text-[30px] text-text tracking-tight leading-tight mb-2">
+              AI Genetic Health Report
+            </h1>
+            <p className="text-[15px] text-text-secondary max-w-md leading-relaxed">
+              Your genes reveal tendencies. <span className="text-text-tertiary">Your choices shape outcomes.</span>
+            </p>
           </div>
-          <p className="text-[15px] text-text-secondary leading-relaxed">
-            {healthSummary.aiSummary}
-          </p>
-          <div className="mt-4">
-            <AIBadge text="AI-generated summary" />
+
+          {/* Right: report metadata */}
+          <div className="flex items-center gap-4 text-[11px] text-text-tertiary">
+            <div className="text-right">
+              <p className="font-mono text-text-secondary font-semibold">#GNO-2026-0042</p>
+              <p>Generated Aug 2026</p>
+            </div>
+            <div className="w-px h-8 bg-gray-200" />
+            <div className="text-right">
+              <p className="text-text-secondary font-semibold">Alex</p>
+              <p>Age 30 · Male</p>
+            </div>
           </div>
         </div>
       </motion.section>
 
       {/* ================================================================
-          GENE CARDS — 2x2 grid
+          2. PERSONAL GENETIC PROFILE
+          "What are your genetic tendencies?"
+         ================================================================ */}
+      <section className="mb-14">
+        <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.15em] mb-4">
+          Genetic Profile
+        </p>
+
+        {/* 4 trait cards in a horizontal row on desktop, 2x2 on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          {geneticProfile.map((trait, i) => (
+            <TraitCard key={trait.key} trait={trait} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* ================================================================
+          3. HEALTH INDEX
+          The score + what it's calculated from
+         ================================================================ */}
+      <section className="mb-14">
+        <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.15em] mb-4">
+          Health Index
+        </p>
+
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          {/* Score ring */}
+          <motion.div
+            className="flex-shrink-0"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <HealthScoreRing
+              score={healthSummary.score}
+              size={210}
+              strokeWidth={11}
+              label="Genetic Health Index"
+              subtitle="/100"
+              showGlow
+            />
+          </motion.div>
+
+          {/* Methodology — right side on desktop, below on mobile */}
+          <div className="flex-1 max-w-xs lg:max-w-none mx-auto lg:mx-0">
+            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em] mb-4 text-center lg:text-left">
+              Calculated from
+            </p>
+
+            <div className="flex lg:flex-col items-center lg:items-stretch justify-center gap-2 lg:gap-3 flex-wrap lg:flex-nowrap">
+              {[
+                { label: "Genetic variants", desc: "4 key genes analyzed", color: "border-l-primary" },
+                { label: "Family history", desc: "3-generation health background", color: "border-l-accent" },
+                { label: "Lifestyle factors", desc: "Sleep, diet, exercise, stress", color: "border-l-risk-moderate" },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  className="premium-card px-4 py-3 border-l-3 flex-1 lg:flex-none"
+                  style={{ borderLeftWidth: 3, borderLeftColor: i === 0 ? "var(--color-primary)" : i === 1 ? "var(--color-accent)" : "var(--color-risk-moderate)" }}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 + i * 0.08, duration: 0.4 }}
+                >
+                  <p className="text-[13px] font-semibold text-text">{item.label}</p>
+                  <p className="text-[11px] text-text-tertiary">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================
+          4. KEY RISK SUMMARY
+          3 cards — one sentence each
+         ================================================================ */}
+      <section className="mb-16">
+        <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.15em] mb-4">
+          Key Findings
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {riskSummaryCards.map((card, i) => (
+            <RiskSummaryCard key={card.key} card={card} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* ================================================================
+          5. NEXT STEP — CTA to Simulation
+         ================================================================ */}
+      <motion.section
+        className="mb-24"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <div className="premium-card px-6 py-6 sm:px-8 sm:py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-white to-primary-light/20">
+          <div>
+            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em] mb-1">
+              Explore your health journey
+            </p>
+            <p className="text-[15px] font-semibold text-text leading-snug">
+              See how lifestyle changes affect your genetic risk profile.
+            </p>
+          </div>
+          <button
+            onClick={() => goTo("simulation")}
+            className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-white text-[14px] font-semibold hover:bg-primary-600 transition-colors shadow-lg shadow-primary/20 cursor-pointer"
+            style={{ border: "none" }}
+          >
+            Simulate Lifestyle Impact
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </motion.section>
+
+      {/* ================================================================
+          6. GENE CARDS — 2x2 grid (detailed view for those who scroll)
          ================================================================ */}
       <section className="mb-24">
         <div className="flex items-center gap-3 mb-8">
-          <Activity size={17} className="text-accent" />
+          <Dna size={17} className="text-accent" />
           <div>
             <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
-              Your Genetic Traits
+              Detailed Gene Analysis
             </p>
-            <h2 className="font-display font-bold text-[26px] text-text tracking-tight mt-0.5">
-              What your genes say about you
+            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">
+              Dive deeper into your genetic traits
             </h2>
           </div>
         </div>
@@ -94,7 +245,7 @@ export default function GeneMap() {
       </section>
 
       {/* ================================================================
-          RISK PROFILE — Radar + Bars
+          7. RISK PROFILE — Radar + Bars
          ================================================================ */}
       <section>
         <div className="flex items-center gap-3 mb-8">
@@ -103,19 +254,17 @@ export default function GeneMap() {
             <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
               Risk Profile
             </p>
-            <h2 className="font-display font-bold text-[26px] text-text tracking-tight mt-0.5">
-              Your genetic risk across five dimensions
+            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">
+              Five dimensions of genetic influence
             </h2>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Radar chart */}
           <div className="premium-card p-6">
             <RiskRadar data={riskDimensions} height={320} />
           </div>
 
-          {/* Risk bars */}
           <div className="space-y-6">
             {riskDimensions.map((dim) => (
               <RiskBar
