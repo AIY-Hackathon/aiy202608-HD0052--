@@ -10,6 +10,7 @@ import RiskBar from "../components/shared/RiskBar";
 import RiskRadar from "../components/charts/RiskRadar";
 import Gene3DViewer from "../components/Gene3DViewer";
 import AdvancedVisualizations from "../components/AdvancedVisualizations";
+import PopulationSelector from "../components/PopulationSelector";
 import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
 import { getProfile, uploadReport, getAnalysis } from "../api/client";
@@ -192,6 +193,9 @@ export default function GeneMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSig, setFilterSig] = useState("all");
 
+  // ── 人群特点（祖先推断参考 + 用户手动选择）──
+  const [selectedPopulation, setSelectedPopulation] = useState("");
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -216,7 +220,7 @@ export default function GeneMap() {
     async function loadAnalysis() {
       try {
         setAnalysisLoading(true);
-        const data = await getAnalysis(uploadResult.report_id);
+        const data = await getAnalysis(uploadResult.report_id, { population: selectedPopulation });
         if (!cancelled) setAnalysisData(data);
       } catch {
         // fallback
@@ -226,7 +230,7 @@ export default function GeneMap() {
     }
     loadAnalysis();
     return () => { cancelled = true; };
-  }, [uploadResult?.report_id]);
+  }, [uploadResult?.report_id, selectedPopulation]);
 
   // ── 数据源：只看后端 + engine，不复用 mock ──
   const summary = profileData?.summary || null;
@@ -657,6 +661,17 @@ export default function GeneMap() {
           </div>
         </div>
       </div>
+
+      {/* ================================================================
+          POPULATION SELECTOR — 人群特点（祖先参考 + 用户选择）
+         ================================================================ */}
+      <section className="mb-14">
+        <PopulationSelector
+          ancestry={analysisData?.ancestry || null}
+          selectedPopulation={selectedPopulation}
+          onSelect={setSelectedPopulation}
+        />
+      </section>
 
       {/* ================================================================
           KEY FINDINGS

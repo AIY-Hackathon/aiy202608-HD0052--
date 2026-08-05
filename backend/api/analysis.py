@@ -19,7 +19,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from backend.api.profile import build_profile
 from backend.schemas import ApiResponse
@@ -64,14 +64,22 @@ def _variants_to_dicts(variants) -> list[dict]:
             "odds_ratio": v.odds_ratio,
             "population_frequency": v.population_frequency,
             "risk_score": v.risk_score,
+            "genotype": v.genotype,
+            "allele_dosage": v.allele_dosage,
         }
         for v in variants
     ]
 
 
 @router.get("/analysis/{report_id}", response_model=ApiResponse)
-def get_analysis(report_id: str):
-    """获取基因分析结果。"""
+def get_analysis(report_id: str, population: str | None = Query(None)):
+    """获取基因分析结果。
+
+    Args:
+        report_id: 报告 ID
+        population: 可选，用户人群（东亚/欧洲/非洲/南亚/拉丁 或 EAS/EUR/AFR/SAS/LAT）。
+                    传入时关键基因选择会按人群频率校准。
+    """
     report, variants = _load_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"报告 {report_id} 不存在")
@@ -81,10 +89,12 @@ def get_analysis(report_id: str):
     # 疾病风险（PRS）
     prs = engine.calculate_prs(variant_dicts)
 
-    # 基因分析档案
-    profile = build_profile(variant_dicts)
+    # 基因分析档案（支持人群参数）
+    profile = build_profile(variant_dicts, population=population)
 
-    # 提取 geneCards 时过滤掉无关紧要的基因
+    # 祖先推断（辅助参考）
+    ancestry = _infer_ancestry(variant_dicts)
+
     return ApiResponse.ok({
         "report": {
             "id": report.id,
@@ -99,4 +109,27 @@ def get_analysis(report_id: str):
         "overall_risk_level": prs["overall_risk_level"],
         "confidence_intervals": prs["confidence_intervals"],
         "profile": profile,
+        "ancestry": ancestry,
     })
+
+
+def _infer_ancestry(variant_dicts: list[dict]) -> dict | None:
+    """调用祖先推断引擎（尽力而为，失败返回 None）。"""
+    try:
+        from engine.ancestry import infer_ancestry
+        return infer_ancestry(variant_dicts)
+    except Exception as e:
+        print(f"[analysis] 祖先推断失败: {e}")
+        return None
+
+
+@router.get("/analysis/{report_id}/ancestry", response_model=ApiResponse)
+def get_ancestry(report_id: str):
+    """获取人群祖先推断结果（辅助参考，低置信度时提示用户手动确认）。"""
+    report, variants = _load_report(report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail=f"报告 {report_id} 不存在")
+
+    variant_dicts = _variants_to_dicts(variants)
+    result = _infer_ancestry(variant_dicts)
+    return ApiResponse.ok(result)

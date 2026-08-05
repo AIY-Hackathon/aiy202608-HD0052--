@@ -626,11 +626,39 @@ def identify_key_genes(
     variants: list[dict],
     top_n: int = 6,
     min_score: float = 1.0,
+    population: str | None = None,
 ) -> list[dict]:
     """从用户样本中智能抓取关键基因。
 
     综合评分 = 变异严重度(0-3) × 证据权重(0.4-1.0) × 基因重要性(1-2)
+             × 人群稀有度(0.8-1.5) × 基因型剂量(1-1.6)
+
+    人群稀有度（用户特点维度）：
+      - 携带的变异等位基因在用户人群中越稀有（频率低），该基因越值得关注
+      - 例如 AFR 人群 APOE ε4 频率 38%（常见），但 rs7412(ε2) 频率 0（罕见）
+        → 携带 ε2 的 AFR 用户，APOE 关注度应更高
+      - population 为 None 时不做人群校准（保持原行为）
+
+    基因型剂量：
+      - 纯合变异（allele_dosage=2）权重 1.6
+      - 杂合（1）权重 1.2
+      - 无剂量信息（1.0）
     """
+    # 人群特异性等位基因频率（与 engine/ancestry.py 保持一致）
+    _POP_FREQ: dict[str, dict[str, float]] = {
+        "rs429358": {"EAS": 0.12, "EUR": 0.25, "AFR": 0.38, "SAS": 0.25, "LAT": 0.12},
+        "rs7412": {"EAS": 0.00, "EUR": 0.12, "AFR": 0.00, "SAS": 0.00, "LAT": 0.00},
+        "rs9939609": {"EAS": 0.25, "EUR": 0.38, "AFR": 0.25, "SAS": 0.25, "LAT": 0.38},
+        "rs1801260": {"EAS": 0.50, "EUR": 0.38, "AFR": 0.25, "SAS": 0.75, "LAT": 0.62},
+        "rs1815739": {"EAS": 0.38, "EUR": 0.50, "AFR": 0.38, "SAS": 0.12, "LAT": 0.62},
+    }
+    _pop_code = None
+    if population:
+        _pop_map = {"东亚": "EAS", "欧洲": "EUR", "非洲": "AFR", "南亚": "SAS", "拉丁": "LAT",
+                    "east_asian": "EAS", "european": "EUR", "african": "AFR", "south_asian": "SAS", "latino": "LAT",
+                    "EAS": "EAS", "EUR": "EUR", "AFR": "AFR", "SAS": "SAS", "LAT": "LAT"}
+        _pop_code = _pop_map.get(str(population))
+
     gene_info: dict[str, list[dict]] = {}
     for v in variants:
         gene = _normalize_gene(v.get("gene_name", ""))
@@ -650,7 +678,36 @@ def identify_key_genes(
         science = _get_gene_science(gene)
         evidence_w = _EVIDENCE_WEIGHT.get(science.get("evidence", "moderate"), 0.7)
         importance = 2.0 if classify_gene_to_dimension(gene) or classify_gene_to_disease(gene) else 1.0
-        score = (severity_score + 1) * evidence_w * importance
+
+        # ── 人群稀有度因子 ──
+        population_factor = 1.0
+        population_rarity_note = ""
+        if _pop_code:
+            # 计算该基因所有变异在用户人群中的平均频率
+            freqs = []
+            for v in gene_variants:
+                rs = v.get("rs_id")
+                if rs and rs in _POP_FREQ and _pop_code in _POP_FREQ[rs]:
+                    freqs.append(_POP_FREQ[rs][_pop_code])
+            if freqs:
+                avg_freq = sum(freqs) / len(freqs)
+                # 频率越低越稀有 → 因子越高。频率 50% 时因子≈1.0，0% 时≈1.5
+                population_factor = round(1.0 + max(0.0, (0.5 - avg_freq)) * 1.0, 3)
+                population_rarity_note = (
+                    f"该基因的变异等位基因在{_pop_code}人群中的平均频率约 "
+                    f"{avg_freq*100:.0f}%（{'较常见' if avg_freq >= 0.3 else '较稀有'}），"
+                    f"{'值得关注' if avg_freq < 0.3 else '属常见变异'}"
+                )
+
+        # ── 基因型剂量因子 ──
+        dosage_factor = 1.0
+        max_dosage = max((v.get("allele_dosage") or 0) for v in gene_variants) if gene_variants else 0
+        if max_dosage >= 2:
+            dosage_factor = 1.6
+        elif max_dosage == 1:
+            dosage_factor = 1.2
+
+        score = (severity_score + 1) * evidence_w * importance * population_factor * dosage_factor
 
         if score < min_score:
             continue
@@ -670,15 +727,22 @@ def identify_key_genes(
             "dimension": classify_gene_to_dimension(gene),
             "disease": classify_gene_to_disease(gene),
             "variants_found": rs_ids,
+            "population_factor": population_factor,
+            "dosage_factor": dosage_factor,
+            "max_allele_dosage": max_dosage,
+            "population_note": population_rarity_note,
         })
 
     results.sort(key=lambda r: r["score"], reverse=True)
     return results[:top_n]
 
 
-def generate_scientific_analysis(variants: list[dict]) -> dict:
+def generate_scientific_analysis(
+    variants: list[dict],
+    population: str | None = None,
+) -> dict:
     """生成多样化的科学分析结果。"""
-    key_genes = identify_key_genes(variants)
+    key_genes = identify_key_genes(variants, population=population)
 
     dimension_scores = calculate_dimension_scores(variants)
     avg_score = sum(d["score"] for d in dimension_scores) / len(dimension_scores) if dimension_scores else 50

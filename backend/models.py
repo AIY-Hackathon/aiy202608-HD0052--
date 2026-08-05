@@ -125,6 +125,10 @@ class GeneticVariant(Base):
     quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     risk_score: Mapped[float | None] = mapped_column(Float, nullable=True)  # PRS 权重贡献
 
+    # === 基因型（GT 字段）===
+    genotype: Mapped[str | None] = mapped_column(String(10), nullable=True)  # "0/1", "1/1"
+    allele_dosage: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 0/1/2
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     # 关联

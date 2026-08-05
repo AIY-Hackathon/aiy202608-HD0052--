@@ -121,8 +121,13 @@ def _run_mini_prs(variants: list[dict]) -> dict | None:
         return None
 
 
-def build_profile(variants: list[dict] | None = None) -> dict:
-    """构建完整基因档案（可复用，便于测试）。"""
+def build_profile(variants: list[dict] | None = None, population: str | None = None) -> dict:
+    """构建完整基因档案（可复用，便于测试）。
+
+    Args:
+        variants: 变异列表
+        population: 可选，用户人群。传入时关键基因按人群频率校准。
+    """
     variants = variants or []
 
     # 1. 基因卡片
@@ -131,8 +136,8 @@ def build_profile(variants: list[dict] | None = None) -> dict:
     # 2. 风险维度
     risk_dimensions = engine.calculate_dimension_scores(variants)
 
-    # 3. 关键基因抓取 + 科学分析
-    scientific = engine.generate_scientific_analysis(variants)
+    # 3. 关键基因抓取 + 科学分析（支持人群维度）
+    scientific = engine.generate_scientific_analysis(variants, population=population)
 
     # 4. Mini-PRS 科学引擎增强（GWAS 证据权重）
     mini_prs = _run_mini_prs(variants)

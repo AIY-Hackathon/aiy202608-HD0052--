@@ -76,10 +76,17 @@ def parse_info(info_str: str) -> dict:
 
 
 def variant_to_dict(row: pd.Series) -> dict:
-    """将一行 VCF 数据转换为标准变异字典（对齐 schemas.VariantOut）。"""
+    """将一行 VCF 数据转换为标准变异字典（对齐 schemas.VariantOut）。
+
+    额外解析 GT 基因型字段（FORMAT=GT，样本列为 0/0、0/1、1/1 等）：
+      - genotype: 原始 GT 字符串，如 "0/1"
+      - allele_dosage: 风险/变异等位基因剂量（0/1/2），纯合变异=2，杂合=1
+      - homozygous: 是否纯合变异（1/1）
+    """
     info = parse_info(str(row.get("INFO", "")))
 
-    return {
+    # 解析 GT：FORMAT 列在倒数第 2 列，样本列在最后一列
+    result = {
         "chromosome": str(row["CHROM"]).replace("chr", ""),
         "position": int(row["POS"]),
         "rs_id": None if row["ID"] in (".", "") else str(row["ID"]),
@@ -90,6 +97,36 @@ def variant_to_dict(row: pd.Series) -> dict:
         "clinvar_significance": info.get("CLNSIG") or None,
         "clinvar_review_status": info.get("CLNREVSTAT") or None,
     }
+
+    # GT 基因型：最后一列是样本列（如 0/1），倒数第 2 列是 FORMAT（含 GT）
+    sample = row.get("SAMPLE") or row.get("FORMAT")
+    gt = None
+    if sample is not None:
+        sample_str = str(sample).strip()
+        # GT 通常是 "0/1"、"1/1"、"./.", 或 "0|1"（phased）
+        if "/" in sample_str or "|" in sample_str:
+            gt = sample_str
+    if gt is None:
+        # 尝试从 FORMAT 定位 GT 位置
+        fmt = str(row.get("FORMAT", "")).split(":")
+        if "GT" in fmt and sample is not None:
+            idx = fmt.index("GT")
+            fields = str(sample).split(":")
+            if idx < len(fields):
+                gt = fields[idx]
+
+    if gt:
+        result["genotype"] = gt.replace("|", "/")
+        allele = gt.replace("|", "/").split("/")
+        # 计算变异等位基因剂量（非 0 即为变异等位基因）
+        try:
+            dosage = sum(1 for a in allele if a not in ("0", "."))
+            result["allele_dosage"] = dosage
+            result["homozygous"] = dosage == 2
+        except (ValueError, TypeError):
+            pass
+
+    return result
 
 
 def parse_vcf_pandas(filepath: str, max_variants: int | None = None) -> pd.DataFrame:
@@ -128,10 +165,11 @@ def parse_vcf_pandas(filepath: str, max_variants: int | None = None) -> pd.DataF
     if df.empty or df.shape[1] < 8:
         return pd.DataFrame(columns=VCF_COLUMNS)
 
-    # 赋值列名（取前 9 列，其余为样本列）
-    n_cols = min(df.shape[1], 9)
+    # 赋值列名（取前 10 列：9 标准列 + 样本列；若有多样本取第一个）
+    n_cols = min(df.shape[1], 10)
     df = df.iloc[:, :n_cols]
-    df.columns = VCF_COLUMNS[:n_cols]
+    cols = VCF_COLUMNS[:9] + (["SAMPLE"] if n_cols == 10 else [])
+    df.columns = cols
 
     # 过滤变异行（POS 必须是数字）
     df["POS"] = pd.to_numeric(df["POS"], errors="coerce")

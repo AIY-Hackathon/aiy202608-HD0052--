@@ -126,6 +126,8 @@ async def _save_to_db(variants: list[dict], original_filename: str, file_format:
                 clinvar_review_status=v.get("clinvar_review_status"),
                 odds_ratio=v.get("odds_ratio"),
                 population_frequency=v.get("population_frequency"),
+                genotype=v.get("genotype"),
+                allele_dosage=v.get("allele_dosage"),
                 risk_score=engine.risk_score_for_variant(
                     v.get("clinvar_significance"), v.get("odds_ratio")
                 ),

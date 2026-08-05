@@ -117,7 +117,8 @@ export async function getProfile() {
 
 // ============ GET /api/analysis/{report_id} — 分析结果 ============
 
-export async function getAnalysis(reportId) {
+export async function getAnalysis(reportId, options = {}) {
+  const { population } = options;
   if (await shouldUseMock()) {
     await delay(300);
     return {
@@ -150,9 +151,11 @@ export async function getAnalysis(reportId) {
         geneCards,
         riskDimensions,
       },
+      ancestry: null,
     };
   }
-  return request(`/analysis/${reportId}`);
+  const params = population ? `?population=${encodeURIComponent(population)}` : "";
+  return request(`/analysis/${reportId}${params}`);
 }
 
 // ============ POST /api/upload — 上传 VCF ============
