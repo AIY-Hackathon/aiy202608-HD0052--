@@ -1,0 +1,322 @@
+[
+  {
+    "file": "afr_8_M.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 8,
+    "sex": "M"
+  },
+  {
+    "file": "afr_8_F.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 8,
+    "sex": "F"
+  },
+  {
+    "file": "afr_25_M.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 25,
+    "sex": "M"
+  },
+  {
+    "file": "afr_25_F.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 25,
+    "sex": "F"
+  },
+  {
+    "file": "afr_45_M.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 45,
+    "sex": "M"
+  },
+  {
+    "file": "afr_45_F.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 45,
+    "sex": "F"
+  },
+  {
+    "file": "afr_65_M.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 65,
+    "sex": "M"
+  },
+  {
+    "file": "afr_65_F.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "country": "Nigeria",
+    "age": 65,
+    "sex": "F"
+  },
+  {
+    "file": "eur_8_M.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 8,
+    "sex": "M"
+  },
+  {
+    "file": "eur_8_F.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 8,
+    "sex": "F"
+  },
+  {
+    "file": "eur_25_M.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 25,
+    "sex": "M"
+  },
+  {
+    "file": "eur_25_F.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 25,
+    "sex": "F"
+  },
+  {
+    "file": "eur_45_M.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 45,
+    "sex": "M"
+  },
+  {
+    "file": "eur_45_F.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 45,
+    "sex": "F"
+  },
+  {
+    "file": "eur_65_M.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 65,
+    "sex": "M"
+  },
+  {
+    "file": "eur_65_F.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "country": "United Kingdom",
+    "age": 65,
+    "sex": "F"
+  },
+  {
+    "file": "eas_8_M.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 8,
+    "sex": "M"
+  },
+  {
+    "file": "eas_8_F.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 8,
+    "sex": "F"
+  },
+  {
+    "file": "eas_25_M.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 25,
+    "sex": "M"
+  },
+  {
+    "file": "eas_25_F.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 25,
+    "sex": "F"
+  },
+  {
+    "file": "eas_45_M.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 45,
+    "sex": "M"
+  },
+  {
+    "file": "eas_45_F.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 45,
+    "sex": "F"
+  },
+  {
+    "file": "eas_65_M.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 65,
+    "sex": "M"
+  },
+  {
+    "file": "eas_65_F.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "country": "China",
+    "age": 65,
+    "sex": "F"
+  },
+  {
+    "file": "sas_8_M.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 8,
+    "sex": "M"
+  },
+  {
+    "file": "sas_8_F.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 8,
+    "sex": "F"
+  },
+  {
+    "file": "sas_25_M.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 25,
+    "sex": "M"
+  },
+  {
+    "file": "sas_25_F.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 25,
+    "sex": "F"
+  },
+  {
+    "file": "sas_45_M.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 45,
+    "sex": "M"
+  },
+  {
+    "file": "sas_45_F.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 45,
+    "sex": "F"
+  },
+  {
+    "file": "sas_65_M.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 65,
+    "sex": "M"
+  },
+  {
+    "file": "sas_65_F.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "country": "India",
+    "age": 65,
+    "sex": "F"
+  },
+  {
+    "file": "lat_8_M.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 8,
+    "sex": "M"
+  },
+  {
+    "file": "lat_8_F.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 8,
+    "sex": "F"
+  },
+  {
+    "file": "lat_25_M.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 25,
+    "sex": "M"
+  },
+  {
+    "file": "lat_25_F.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 25,
+    "sex": "F"
+  },
+  {
+    "file": "lat_45_M.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 45,
+    "sex": "M"
+  },
+  {
+    "file": "lat_45_F.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 45,
+    "sex": "F"
+  },
+  {
+    "file": "lat_65_M.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 65,
+    "sex": "M"
+  },
+  {
+    "file": "lat_65_F.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "country": "Mexico",
+    "age": 65,
+    "sex": "F"
+  }
+]

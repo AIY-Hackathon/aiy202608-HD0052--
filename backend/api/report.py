@@ -64,6 +64,60 @@ def _variants_to_dicts(variants) -> list[dict]:
     ]
 
 
+def _gene_interpretation(g: dict) -> str:
+    """为单个基因生成文字性解读。"""
+    symbol = g.get("symbol", "")
+    risk = g.get("risk_level", "moderate")
+    function = g.get("function", "")
+    lifestyle = g.get("lifestyle", "")
+    population = g.get("population_impact", "")
+
+    if risk in ("elevated", "high"):
+        risk_text = "该基因携带临床显著变异，遗传风险相对升高。"
+    elif risk == "moderate":
+        risk_text = "该基因存在中等程度的遗传影响，属于常见人群范围。"
+    else:
+        risk_text = "该基因未发现显著风险变异，遗传影响较低。"
+
+    lifestyle_text = f"可调节建议：{lifestyle}" if lifestyle else ""
+    return f"{function} {risk_text} {population}。{lifestyle_text}"
+
+
+def _global_interpretation(scientific: dict, dims: list[dict], recs: list[dict]) -> str:
+    """生成报告的整体文字解读。"""
+    load = scientific.get("genetic_load", "中")
+    score = scientific.get("polygenic_score", 50)
+    summary = scientific.get("summary", "")
+
+    # 维度解读
+    high_dims = [d for d in dims if d["score"] >= 55]
+    low_dims = [d for d in dims if d["score"] <= 45]
+    dim_text = ""
+    if high_dims:
+        dim_text += f"需要关注的健康维度：{'、'.join(d['label'] for d in high_dims)}。"
+    if low_dims:
+        dim_text += f"表现较好的维度：{'、'.join(d['label'] for d in low_dims)}。"
+    if not dim_text:
+        dim_text = "各健康维度均处于常见人群范围。"
+
+    # 建议解读
+    rec_text = "、".join(r.get("title", "") for r in recs[:3]) if recs else "暂无具体建议"
+    recommendation_text = f"根据您的基因档案，建议重点关注：{rec_text}。"
+
+    return f"""
+    <div style="margin-bottom:12px;">
+      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0 0 12px;">{summary}</p>
+      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0 0 12px;">
+        <strong>遗传负荷评估：</strong>{load}。综合多基因评分 {score}/100。
+        {dim_text}
+      </p>
+      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0;">
+        <strong>行动建议：</strong>{recommendation_text}
+        需要注意的是，遗传因素只是健康的一部分，生活方式、环境和医疗监测同样重要。
+      </p>
+    </div>"""
+
+
 def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
     """生成 HTML 报告（自包含）。"""
     # 科学分析
@@ -75,11 +129,12 @@ def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    # 基因卡片行
+    # 基因卡片行（含文字解读）
     gene_rows = ""
     for g in key_genes:
         risk_color = "red" if g["risk_level"] in ("elevated", "high") else (
             "orange" if g["risk_level"] == "moderate" else "green")
+        interpretation = _gene_interpretation(g)
         gene_rows += f"""
         <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid {risk_color};">
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -88,7 +143,11 @@ def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
           </div>
           <p style="font-size:12px;color:#4b5563;margin:6px 0 0;line-height:1.6;">{g.get('function','')}</p>
           <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">人群影响：{g.get('population_impact','')}</p>
+          <p style="font-size:12px;color:#1e3a5f;margin:8px 0 0;padding:10px;background:white;border-radius:8px;line-height:1.7;">📖 {interpretation}</p>
         </div>"""
+
+    # 报告文字解读章节（全局解读）
+    global_interpretation = _global_interpretation(scientific, dims, recs)
 
     # 维度行
     dim_rows = ""
@@ -164,6 +223,11 @@ def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
   <div class="section">
     <div class="title">🧬 关键基因分析</div>
     {gene_rows or "<p style='font-size:13px;color:#6b7280;'>未识别到显著关键基因。</p>"}
+  </div>
+
+  <div class="section">
+    <div class="title">📝 报告文字解读</div>
+    {global_interpretation}
   </div>
 
   <div class="section">

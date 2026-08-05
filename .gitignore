@@ -14,10 +14,14 @@ data/
 *.vcf.gz
 *.tbi
 
-# 演示用样例 VCF 保留在仓库（samples/ 目录）
+# 演示用样例 VCF 保留在仓库（samples/ 目录，含子目录）
 !samples/
 samples/*
 !samples/*.vcf
+!samples/**/
+!samples/**/*.vcf
+!samples/**/*.json
+!samples/**/*.py
 
 # === IDE / 系统 ===
 .idea/
