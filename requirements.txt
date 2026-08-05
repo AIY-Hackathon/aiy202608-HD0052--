@@ -11,6 +11,7 @@ python-multipart>=0.0.32
 pydantic>=2.13
 alembic>=1.18
 pytest>=9.1
+pytest-asyncio>=1.0        # 异步 fixture（test_models 需要）
 httpx>=0.28
 
 # === Part C: 引擎/报告/AI 依赖（由开发者 C 添加）===

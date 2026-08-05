@@ -87,8 +87,10 @@ def test_simulate_default():
     assert "trendData" in data
     assert "recommendations" in data
 
-    # 默认因素 → 健康分 72
-    assert data["healthScore"] == 72
+    # G×E 引擎返回 0-100 的 HTI（教育模拟指标，非疾病风险）
+    assert 0 <= data["healthScore"] <= 100
+    assert 0 <= data["optimizedScore"] <= 100
+    # 优化生活方式应提高健康评分
     assert data["optimizedScore"] > data["healthScore"]
 
 
@@ -110,9 +112,16 @@ def test_simulate_trend_structure():
     r = client.post("/api/simulate", json={"factors": {"sleep": 6, "exercise": 3}})
     data = r.json()["data"]
     trend = data["trendData"]
-    assert len(trend) == 7
+    # G×E 引擎默认时间点 [5, 10, 20]
+    assert len(trend) == 3
+    years = [t["year"] for t in trend]
+    assert years == [5, 10, 20]
     for t in trend:
         assert "year" in t and "current" in t and "optimized" in t
+        assert 0 <= t["current"] <= 100
+        assert 0 <= t["optimized"] <= 100
+    # 优化轨迹应优于当前轨迹（生活方式改变带来改善）
+    assert all(t["optimized"] >= t["current"] for t in trend)
 
 
 def test_simulate_recommendations_structure():

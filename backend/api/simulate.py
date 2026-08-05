@@ -106,14 +106,26 @@ def _default_profile() -> dict[str, float]:
     return {"APOE": 0.7, "FTO": 0.5, "CLOCK": 0.3, "ACTN3": 0.4}
 
 
-def _run_gxe(genetic: dict[str, float], env: dict[str, float]) -> dict | None:
-    """调用 G×E 引擎，失败时返回 None。"""
+def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: dict[str, float] | None = None) -> dict | None:
+    """调用 G×E 引擎，失败时返回 None。
+
+    Args:
+        genetic: 基因灵敏度档案
+        env: 当前环境
+        optimized_env: 优化环境。传入时 trendData.optimized 使用优化环境的真实轨迹，
+                       否则 optimized 与 current 相同。
+    """
     try:
         from engine.gxe_model import simulate_health_trajectory
         from engine.recommendation_engine import generate_from_simulation
 
         sim = simulate_health_trajectory(genetic, env)
         recs = generate_from_simulation(sim, genetic, env)
+
+        # 优化环境轨迹（若提供）：同一基因档案 + 优化环境
+        opt_sim = None
+        if optimized_env:
+            opt_sim = simulate_health_trajectory(genetic, optimized_env)
 
         risk_dimensions = [
             {
@@ -132,10 +144,10 @@ def _run_gxe(genetic: dict[str, float], env: dict[str, float]) -> dict | None:
             {
                 "year": t["year"],
                 "current": t["hti"],
-                "optimized": t["hti"],
+                "optimized": opt_sim["trajectory"][i]["hti"] if opt_sim else t["hti"],
                 "confidence": t.get("confidence"),
             }
-            for t in sim["trajectory"]
+            for i, t in enumerate(sim["trajectory"])
         ]
 
         recommendations = [
@@ -154,7 +166,7 @@ def _run_gxe(genetic: dict[str, float], env: dict[str, float]) -> dict | None:
 
         return {
             "healthScore": sim["baseline_hti"],
-            "optimizedScore": sim["baseline_hti"],
+            "optimizedScore": opt_sim["baseline_hti"] if opt_sim else sim["baseline_hti"],
             "riskDimensions": risk_dimensions,
             "trendData": trend_data,
             "recommendations": recommendations,
@@ -176,11 +188,8 @@ def simulate(req: SimulateRequest):
     env = _environment_from_factors(factors)
     optimized_env = _environment_from_factors(OPTIMIZED_FACTORS)
 
-    result = _run_gxe(genetic, env)
+    result = _run_gxe(genetic, env, optimized_env)
     if result:
-        opt = _run_gxe(genetic, optimized_env)
-        if opt:
-            result["optimizedScore"] = opt["healthScore"]
         return ApiResponse.ok(result)
 
     # 降级：prs_calculator 简化公式

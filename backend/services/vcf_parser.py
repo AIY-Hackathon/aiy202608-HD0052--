@@ -166,9 +166,12 @@ def parse_vcf_pandas(filepath: str, max_variants: int | None = None) -> pd.DataF
         return pd.DataFrame(columns=VCF_COLUMNS)
 
     # 赋值列名（取前 10 列：9 标准列 + 样本列；若有多样本取第一个）
+    # 赋值列名（取前 10 列：9 标准列 + 样本列；若列数不足则只赋存在的列名）
     n_cols = min(df.shape[1], 10)
     df = df.iloc[:, :n_cols]
-    cols = VCF_COLUMNS[:9] + (["SAMPLE"] if n_cols == 10 else [])
+    cols = VCF_COLUMNS[:n_cols]
+    if n_cols == 10:
+        cols = VCF_COLUMNS[:9] + ["SAMPLE"]
     df.columns = cols
 
     # 过滤变异行（POS 必须是数字）
@@ -209,9 +212,12 @@ def iter_variant_records(filepath: str, chunk: int = 10000) -> Iterator[list[dic
     for df in reader:
         if df.empty or df.shape[1] < 8:
             continue
-        n_cols = min(df.shape[1], 9)
+        n_cols = min(df.shape[1], 10)
         df = df.iloc[:, :n_cols]
-        df.columns = VCF_COLUMNS[:n_cols]
+        cols = VCF_COLUMNS[:n_cols]
+        if n_cols == 10:
+            cols = VCF_COLUMNS[:9] + ["SAMPLE"]
+        df.columns = cols
         df["POS"] = pd.to_numeric(df["POS"], errors="coerce")
         df = df.dropna(subset=["POS"])
         yield [variant_to_dict(row) for _, row in df.iterrows()]
