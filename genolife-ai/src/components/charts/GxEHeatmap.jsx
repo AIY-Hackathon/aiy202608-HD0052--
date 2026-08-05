@@ -189,7 +189,7 @@ export default function GxEHeatmap({ genes = [] }) {
                 if (!data) {
                   return (
                     <rect
-                      key={f}
+                      key={g + "-" + f}
                       x={labelW + fi * cellW + 2}
                       y={headerH + gi * cellH + 2}
                       width={cellW - 4}
@@ -204,7 +204,7 @@ export default function GxEHeatmap({ genes = [] }) {
                 const isSel = selectedCell?.gene === g && selectedCell?.factor === f;
                 return (
                   <g
-                    key={f}
+                    key={g + "-cell-" + f}
                     onClick={() => setSelectedCell({ gene: g, factor: f })}
                     style={{ cursor: "pointer" }}
                   >
