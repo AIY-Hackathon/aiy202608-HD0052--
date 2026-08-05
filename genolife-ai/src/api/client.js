@@ -31,16 +31,19 @@ export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/
 // 是否强制使用 mock（VITE_USE_MOCK=true 时强制）
 const FORCE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
-// 后端可用状态（启动时检测）
+// 后端可用状态（缓存 30 秒，避免页面刷新后永久锁定为 false）
 let _backendAvailable = null;
+let _lastCheckTime = 0;
+const CACHE_TTL = 30_000; // 30 秒
 
 /**
  * 检测后端是否可达。
- * 结果缓存，整个生命周期只检测一次。
+ * 结果缓存 30 秒后重新检测。
  */
 export async function isBackendAvailable() {
   if (FORCE_MOCK) return false;
-  if (_backendAvailable !== null) return _backendAvailable;
+  const now = Date.now();
+  if (_backendAvailable !== null && now - _lastCheckTime < CACHE_TTL) return _backendAvailable;
 
   try {
     const resp = await fetch(`${API_BASE}/health`, {
@@ -56,6 +59,7 @@ export async function isBackendAvailable() {
     _backendAvailable = false;
   }
 
+  _lastCheckTime = now;
   if (!_backendAvailable) {
     console.warn("[GenoLife] 后端不可达，使用本地 mock 数据");
   } else {
@@ -208,6 +212,52 @@ export async function getRecommendations(factors = {}) {
   return request(`/recommendations?${params.toString()}`);
 }
 
+// ============ GET /api/report/{id}/export — 报告导出 ============
+
+export async function exportReport(reportId, options = {}) {
+  const { format = "html" } = options;
+
+  if (await shouldUseMock()) {
+    await delay(1200);
+    if (format === "pdf") {
+      throw new Error("PDF 导出需要后端支持，当前为 mock 模式");
+    }
+    return {
+      format: "html",
+      data: "<!-- mock HTML report -->",
+      filename: `genolife-report-${reportId || "demo"}.html`,
+    };
+  }
+
+  // HTML：直接获取文本
+  if (format === "html") {
+    const resp = await fetch(`${API_BASE}/report/${reportId}/export?format=html`);
+    if (!resp.ok) {
+      const body = await resp.json().catch(() => ({}));
+      throw new Error(body.detail || "报告生成失败");
+    }
+    const html = await resp.text();
+    return {
+      format: "html",
+      data: html,
+      filename: `genolife-report-${reportId}.html`,
+    };
+  }
+
+  // PDF：获取二进制流
+  const resp = await fetch(`${API_BASE}/report/${reportId}/export?format=pdf`);
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail || "PDF 生成失败");
+  }
+  const blob = await resp.blob();
+  return {
+    format: "pdf",
+    data: blob,
+    filename: `genolife-report-${reportId}.pdf`,
+  };
+}
+
 // ============ 工具 ============
 
 function delay(ms) {
@@ -222,4 +272,5 @@ export default {
   uploadReport,
   simulate,
   getRecommendations,
+  exportReport,
 };

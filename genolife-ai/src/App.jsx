@@ -7,17 +7,19 @@ import BreathingBackground from "./components/effects/BreathingBackground";
 import MusicPlayer from "./components/MusicPlayer";
 import GeneMap from "./pages/GeneMap";
 import LifeSimulation from "./pages/LifeSimulation";
-import LifestylePlanner from "./pages/LifestylePlanner";
+import ReportPage from "./pages/Report";
+import HomePage from "./pages/HomePage";
 
 const pages = {
+  home: HomePage,
   "gene-map": GeneMap,
   simulation: LifeSimulation,
-  planner: LifestylePlanner,
+  report: ReportPage,
 };
 
 function PageRenderer() {
   const { currentPage } = useLocation();
-  const Page = pages[currentPage] || GeneMap;
+  const Page = pages[currentPage] || HomePage;
 
   return (
     <AnimatePresence mode="wait">
