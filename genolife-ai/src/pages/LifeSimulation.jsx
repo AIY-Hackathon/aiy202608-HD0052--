@@ -529,7 +529,7 @@ export default function LifeSimulation() {
             { icon: Star, title: t("simulation", "trackReflectTitle"), desc: t("simulation", "trackReflectDesc") },
           ].map((tip, i) => (
             <motion.div
-              key={i}
+              key={tip.title}
               className="premium-card p-6"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
