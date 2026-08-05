@@ -23,6 +23,9 @@ import {
   HelpCircle,
   Search,
   TrendingUp,
+  Trash2,
+  ChevronDown,
+  CheckCircle,
 } from "lucide-react";
 
 const ALLOWED_EXTS = [".vcf", ".vcf.gz", ".tsv", ".txt"];
@@ -125,6 +128,55 @@ export default function GeneMap() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const [uploadResult, setUploadResult] = useState(null);
+
+  // ── 报告列表管理（localStorage 持久化） ──
+  const [reportHistory, setReportHistory] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("genolife_reports") || "[]");
+    } catch { return []; }
+  });
+  const [activeReportId, setActiveReportId] = useState(() => {
+    try {
+      return localStorage.getItem("genolife_active_report") || null;
+    } catch { return null; }
+  });
+  const [showReportList, setShowReportList] = useState(false);
+
+  const persistReports = useCallback((reports, activeId) => {
+    setReportHistory(reports);
+    localStorage.setItem("genolife_reports", JSON.stringify(reports));
+    if (activeId !== undefined) {
+      setActiveReportId(activeId);
+      localStorage.setItem("genolife_active_report", activeId || "");
+    }
+  }, []);
+
+  const switchReport = useCallback((reportId) => {
+    setActiveReportId(reportId);
+    localStorage.setItem("genolife_active_report", reportId);
+    setReportId(reportId);
+    setUploaded(true);
+    setShowReportList(false);
+    // 触发重新加载数据
+    setUploadResult({ report_id: reportId });
+  }, [setReportId, setUploaded]);
+
+  const deleteReport = useCallback((reportId, e) => {
+    e.stopPropagation();
+    const updated = reportHistory.filter(r => r.reportId !== reportId);
+    persistReports(updated, updated.length > 0 ? updated[0].reportId : null);
+    if (updated.length === 0) {
+      setUploaded(false);
+      setReportId(null);
+      setUploadResult(null);
+      setAnalysisData(null);
+      setUploadStatus("idle");
+      setFile(null);
+    } else if (activeReportId === reportId) {
+      // 如果删除的是当前活跃报告，切换到第一个
+      switchReport(updated[0].reportId);
+    }
+  }, [reportHistory, activeReportId, persistReports, setUploaded, setReportId, switchReport]);
 
   // ── 档案数据 ──
   const [profileData, setProfileData] = useState(null);
@@ -278,6 +330,15 @@ export default function GeneMap() {
       setUploaded(true);
       // 传递 report_id 给 Report 页
       if (result.report_id) setReportId(result.report_id);
+      // 添加到报告历史
+      const newEntry = {
+        reportId: result.report_id,
+        filename: file.name,
+        variantCount: result.variant_count,
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [newEntry, ...reportHistory.filter(r => r.reportId !== result.report_id)];
+      persistReports(updated, result.report_id);
     } catch (err) {
       clearInterval(interval);
       setUploadStatus("error");
@@ -327,6 +388,60 @@ export default function GeneMap() {
             </div>
           </div>
         </div>
+
+        {/* ── 报告列表管理 ── */}
+        {reportHistory.length > 0 && (
+          <div className="mt-4 relative">
+            <button
+              onClick={() => setShowReportList(!showReportList)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[13px] font-semibold text-text hover:border-primary/30 transition-colors cursor-pointer"
+              style={{ background: "white" }}
+            >
+              <FileText size={14} className="text-primary" />
+              {t("geneMap", "myReports")}: {reportHistory.length} {t("geneMap", "reportsCount")}
+              <ChevronDown size={14} className={`transition-transform ${showReportList ? "rotate-180" : ""}`} />
+            </button>
+            {activeReportId && (
+              <span className="ml-3 text-[12px] text-text-tertiary">
+                {t("geneMap", "activeReport")}: <span className="font-mono text-accent font-semibold">{activeReportId}</span>
+              </span>
+            )}
+            {showReportList && (
+              <div className="absolute top-full mt-2 left-0 w-80 bg-white rounded-xl border border-gray-200 shadow-xl z-40 overflow-hidden">
+                <div className="max-h-60 overflow-y-auto">
+                  {reportHistory.map((r) => (
+                    <button
+                      key={r.reportId}
+                      onClick={() => switchReport(r.reportId)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100 last:border-0 ${activeReportId === r.reportId ? "bg-primary-light/30" : ""}`}
+                      style={{ background: activeReportId === r.reportId ? "var(--color-primary-light, #eef2ff)" : "none", border: "none" }}
+                    >
+                      {activeReportId === r.reportId ? (
+                        <CheckCircle size={16} className="text-accent flex-shrink-0" />
+                      ) : (
+                        <FileText size={16} className="text-text-tertiary flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-text truncate">{r.filename}</p>
+                        <p className="text-[11px] text-text-tertiary">
+                          {r.variantCount || "?"} variants · {new Date(r.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => deleteReport(r.reportId, e)}
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-text-tertiary hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"
+                        style={{ border: "none", background: "none" }}
+                        title={t("geneMap", "deleteReport")}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </motion.section>
 
       {/* ================================================================
@@ -586,8 +701,8 @@ export default function GeneMap() {
             ) : (
               <div className="col-span-full premium-card p-12 text-center text-text-tertiary">
                 <Dna size={28} className="mx-auto mb-3 opacity-30" />
-                <p className="text-[14px] font-semibold">No gene data available</p>
-                <p className="text-[12px] mt-1">Upload a genetic report to see your personalized gene analysis.</p>
+                <p className="text-[14px] font-semibold">{t("geneMap", "noGeneData")}</p>
+                <p className="text-[12px] mt-1">{t("geneMap", "noGeneDataDesc")}</p>
               </div>
             )}
           </div>
@@ -601,8 +716,8 @@ export default function GeneMap() {
         <div className="flex items-center gap-3 mb-6">
           <FileText size={17} className="text-primary" />
           <div>
-            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Variant Details</p>
-            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">ClinVar-Annotated Variants</h2>
+            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">{t("geneMap", "variantDetails")}</p>
+            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">{t("geneMap", "variantDetailsTitle")}</h2>
           </div>
         </div>
 
@@ -635,13 +750,13 @@ export default function GeneMap() {
           {analysisLoading ? (
             <div className="p-12 text-center">
               <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-[13px] text-text-tertiary">Loading variant data…</p>
+              <p className="text-[13px] text-text-tertiary">{t("geneMap", "loadingVariants")}</p>
             </div>
           ) : variants.length === 0 ? (
             <div className="p-12 text-center text-text-tertiary">
               <FileText size={28} className="mx-auto mb-3 opacity-30" />
-              <p className="text-[14px] font-semibold">No variant data</p>
-              <p className="text-[12px] mt-1">Upload a VCF file above to see your variant details.</p>
+              <p className="text-[14px] font-semibold">{t("geneMap", "noVariantData")}</p>
+              <p className="text-[12px] mt-1">{t("geneMap", "noVariantDataDesc")}</p>
             </div>
           ) : (
           <>
@@ -746,9 +861,9 @@ export default function GeneMap() {
       >
         <div className="premium-card px-6 py-6 sm:px-8 sm:py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-white to-primary-light/20">
           <div>
-            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em] mb-1">Explore your health journey</p>
+            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em] mb-1">{t("geneMap", "ctaExploreTitle")}</p>
             <p className="text-[15px] font-semibold text-text leading-snug">
-              See how lifestyle changes affect your genetic risk profile.
+              {t("geneMap", "ctaExploreDesc")}
             </p>
           </div>
           <button

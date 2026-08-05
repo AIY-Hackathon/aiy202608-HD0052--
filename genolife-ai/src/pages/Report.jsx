@@ -74,8 +74,10 @@ export default function ReportPage() {
         // 后端返回 { format, data: htmlString, filename }
         setPreviewHtml(result.data);
       } else if (format === "pdf") {
-        // client.js 返回的是 PDF Blob（二进制流），直接用 objectURL 下载
-        const blob = result.data;
+        // 客户端返回 Blob 对象，直接下载
+        const blob = result.data instanceof Blob
+          ? result.data
+          : new Blob([result.data], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

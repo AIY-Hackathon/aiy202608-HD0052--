@@ -375,7 +375,7 @@ export default function LifeSimulation() {
               <h3 className="font-display font-bold text-[17px] text-text">{t("simulation", "yourProgress")}</h3>
             </div>
             <span className="text-[13px] font-semibold text-text-secondary tabular-nums">
-              {completedTasks} / {totalTasks} tasks
+              {completedTasks} / {totalTasks} {t("simulation", "tasks")}
             </span>
           </div>
           <div className="h-3 rounded-full bg-gray-100 overflow-hidden relative">
@@ -409,6 +409,9 @@ export default function LifeSimulation() {
               const weekTaskIds = week.tasks.map((_, ti) => `${wi}-${ti}`);
               const weekProgress = weekTaskIds.filter((id) => checkedTasks.has(id)).length;
               const weekComplete = week.tasks.every((_, ti) => checkedTasks.has(`${wi}-${ti}`));
+              const weekKeys = ["foundation", "activation", "integration", "sustain"];
+              const weekLabel = t("simulation", weekKeys[wi] || week.label);
+              const weekTheme = t("simulation", weekKeys[wi] + "Desc" || week.theme);
 
               return (
                 <motion.div
@@ -431,9 +434,9 @@ export default function LifeSimulation() {
                       </div>
                       <div>
                         <p className={`text-[13px] font-bold uppercase tracking-[0.08em] ${weekComplete ? "text-accent" : "text-text-tertiary"}`}>
-                          {week.label}
+                          {weekLabel}
                         </p>
-                        <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{week.theme}</p>
+                        <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{weekTheme}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -510,8 +513,8 @@ export default function LifeSimulation() {
         <div className="flex items-center gap-3 mb-8">
           <Star size={17} className="text-risk-moderate" />
           <div>
-            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Daily Anchors</p>
-            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">Three habits that matter most</h2>
+            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">{t("simulation", "dailyAnchors")}</p>
+            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">{t("simulation", "dailyAnchorsTitle")}</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">

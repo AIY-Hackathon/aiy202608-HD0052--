@@ -5,5 +5,8 @@
     "dev": "cd genolife-ai && npm run dev",
     "build": "cd genolife-ai && npm run build",
     "install": "cd genolife-ai && npm install"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
   }
 }

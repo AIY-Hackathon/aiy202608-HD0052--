@@ -10,7 +10,17 @@ export default function AnimatedNumber({ value, duration = 600, className = "", 
   useEffect(() => {
     const start = prevValue.current;
     const end = value;
-    if (start === end) return;
+    // 保护：非数字时直接用原始值显示
+    if (typeof end !== "number" || isNaN(end)) {
+      prevValue.current = end;
+      setDisplay(end);
+      return;
+    }
+    if (typeof start !== "number" || isNaN(start) || start === end) {
+      prevValue.current = end;
+      setDisplay(end);
+      return;
+    }
 
     const startTime = performance.now();
 

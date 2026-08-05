@@ -5,7 +5,7 @@
       "name": "GenoLife AI 前端",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "autoPort": true,
+      "port": 5173,
       "cwd": "/Users/stevenl/Documents/AIYProgram/genolife-ai"
     }
   ]

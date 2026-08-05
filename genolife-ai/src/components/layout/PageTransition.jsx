@@ -8,9 +8,16 @@ const LocationContext = createContext(null);
 
 export function LocationProvider({ children }) {
   const [currentPage, setCurrentPage] = useState("home");
-  const [reportId, setReportId] = useState(null);
+  const [reportId, setReportId] = useState(() => {
+    try { return localStorage.getItem("genolife_active_report") || null; }
+    catch { return null; }
+  });
   // 是否已上传基因报告（控制页面数据展示：未上传时留空）
-  const [uploaded, setUploaded] = useState(false);
+  // 从 localStorage 恢复，确保页面切换/刷新后评分正常显示
+  const [uploaded, setUploaded] = useState(() => {
+    try { return !!localStorage.getItem("genolife_active_report"); }
+    catch { return false; }
+  });
 
   const goTo = useCallback((page) => {
     setCurrentPage(page);

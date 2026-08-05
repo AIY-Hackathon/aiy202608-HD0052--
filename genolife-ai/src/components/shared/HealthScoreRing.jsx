@@ -21,6 +21,11 @@ export default function HealthScoreRing({
   const animateScore = useCallback(() => {
     const start = prevScore.current;
     const end = score;
+    // 保护：非数字时不执行动画（例如传入 "--" 或 null）
+    if (typeof end !== "number" || isNaN(end) || typeof start !== "number" || isNaN(start)) {
+      prevScore.current = end;
+      return;
+    }
     const duration = 800;
     const startTime = performance.now();
 
@@ -49,14 +54,18 @@ export default function HealthScoreRing({
     }
   }, [score]);
 
-  const offset = circumference - (displayScore / 100) * circumference;
+  // 判断是否为数字（用于动画和弧线绘制）
+  const isNumeric = typeof score === "number" && !isNaN(score);
+  const offset = circumference - ((isNumeric ? displayScore : 0) / 100) * circumference;
 
   const color =
+    !isNumeric ? "var(--color-text-tertiary)" :
     displayScore >= 85 ? "var(--color-risk-low)" :
     displayScore >= 70 ? "var(--color-risk-moderate)" :
     "var(--color-risk-high)";
 
   const glowColor =
+    !isNumeric ? "transparent" :
     displayScore >= 85 ? "rgba(13,148,136,.25)" :
     displayScore >= 70 ? "rgba(232,166,64,.25)" :
     "rgba(220,91,81,.25)";
@@ -117,7 +126,7 @@ export default function HealthScoreRing({
           className="font-display font-bold leading-none tracking-tighter tabular-nums"
           style={{ fontSize: size * 0.24, color }}
         >
-          {displayScore}
+          {isNumeric ? displayScore : score}
         </span>
         <span
           className="font-sans text-text-tertiary tracking-wider uppercase mt-0.5"

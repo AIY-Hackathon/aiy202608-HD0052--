@@ -77,7 +77,7 @@ export default function LifestylePlanner() {
           {t("simulation", "planSubtitle")}
         </h2>
         <p className="text-[15px] text-text-secondary mb-8 max-w-xl leading-relaxed">
-          A gene-informed 30-day program designed to work with your unique biology — not against it.
+          {t("simulation", "planDesc")}
         </p>
 
         {/* Goal card */}
@@ -114,7 +114,7 @@ export default function LifestylePlanner() {
             <h3 className="font-display font-bold text-[17px] text-text">{t("simulation", "yourProgress")}</h3>
           </div>
           <span className="text-[13px] font-semibold text-text-secondary tabular-nums">
-            {completedTasks} / {totalTasks} tasks
+            {completedTasks} / {totalTasks} {t("simulation", "tasks")}
           </span>
         </div>
 
@@ -152,10 +152,10 @@ export default function LifestylePlanner() {
           <Clock size={17} className="text-primary" />
           <div>
             <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
-              Weekly Breakdown
+              {t("simulation", "weeklyBreakdown")}
             </p>
             <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">
-              Your 30-day journey
+              {t("simulation", "weeklyBreakdownTitle")}
             </h2>
           </div>
         </div>
@@ -324,10 +324,10 @@ export default function LifestylePlanner() {
           <Star size={17} className="text-risk-moderate" />
           <div>
             <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">
-              Daily Anchors
+              {t("simulation", "dailyAnchors")}
             </p>
             <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">
-              Three habits that matter most
+              {t("simulation", "dailyAnchorsTitle")}
             </h2>
           </div>
         </div>

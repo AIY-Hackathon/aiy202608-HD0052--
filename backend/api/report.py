@@ -1,15 +1,9 @@
 """
 GET /api/report/{report_id}/export — 报告导出
 ==============================================
-从数据库读取分析结果，生成 HTML/PDF 报告。
+从数据库读取分析结果，生成高端 HTML/PDF 健康报告。
 
-自包含实现（不依赖外部引擎文件）：
-  1. 从数据库读取报告及其变异
-  2. 调用 prs_calculator 科学分析（关键基因/维度/建议）
-  3. 生成 HTML 报告（含免责声明水印）
-  4. 可选 PDF 导出（reportlab）
-
-关联需求：R8.1 / R8.2 / R8.4 / R8.6
+使用 WeasyPrint 渲染 PDF，确保视觉效果与 HTML 一致。
 """
 from __future__ import annotations
 
@@ -17,6 +11,7 @@ import asyncio
 import os
 import sys
 from datetime import datetime, timezone
+from math import cos, sin
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
@@ -49,7 +44,6 @@ def _load_report_data(report_id: str):
 
 
 def _variants_to_dicts(variants) -> list[dict]:
-    """ORM 变异对象 → 字典。"""
     return [
         {
             "chromosome": v.chromosome,
@@ -62,6 +56,60 @@ def _variants_to_dicts(variants) -> list[dict]:
         }
         for v in variants
     ]
+
+
+# ── 视觉常量 ──
+COLORS = {
+    "bg": "#ffffff",
+    "text": "#1a1a2e",
+    "textSecondary": "#4b5563",
+    "textTertiary": "#9ca3af",
+    "accent": "#0d9488",
+    "accentLight": "#f0fdfa",
+    "primary": "#1e3a5f",
+    "primaryLight": "#eff6ff",
+    "gold": "#b8860b",
+    "goldLight": "#fefce8",
+    "riskLow": "#059669",
+    "riskModerate": "#d97706",
+    "riskHigh": "#dc2626",
+    "border": "#e5e7eb",
+    "surface": "#f8fafc",
+}
+
+GENE_CARD_META = {
+    "APOE": {
+        "name": "Apolipoprotein E",
+        "category": "Brain & Longevity",
+        "variant": "ε4 carrier",
+        "icon": "🧠",
+    },
+    "ACTN3": {
+        "name": "Alpha-Actinin-3",
+        "category": "Athletic Performance",
+        "variant": "R577X",
+        "icon": "💪",
+    },
+    "FTO": {
+        "name": "Fat Mass & Obesity-Associated",
+        "category": "Metabolic Health",
+        "variant": "rs9939609",
+        "icon": "⚡",
+    },
+    "CLOCK": {
+        "name": "Circadian Locomotor Output Cycles Kaput",
+        "category": "Sleep & Circadian Rhythm",
+        "variant": "rs1801260",
+        "icon": "🌙",
+    },
+}
+
+RISK_LABELS = {
+    "elevated": ("Elevated Risk", COLORS["riskHigh"]),
+    "high": ("High Risk", COLORS["riskHigh"]),
+    "moderate": ("Moderate", COLORS["riskModerate"]),
+    "low": ("Favorable", COLORS["riskLow"]),
+}
 
 
 def _gene_interpretation(g: dict) -> str:
@@ -83,202 +131,454 @@ def _gene_interpretation(g: dict) -> str:
     return f"{function} {risk_text} {population}。{lifestyle_text}"
 
 
-def _global_interpretation(scientific: dict, dims: list[dict], recs: list[dict]) -> str:
-    """生成报告的整体文字解读。"""
-    load = scientific.get("genetic_load", "中")
-    score = scientific.get("polygenic_score", 50)
-    summary = scientific.get("summary", "")
+def _health_score_ring_svg(score: float, size: int = 160) -> str:
+    """生成环形健康评分 SVG。"""
+    r = (size - 12) / 2
+    circumference = r * 2 * 3.14159
+    offset = circumference * (1 - score / 100)
 
-    # 维度解读
-    high_dims = [d for d in dims if d["score"] >= 55]
-    low_dims = [d for d in dims if d["score"] <= 45]
-    dim_text = ""
-    if high_dims:
-        dim_text += f"需要关注的健康维度：{'、'.join(d['label'] for d in high_dims)}。"
-    if low_dims:
-        dim_text += f"表现较好的维度：{'、'.join(d['label'] for d in low_dims)}。"
-    if not dim_text:
-        dim_text = "各健康维度均处于常见人群范围。"
-
-    # 建议解读
-    rec_text = "、".join(r.get("title", "") for r in recs[:3]) if recs else "暂无具体建议"
-    recommendation_text = f"根据您的基因档案，建议重点关注：{rec_text}。"
+    if score >= 85:
+        color = COLORS["riskLow"]
+    elif score >= 70:
+        color = COLORS["riskModerate"]
+    else:
+        color = COLORS["riskHigh"]
 
     return f"""
-    <div style="margin-bottom:12px;">
-      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0 0 12px;">{summary}</p>
-      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0 0 12px;">
-        <strong>遗传负荷评估：</strong>{load}。综合多基因评分 {score}/100。
-        {dim_text}
-      </p>
-      <p style="font-size:13px;color:#4b5563;line-height:1.8;margin:0;">
-        <strong>行动建议：</strong>{recommendation_text}
-        需要注意的是，遗传因素只是健康的一部分，生活方式、环境和医疗监测同样重要。
-      </p>
+    <svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="{size/2}" cy="{size/2}" r="{r}" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+      <circle cx="{size/2}" cy="{size/2}" r="{r}" fill="none" stroke="{color}" stroke-width="10"
+              stroke-dasharray="{circumference}" stroke-dashoffset="{offset}"
+              stroke-linecap="round" transform="rotate(-90 {size/2} {size/2})"/>
+      <text x="{size/2}" y="{size/2 - 10}" text-anchor="middle" font-family="-apple-system,sans-serif"
+            font-size="32" font-weight="800" fill="{color}">{int(score)}</text>
+      <text x="{size/2}" y="{size/2 + 16}" text-anchor="middle" font-family="-apple-system,sans-serif"
+            font-size="11" fill="#9ca3af">/100</text>
+    </svg>"""
+
+
+def _dimension_bar(label: str, score: float, color: str) -> str:
+    """生成维度评分条。"""
+    return f"""
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:600;color:#1a1a2e;">{label}</span>
+        <span style="font-size:12px;font-weight:700;color:{color};">{int(score)}</span>
+      </div>
+      <div style="background:#e5e7eb;border-radius:5px;height:8px;">
+        <div style="background:{color};width:{min(score,100)}%;height:8px;border-radius:5px;"></div>
+      </div>
     </div>"""
 
 
+def _gene_card(g: dict) -> str:
+    """生成单个基因卡片。"""
+    meta = GENE_CARD_META.get(g["symbol"], {
+        "name": g["symbol"],
+        "category": "Unknown",
+        "variant": "—",
+        "icon": "🧬",
+    })
+    risk_level = g.get("risk_level", "moderate")
+    risk_label, risk_color = RISK_LABELS.get(risk_level, ("Moderate", COLORS["riskModerate"]))
+
+    return f"""
+    <div style="background:#f8fafc;border-radius:16px;padding:24px;margin-bottom:16px;
+                border-left:5px solid {risk_color};page-break-inside:avoid;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:20px;margin-bottom:4px;">{meta['icon']}</div>
+          <strong style="font-size:17px;color:#1a1a2e;display:block;">{g['symbol']}</strong>
+          <span style="font-size:13px;color:#6b7280;">{meta['name']}</span>
+        </div>
+        <span style="font-size:11px;font-weight:700;color:{risk_color};text-transform:uppercase;
+                     background:{risk_color}15;padding:4px 12px;border-radius:20px;">
+          {risk_label}
+        </span>
+      </div>
+      <div style="background:white;border-radius:10px;padding:14px;margin-top:12px;">
+        <div style="display:flex;gap:32px;flex-wrap:wrap;">
+          <div>
+            <span style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;">Category</span>
+            <p style="font-size:13px;color:#1a1a2e;margin:4px 0 0;">{meta['category']}</p>
+          </div>
+          <div>
+            <span style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;">Variant</span>
+            <p style="font-size:13px;font-family:monospace;color:#1a1a2e;margin:4px 0 0;">{meta['variant']}</p>
+          </div>
+        </div>
+        <p style="font-size:12px;color:#4b5563;margin:12px 0 0;line-height:1.6;">
+          {g.get('function','')}
+        </p>
+        <p style="font-size:11px;color:#6b7280;margin:6px 0 0;">
+          {g.get('population_impact','')}
+        </p>
+      </div>
+    </div>"""
+
+
+def _radar_chart_svg(dimensions: list[dict]) -> str:
+    """生成雷达图（SVG）。"""
+    if len(dimensions) < 3:
+        return ""
+
+    cx, cy, r = 140, 140, 100
+    n = len(dimensions)
+    angles = [(2 * 3.14159 * i / n) - 3.14159 / 2 for i in range(n)]
+
+    # 数据多边形
+    radar_pts = " ".join(
+        f"{cx + r * (dimensions[i].get('score', 50) / 100) * cos(angles[i])},{cy + r * (dimensions[i].get('score', 50) / 100) * sin(angles[i])}"
+        for i in range(n)
+    )
+
+    # 背景网格
+    grid_pts = ""
+    for level in [0.25, 0.5, 0.75, 1.0]:
+        level_pts = " ".join(
+            f"{cx + r * level * cos(a)},{cy + r * level * sin(a)}" for a in angles
+        )
+        grid_pts += f'<polygon points="{level_pts}" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>'
+
+    # 轴线
+    axis_lines = "".join(
+        f'<line x1="{cx}" y1="{cy}" x2="{cx + r * cos(a)}" y2="{cy + r * sin(a)}" stroke="#e5e7eb" stroke-width="0.5"/>'
+        for a in angles
+    )
+
+    # 标签
+    labels = "".join(
+        f'<text x="{cx + (r + 18) * cos(a)}" y="{cy + (r + 18) * sin(a) + 4}" text-anchor="middle" '
+        f'font-family="-apple-system,sans-serif" font-size="10" fill="#4b5563">{dimensions[i]["label"][:4]}</text>'
+        for i, a in enumerate(angles)
+    )
+
+    return f"""
+    <svg width="280" height="280" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+      {grid_pts}
+      {axis_lines}
+      <polygon points="{radar_pts}" fill="{COLORS['accent']}30" stroke="{COLORS['accent']}" stroke-width="2" stroke-linejoin="round"/>
+      {labels}
+    </svg>"""
+
+
 def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
-    """生成 HTML 报告（自包含）。"""
-    # 科学分析
+    """生成高端品牌 HTML 报告。"""
     scientific = engine.generate_scientific_analysis(variants)
     key_genes = scientific.get("key_genes", [])
     dims = engine.calculate_dimension_scores(variants)
     recs = engine.generate_recommendations({})
-    plan = engine.generate_thirty_day_plan()
 
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(timezone.utc).strftime("%B %d, %Y")
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    # 基因卡片行（含文字解读）
-    gene_rows = ""
-    for g in key_genes:
-        risk_color = "red" if g["risk_level"] in ("elevated", "high") else (
-            "orange" if g["risk_level"] == "moderate" else "green")
-        interpretation = _gene_interpretation(g)
-        gene_rows += f"""
-        <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid {risk_color};">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong style="font-size:15px;color:#1a1a2e;">{g['symbol']}</strong>
-            <span style="font-size:11px;font-weight:700;color:{risk_color};text-transform:uppercase;">{g['risk_level']}</span>
-          </div>
-          <p style="font-size:12px;color:#4b5563;margin:6px 0 0;line-height:1.6;">{g.get('function','')}</p>
-          <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">人群影响：{g.get('population_impact','')}</p>
-          <p style="font-size:12px;color:#1e3a5f;margin:8px 0 0;padding:10px;background:white;border-radius:8px;line-height:1.7;">📖 {interpretation}</p>
-        </div>"""
+    # ── Health Score ──
+    health_score = scientific.get("polygenic_score", 72)
+    if isinstance(health_score, str):
+        try:
+            health_score = float(health_score)
+        except ValueError:
+            health_score = 72
+    score_svg = _health_score_ring_svg(min(max(health_score, 0), 100))
 
-    # 报告文字解读章节（全局解读）
-    global_interpretation = _global_interpretation(scientific, dims, recs)
-
-    # 维度行
-    dim_rows = ""
-    for d in dims:
-        bar_color = "#dc2626" if d["score"] >= 70 else ("#d97706" if d["score"] >= 55 else "#059669")
-        dim_rows += f"""
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:#4b5563;margin-bottom:4px;">
-            <span>{d['label']}</span><span>{d['score']}</span>
-          </div>
-          <div style="background:#e5e7eb;border-radius:4px;height:8px;">
-            <div style="background:{bar_color};width:{min(d['score'],100)}%;height:8px;border-radius:4px;"></div>
-          </div>
-        </div>"""
-
-    # 建议列表
-    rec_items = "".join(
-        f"<li style='font-size:13px;color:#4b5563;margin-bottom:8px;'>{r.get('title','')}</li>"
-        for r in recs[:5]
-    ) or "<li style='font-size:13px;color:#6b7280;'>暂无建议</li>"
-
-    # 30 天计划
-    plan_weeks = "".join(
-        f"<div style='margin-bottom:8px;'><strong style='font-size:13px;color:#1a1a2e;'>{w.get('label','')}</strong>"
-        f"<span style='font-size:12px;color:#6b7280;'> — {w.get('theme','')}</span></div>"
-        for w in plan.get("weeks", [])[:2]
+    # ── 基因卡片 ──
+    gene_cards = "".join(_gene_card(g) for g in key_genes) or (
+        '<p style="font-size:13px;color:#6b7280;text-align:center;padding:32px;">No significant key genes identified in this report.</p>'
     )
 
+    # ── 维度评分 ──
+    dim_bars = "".join(
+        _dimension_bar(
+            d["label"],
+            d["score"],
+            COLORS["riskLow"] if d["score"] < 55 else (COLORS["riskModerate"] if d["score"] < 70 else COLORS["riskHigh"]),
+        )
+        for d in dims
+    ) or '<p style="font-size:13px;color:#6b7280;">No dimension data available.</p>'
+
+    # ── 健康概览卡片 ──
+    def _overview_card(label: str, score, color: str, desc: str) -> str:
+        return f"""
+        <div style="background:white;border:1px solid #e5e7eb;border-radius:14px;padding:20px;
+                    text-align:center;page-break-inside:avoid;">
+          <p style="font-size:26px;font-weight:800;color:{color};margin:0 0 4px;">{score}</p>
+          <p style="font-size:11px;font-weight:700;color:#1a1a2e;text-transform:uppercase;letter-spacing:0.08em;margin:0;">{label}</p>
+          <p style="font-size:11px;color:#6b7280;margin:6px 0 0;line-height:1.4;">{desc}</p>
+        </div>"""
+
+    overview_cards = ""
+    for d in dims[:4]:
+        score_val = d["score"]
+        if score_val < 55:
+            color = COLORS["riskLow"]
+            desc = "Favorable"
+        elif score_val < 70:
+            color = COLORS["riskModerate"]
+            desc = "Moderate tendency"
+        else:
+            color = COLORS["riskHigh"]
+            desc = "Needs attention"
+        overview_cards += _overview_card(d["label"], int(score_val), color, desc)
+
+    # ── 建议 ──
+    rec_items = "".join(
+        f"""
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 0;border-bottom:1px solid #f1f5f9;">
+          <div style="width:28px;height:28px;border-radius:50%;background:{COLORS['accentLight']};
+                      color:{COLORS['accent']};display:flex;align-items:center;justify-content:center;
+                      font-weight:700;font-size:13px;flex-shrink:0;">{i+1}</div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:#1a1a2e;margin:0 0 4px;">{r.get('title','')}</p>
+            <p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">{r.get('description','')}</p>
+          </div>
+        </div>"""
+        for i, r in enumerate(recs[:3])
+    ) or '<p style="font-size:13px;color:#6b7280;">No recommendations available.</p>'
+
+    # ── 雷达图 ──
+    radar_svg = _radar_chart_svg(dims[:5]) if len(dims) >= 3 else ""
+
     return f"""<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>基因健康分析报告 — GenoLife AI</title>
+<title>Genetic Health Report — GenoLife AI</title>
 <style>
-  body {{ font-family: -apple-system, "Segoe UI", "Noto Sans SC", sans-serif; line-height:1.6; color:#1a1a2e; background:#f5f5f7; max-width:900px; margin:0 auto; padding:24px; }}
-  body::after {{ content:"⚠ 非临床诊断用途 | 仅供学习参考 | 不替代专业医疗建议"; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-30deg); font-size:48px; color:rgba(0,0,0,0.03); white-space:nowrap; pointer-events:none; z-index:9999; }}
-  .section {{ background:white; border-radius:12px; padding:24px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,0.08); page-break-inside:avoid; }}
-  .title {{ font-size:20px; font-weight:700; color:#2563eb; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e5e7eb; }}
-  .cover {{ text-align:center; padding:40px 24px; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:white; border-radius:12px; margin-bottom:20px; }}
-  .cover h1 {{ font-size:28px; margin:0 0 8px; }}
-  .cover p {{ opacity:0.85; font-size:14px; margin:0; }}
+  @page {{
+    size: A4;
+    margin: 40px 48px;
+    @top-center {{
+      content: "GenoLife AI — Personal Genetic Health Report";
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      font-size: 8px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }}
+    @bottom-center {{
+      content: "Page " counter(page);
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      font-size: 8px;
+      color: #9ca3af;
+    }}
+  }}
+  @page :first {{
+    @top-center {{ content: none; }}
+    margin-top: 0;
+  }}
+
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }}
+
+  /* ── Cover Page ── */
+  .cover {{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(170deg, #060A12 0%, #0C1525 50%, #111D30 100%);
+    color: white;
+    padding: 60px;
+    page-break-after: always;
+  }}
+  .cover-logo {{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 64px;
+  }}
+  .cover-title {{
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }}
+  .cover-title span {{
+    background: linear-gradient(135deg, #7EB8AE, #5C9A90);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }}
+  .cover-subtitle {{
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    max-width: 380px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }}
+  .cover-meta {{
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.8;
+  }}
+  .cover-score {{
+    margin: 40px 0;
+  }}
+  .cover-tagline {{
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    font-style: italic;
+    margin-top: 48px;
+  }}
+
+  /* ── Section ── */
+  .section {{
+    padding: 40px 0;
+    page-break-inside: avoid;
+  }}
+  .section-title {{
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }}
+  .section-subtitle {{
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }}
+  .section-divider {{
+    width: 40px;
+    height: 3px;
+    border-radius: 2px;
+    background: #0d9488;
+    margin-bottom: 28px;
+  }}
+
+  /* ── Overview Grid ── */
+  .overview-grid {{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }}
+
+  /* ── Footer ── */
+  .report-footer {{
+    margin-top: 60px;
+    padding: 24px 0;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 10px;
+    color: #9ca3af;
+    line-height: 1.8;
+  }}
+
+  /* ── Watermark ── */
+  body::after {{
+    content: "Educational Research Tool — Not a Medical Device";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    font-size: 52px;
+    color: rgba(0,0,0,0.015);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+  }}
 </style>
 </head>
 <body>
-  <div class="cover">
-    <h1>🧬 基因健康分析报告</h1>
-    <p>GenoLife AI · {filename}</p>
-    <p style="margin-top:12px;font-size:11px;opacity:0.6;">报告编号 {report_id} · 生成于 {now}</p>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <p class="cover-logo">GenoLife AI</p>
+  <h1 class="cover-title">
+    Personal <span>Genetic Health</span><br>Report
+  </h1>
+  <p class="cover-subtitle">
+    AI-powered genetic analysis — understand your biology and make informed health decisions.
+  </p>
+
+  <div class="cover-score">
+    {score_svg}
   </div>
 
-  <div class="section">
-    <div class="title">📊 分析概览</div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:120px;text-align:center;background:#eff6ff;border-radius:10px;padding:16px;">
-        <p style="font-size:28px;font-weight:800;color:#1e3a5f;margin:0;">{scientific.get('polygenic_score',0)}</p>
-        <p style="font-size:11px;color:#6b7280;">多基因评分</p>
-      </div>
-      <div style="flex:1;min-width:120px;text-align:center;background:#f0fdf4;border-radius:10px;padding:16px;">
-        <p style="font-size:28px;font-weight:800;color:#059669;margin:0;">{scientific.get('genetic_load','中')}</p>
-        <p style="font-size:11px;color:#6b7280;">遗传负荷</p>
-      </div>
-      <div style="flex:1;min-width:120px;text-align:center;background:#faf5ff;border-radius:10px;padding:16px;">
-        <p style="font-size:28px;font-weight:800;color:#7c3aed;margin:0;">{len(key_genes)}</p>
-        <p style="font-size:11px;color:#6b7280;">关键基因</p>
-      </div>
+  <div class="cover-meta">
+    <p>Prepared for <strong style="color:rgba(255,255,255,0.6);">Sample User</strong></p>
+    <p>{filename} &middot; {now}</p>
+    <p style="font-size:10px;margin-top:4px;">Report ID: {report_id}</p>
+  </div>
+
+  <p class="cover-tagline">Your genes reveal tendencies. Your choices shape outcomes.</p>
+</div>
+
+<!-- HEALTH OVERVIEW -->
+<div class="section">
+  <h2 class="section-title">Health Overview</h2>
+  <p class="section-subtitle">Your genetic profile across key health dimensions</p>
+  <div class="section-divider"></div>
+
+  <div class="overview-grid">
+    {overview_cards}
+  </div>
+</div>
+
+<!-- GENE INSIGHTS -->
+<div class="section">
+  <h2 class="section-title">Gene Insights</h2>
+  <p class="section-subtitle">Key genetic variants identified in your analysis</p>
+  <div class="section-divider"></div>
+
+  {gene_cards}
+</div>
+
+<!-- HEALTH DIMENSION PROFILE -->
+<div class="section">
+  <h2 class="section-title">Health Dimension Profile</h2>
+  <p class="section-subtitle">Score breakdown across health categories</p>
+  <div class="section-divider"></div>
+
+  <div style="display:flex;gap:40px;flex-wrap:wrap;align-items:center;">
+    <div style="flex:1;min-width:280px;">
+      {dim_bars}
     </div>
-    <p style="font-size:14px;color:#4b5563;margin:16px 0 0;padding:12px;background:#f9fafb;border-radius:8px;">
-      {scientific.get('summary','')}
-    </p>
+    {f'<div style="flex-shrink:0;">{radar_svg}</div>' if radar_svg else ''}
   </div>
 
-  <div class="section">
-    <div class="title">🧬 关键基因分析</div>
-    {gene_rows or "<p style='font-size:13px;color:#6b7280;'>未识别到显著关键基因。</p>"}
-  </div>
+  <p style="font-size:11px;color:#9ca3af;margin-top:20px;font-style:italic;">
+    These scores reflect genetic tendencies, not clinical diagnoses. Lifestyle choices significantly influence health outcomes.
+  </p>
+</div>
 
-  <div class="section">
-    <div class="title">📝 报告文字解读</div>
-    {global_interpretation}
-  </div>
+<!-- PERSONALIZED RECOMMENDATIONS -->
+<div class="section">
+  <h2 class="section-title">Personalized Recommendations</h2>
+  <p class="section-subtitle">Top actions based on your genetic profile</p>
+  <div class="section-divider"></div>
 
-  <div class="section">
-    <div class="title">📈 健康维度评分</div>
-    {dim_rows}
-  </div>
+  {rec_items}
+</div>
 
-  <div class="section">
-    <div class="title">💡 个性化建议</div>
-    <ul style="padding-left:20px;">{rec_items}</ul>
-  </div>
+<!-- FOOTER -->
+<div class="report-footer">
+  <p><strong>GenoLife AI</strong> &middot; Personal Genetic Health Report</p>
+  <p>Generated {now_iso} &middot; Educational research tool — not a medical device</p>
+  <p>This report does not diagnose, treat, or predict any health condition.</p>
+</div>
 
-  <div class="section">
-    <div class="title">📅 30 天健康计划</div>
-    {plan_weeks}
-  </div>
-
-  <div style="text-align:center;font-size:11px;color:#9ca3af;padding:16px;">
-    GenoLife AI © 2026 · 教育研究用途 · 报告生成于 {now}
-  </div>
 </body>
 </html>"""
 
 
-def _global_interpretation_markdown(scientific: dict, dims: list[dict], recs: list[dict]) -> str:
-    """生成报告整体文字解读的纯文本（Markdown）版本。"""
-    load = scientific.get("genetic_load", "中")
-    score = scientific.get("polygenic_score", 50)
-    summary = scientific.get("summary", "")
-
-    high_dims = [d for d in dims if d["score"] >= 55]
-    low_dims = [d for d in dims if d["score"] <= 45]
-    dim_text = ""
-    if high_dims:
-        dim_text += f"需要关注的健康维度：{'、'.join(d['label'] for d in high_dims)}。"
-    if low_dims:
-        dim_text += f"表现较好的维度：{'、'.join(d['label'] for d in low_dims)}。"
-    if not dim_text:
-        dim_text = "各健康维度均处于常见人群范围。"
-
-    rec_text = "、".join(r.get("title", "") for r in recs[:3]) if recs else "暂无具体建议"
-
-    return "\n\n".join([
-        f"**分析摘要**：{summary}",
-        f"**遗传负荷评估**：{load}。综合多基因评分 {score}/100。{dim_text}",
-        f"**行动建议**：根据您的基因档案，建议重点关注：{rec_text}。需要注意的是，遗传因素只是健康的一部分，生活方式、环境和医疗监测同样重要。",
-    ])
-
-
 def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> str:
-    """生成文字性基因报告（Markdown 格式，自包含）。"""
+    """生成文字性基因报告（Markdown 格式）。"""
     scientific = engine.generate_scientific_analysis(variants)
     key_genes = scientific.get("key_genes", [])
     dims = engine.calculate_dimension_scores(variants)
@@ -287,7 +587,6 @@ def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> s
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    # 概览
     lines = [
         f"# 🧬 基因健康分析报告 — {filename}",
         "",
@@ -304,12 +603,11 @@ def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> s
         "## 一、分析概览",
         "",
         scientific.get("summary", ""),
+        "",
+        "## 二、关键基因分析",
+        "",
     ]
 
-    # 关键基因
-    lines.append("")
-    lines.append("## 二、关键基因分析")
-    lines.append("")
     if not key_genes:
         lines.append("未识别到显著关键基因。")
     for g in key_genes:
@@ -323,22 +621,16 @@ def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> s
             "",
         ])
 
-    # 文字解读（全局，纯文本版）
     lines.extend([
-        "## 三、报告文字解读",
+        "## 三、健康维度评分",
         "",
-        _global_interpretation_markdown(scientific, dims, recs),
     ])
-
-    # 健康维度
-    lines.extend(["", "## 四、健康维度评分", ""])
     for d in dims:
         marker = "⚠️" if d["score"] >= 55 else ("✅" if d["score"] <= 45 else "•")
         lines.append(f"- {marker} **{d['label']}**：{d['score']} / 100")
     lines.append("")
 
-    # 建议
-    lines.extend(["## 五、个性化建议", ""])
+    lines.extend(["## 四、个性化建议", ""])
     if recs:
         for r in recs[:6]:
             lines.append(f"- **{r.get('title', '')}** — {r.get('description', '')}")
@@ -346,8 +638,7 @@ def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> s
         lines.append("暂无具体建议。")
     lines.append("")
 
-    # 30 天计划
-    lines.extend(["## 六、30 天健康计划", ""])
+    lines.extend(["## 五、30 天健康计划", ""])
     for w in plan.get("weeks", [])[:4]:
         lines.append(f"### {w.get('label', '')} — {w.get('theme', '')}")
         for task in w.get("tasks", []):
@@ -384,25 +675,10 @@ def export_report(
                 headers={"Content-Disposition": f'inline; filename="genolife-report-{report_id}.html"'},
             )
 
-        # PDF：用 reportlab 从 HTML 生成
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from io import BytesIO
+        # PDF：使用 WeasyPrint 将 HTML 渲染为 PDF
+        from weasyprint import HTML
 
-        buf = BytesIO()
-        doc = SimpleDocTemplate(buf, pagesize=A4)
-        styles = getSampleStyleSheet()
-        story = []
-        # 提取纯文本（简化：去 HTML 标签）
-        import re
-        text = re.sub(r"<[^>]+>", " ", html)
-        text = re.sub(r"\s+", " ", text)
-        story.append(Paragraph(f"基因健康分析报告 — {report.original_filename}", styles["Title"]))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph(text[:4000], styles["BodyText"]))
-        doc.build(story)
-        pdf_bytes = buf.getvalue()
+        pdf_bytes = HTML(string=html).write_pdf()
 
         return Response(
             content=pdf_bytes,
