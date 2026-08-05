@@ -11,9 +11,13 @@ __pycache__/
 
 # === 数据文件（184MB，不入库）===
 data/
-*.vcf
 *.vcf.gz
 *.tbi
+
+# 演示用样例 VCF 保留在仓库（samples/ 目录）
+!samples/
+samples/*
+!samples/*.vcf
 
 # === IDE / 系统 ===
 .idea/

@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api import analysis, profile, recommendations, simulate, upload
+from backend.api import analysis, profile, recommendations, report, simulate, upload
 from backend.database import init_db
 
 
@@ -52,6 +52,7 @@ app.include_router(simulate.router)
 app.include_router(recommendations.router)
 app.include_router(upload.router)
 app.include_router(analysis.router)
+app.include_router(report.router)
 
 
 @app.get("/api/health")

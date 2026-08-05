@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Shield, Sparkles } from "lucide-react";
+import { ChevronDown, Shield, Sparkles, Box } from "lucide-react";
 
 const riskStyles = {
   advantage: {
@@ -34,7 +34,7 @@ const riskStyles = {
   },
 };
 
-export default function GeneCard({ gene, index = 0, isExpanded, onToggle }) {
+export default function GeneCard({ gene, index = 0, isExpanded, onToggle, onView3D }) {
   const style = riskStyles[gene.riskLevel] || riskStyles.moderate;
 
   return (
@@ -86,6 +86,21 @@ export default function GeneCard({ gene, index = 0, isExpanded, onToggle }) {
           <ChevronDown size={18} />
         </motion.span>
       </div>
+
+      {/* 3D 结构按钮 */}
+      {onView3D && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onView3D(gene);
+          }}
+          className="relative mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary text-[13px] font-semibold transition-all duration-200 cursor-pointer group"
+          style={{ border: "1px dashed rgba(30,58,95,0.2)" }}
+        >
+          <Box size={14} className="group-hover:scale-110 transition-transform" />
+          View 3D Structure
+        </button>
+      )}
 
       {/* Summary */}
       <div className="relative mt-5">

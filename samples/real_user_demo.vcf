@@ -1,0 +1,12 @@
+##fileformat=VCFv4.2
+##source=GenoLifeAI_demo
+##reference=GRCh38
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene Name:Gene ID">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical Significance">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+4	55435202	rs1801260	A	G	.	PASS	GENEINFO=CLOCK:9575;CLNSIG=Uncertain_significance	GT	0/1
+11	66560624	rs1815739	C	A	.	PASS	GENEINFO=ACTN3:89;CLNSIG=Uncertain_significance	GT	0/1
+16	53786615	rs9939609	T	A	.	PASS	GENEINFO=FTO:79068;CLNSIG=Uncertain_significance	GT	0/1
+19	44908684	rs429358	T	C	.	PASS	GENEINFO=APOE:348;CLNSIG=Uncertain_significance	GT	0/1
+19	44908822	rs7412	C	T	.	PASS	GENEINFO=APOE:348;CLNSIG=Uncertain_significance	GT	0/1

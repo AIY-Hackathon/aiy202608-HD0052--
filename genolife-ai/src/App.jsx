@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { LocationProvider, useLocation } from "./components/layout/PageTransition";
+import { LanguageProvider } from "./i18n";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import BreathingBackground from "./components/effects/BreathingBackground";
+import MusicPlayer from "./components/MusicPlayer";
 import GeneMap from "./pages/GeneMap";
 import LifeSimulation from "./pages/LifeSimulation";
 import LifestylePlanner from "./pages/LifestylePlanner";
@@ -34,13 +36,16 @@ function PageRenderer() {
 
 export default function App() {
   return (
-    <LocationProvider>
-      <BreathingBackground />
-      <Navbar />
-      <main className="min-h-screen">
-        <PageRenderer />
-      </main>
-      <Footer />
-    </LocationProvider>
+    <LanguageProvider>
+      <LocationProvider>
+        <BreathingBackground />
+        <Navbar />
+        <main className="min-h-screen">
+          <PageRenderer />
+        </main>
+        <Footer />
+        <MusicPlayer />
+      </LocationProvider>
+    </LanguageProvider>
   );
 }

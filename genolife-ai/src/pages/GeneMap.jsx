@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import HealthScoreRing from "../components/shared/HealthScoreRing";
 import GeneCard from "../components/shared/GeneCard";
 import RiskBar from "../components/shared/RiskBar";
 import RiskRadar from "../components/charts/RiskRadar";
+import Gene3DViewer from "../components/Gene3DViewer";
 import { useLocation } from "../components/layout/PageTransition";
 import { getProfile } from "../api/client";
 import { geneticProfile, riskSummaryCards, healthSummary, geneCards, riskDimensions } from "../data/mockData";
@@ -61,6 +62,7 @@ function SkeletonBlock({ className = "" }) {
 export default function GeneMap() {
   const { goTo } = useLocation();
   const [expandedGene, setExpandedGene] = useState(null);
+  const [view3DGene, setView3DGene] = useState(null);
 
   // 从 API 加载的数据
   const [profileData, setProfileData] = useState(null);
@@ -290,6 +292,7 @@ export default function GeneMap() {
                 onToggle={() =>
                   setExpandedGene(expandedGene === gene.id ? null : gene.id)
                 }
+                onView3D={setView3DGene}
               />
             ))}
           </div>
@@ -347,6 +350,13 @@ export default function GeneMap() {
           </div>
         )}
       </section>
+
+      {/* 3D 基因可视化模态框 */}
+      <AnimatePresence>
+        {view3DGene && (
+          <Gene3DViewer gene={view3DGene} onClose={() => setView3DGene(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
