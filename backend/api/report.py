@@ -46,13 +46,20 @@ def _load_report_data(report_id: str):
 def _variants_to_dicts(variants) -> list[dict]:
     return [
         {
+            "id": v.id,
             "chromosome": v.chromosome,
             "position": v.position,
+            "reference": v.reference,
+            "alternative": v.alternative,
             "gene_name": v.gene_name,
             "clinvar_significance": v.clinvar_significance,
+            "clinvar_review_status": v.clinvar_review_status,
             "odds_ratio": v.odds_ratio,
+            "population_frequency": v.population_frequency,
             "risk_score": v.risk_score,
             "rs_id": v.rs_id,
+            "genotype": v.genotype,
+            "allele_dosage": v.allele_dosage,
         }
         for v in variants
     ]
@@ -753,7 +760,7 @@ def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> s
         "",
         "## 六、家长须知",
         "",
-        "1. **基因不是命运**：基因检测结果反映的是"倾向"和"风险"，而非确定性的命运。",
+        "1. **基因不是命运**：基因检测结果反映的是“倾向”和“风险”，而非确定性的命运。",
         "   科学的早期照护、定期随访和良好的成长环境可以对孩子的健康发展产生深远影响。",
         "2. **G×E 交互**：基因（Gene）× 环境（Environment）交互是当代医学的核心认知。",
         "   即使携带致病变异，通过优化喂养方式、睡眠质量、发育刺激等环境因素，也可以显著改善预后。",

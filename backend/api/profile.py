@@ -31,7 +31,7 @@ from backend.services import prs_calculator as engine
 router = APIRouter(prefix="/api", tags=["profile"])
 
 
-def _load_variants_from_db():
+async def _load_variants_from_db():
     """从数据库加载最近报告的变异（真实分析）。
 
     返回变异字典列表；无数据时返回空列表。
@@ -41,42 +41,38 @@ def _load_variants_from_db():
         from backend.models import GeneticReport, GeneticVariant
         from sqlalchemy import select, desc
 
-        # 异步会话
-        import asyncio
+        async with SessionLocal() as session:
+            result = await session.execute(
+                select(GeneticReport)
+                .where(GeneticReport.parsing_status == "completed")
+                .order_by(desc(GeneticReport.created_at))
+                .limit(1)
+            )
+            report = result.scalars().first()
+            if not report:
+                return []
 
-        async def _query():
-            async with SessionLocal() as session:
-                # 找最近的报告
-                result = await session.execute(
-                    select(GeneticReport)
-                    .where(GeneticReport.parsing_status == "completed")
-                    .order_by(desc(GeneticReport.created_at))
-                    .limit(1)
-                )
-                report = result.scalars().first()
-                if not report:
-                    return []
-
-                # 加载其变异
-                result = await session.execute(
-                    select(GeneticVariant).where(GeneticVariant.report_id == report.id)
-                )
-                variants = result.scalars().all()
-                return [
-                    {
-                        "id": v.id,
-                        "gene_name": v.gene_name,
-                        "chromosome": v.chromosome,
-                        "position": v.position,
-                        "clinvar_significance": v.clinvar_significance,
-                        "odds_ratio": v.odds_ratio,
-                        "risk_score": v.risk_score,
-                        "rs_id": v.rs_id,
-                    }
-                    for v in variants
-                ]
-
-        return asyncio.run(_query())
+            result = await session.execute(
+                select(GeneticVariant).where(GeneticVariant.report_id == report.id)
+            )
+            variants = result.scalars().all()
+            return [
+                {
+                    "id": v.id,
+                    "gene_name": v.gene_name,
+                    "chromosome": v.chromosome,
+                    "position": v.position,
+                    "clinvar_significance": v.clinvar_significance,
+                    "odds_ratio": v.odds_ratio,
+                    "risk_score": v.risk_score,
+                    "rs_id": v.rs_id,
+                    "genotype": v.genotype,
+                    "allele_dosage": v.allele_dosage,
+                    "reference": v.reference,
+                    "alternative": v.alternative,
+                }
+                for v in variants
+            ]
     except Exception as e:
         print(f"[profile] 数据库读取失败（使用演示数据）: {e}")
         return []
@@ -85,21 +81,38 @@ def _load_variants_from_db():
 def _run_mini_prs(variants: list[dict]) -> dict | None:
     """调用 Mini-PRS 引擎（GWAS 证据权重），从变异提取 genotype 计算。
 
-    引擎需要 {"rsID": "genotype"} 格式。从变异中提取 rsID 和参考/替代等位基因，
-    构造 genotype（简化：有变异记录视为杂合，缺失视为纯合参考）。
+    引擎需要 {"rsID": "genotype"} 格式。优先使用 VCF 解析出的真实 GT 基因型，
+    无法获取时回退到 ref/alt 恢复。
     """
     try:
         from engine.mini_prs import calculate_mini_prs
 
-        # 从变异提取 rsID → genotype
+        # 从变异提取 rsID → genotype（优先真实 GT）
         genotype_data: dict[str, str] = {}
         for v in variants:
             rs = v.get("rs_id")
-            if rs and rs not in genotype_data:
+            if not rs:
+                continue
+            # 优先使用数据库中的真实基因型
+            gt = v.get("genotype")
+            if gt and rs not in genotype_data:
+                # 将 "0/0" 转为纯合参考、将 "0/1" 转为杂合
+                alleles = gt.replace("|", "/").split("/")
+                dosage = v.get("allele_dosage", 0)
+                if dosage == 0:
+                    ref = v.get("reference") or "A"
+                    genotype_data[rs] = ref + ref
+                elif dosage == 2:
+                    alt = v.get("alternative") or "G"
+                    genotype_data[rs] = alt + alt
+                else:
+                    ref = v.get("reference") or "A"
+                    alt = v.get("alternative") or "G"
+                    genotype_data[rs] = ref + alt
+            elif rs not in genotype_data:
                 ref = v.get("reference") or "A"
                 alt = v.get("alternative") or "G"
-                # 简化：变异存在记为杂合（ref/alt），实际应结合 GT 字段
-                genotype_data[rs] = f"{ref}{alt}"
+                genotype_data[rs] = ref + alt
 
         if not genotype_data:
             return None
@@ -182,8 +195,8 @@ def build_profile(variants: list[dict] | None = None, population: str | None = N
 
 
 @router.get("/profile", response_model=ApiResponse)
-def get_profile():
+async def get_profile():
     """获取基因分析档案（概览 + 基因卡片 + 风险维度）。"""
-    variants = _load_variants_from_db()
+    variants = await _load_variants_from_db()
     profile = build_profile(variants)
     return ApiResponse.ok(profile)

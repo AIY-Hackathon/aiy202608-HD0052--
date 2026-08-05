@@ -13,7 +13,6 @@ GET /api/analysis/{report_id} — 分析结果
 """
 from __future__ import annotations
 
-import asyncio
 import os
 import sys
 
@@ -28,24 +27,21 @@ from backend.services import prs_calculator as engine
 router = APIRouter(prefix="/api", tags=["analysis"])
 
 
-def _load_report(report_id: str):
+async def _load_report(report_id: str):
     """从数据库加载报告及其变异。"""
     from backend.database import SessionLocal
     from backend.models import GeneticReport, GeneticVariant
     from sqlalchemy import select
 
-    async def _query():
-        async with SessionLocal() as session:
-            report = await session.get(GeneticReport, report_id)
-            if not report:
-                return None, []
-            result = await session.execute(
-                select(GeneticVariant).where(GeneticVariant.report_id == report_id)
-            )
-            variants = result.scalars().all()
-            return report, variants
-
-    return asyncio.run(_query())
+    async with SessionLocal() as session:
+        report = await session.get(GeneticReport, report_id)
+        if not report:
+            return None, []
+        result = await session.execute(
+            select(GeneticVariant).where(GeneticVariant.report_id == report_id)
+        )
+        variants = result.scalars().all()
+        return report, variants
 
 
 def _variants_to_dicts(variants) -> list[dict]:
@@ -72,7 +68,7 @@ def _variants_to_dicts(variants) -> list[dict]:
 
 
 @router.get("/analysis/{report_id}", response_model=ApiResponse)
-def get_analysis(report_id: str, population: str | None = Query(None)):
+async def get_analysis(report_id: str, population: str | None = Query(None)):
     """获取基因分析结果。
 
     Args:
@@ -80,7 +76,7 @@ def get_analysis(report_id: str, population: str | None = Query(None)):
         population: 可选，用户人群（东亚/欧洲/非洲/南亚/拉丁 或 EAS/EUR/AFR/SAS/LAT）。
                     传入时关键基因选择会按人群频率校准。
     """
-    report, variants = _load_report(report_id)
+    report, variants = await _load_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"报告 {report_id} 不存在")
 
@@ -124,9 +120,9 @@ def _infer_ancestry(variant_dicts: list[dict]) -> dict | None:
 
 
 @router.get("/analysis/{report_id}/ancestry", response_model=ApiResponse)
-def get_ancestry(report_id: str):
+async def get_ancestry(report_id: str):
     """获取人群祖先推断结果（辅助参考，低置信度时提示用户手动确认）。"""
-    report, variants = _load_report(report_id)
+    report, variants = await _load_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"报告 {report_id} 不存在")
 
