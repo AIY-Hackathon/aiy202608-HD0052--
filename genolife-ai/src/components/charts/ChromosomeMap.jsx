@@ -92,7 +92,7 @@ export default function ChromosomeMap({ variants = [], height = 360 }) {
     <div className="w-full">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
         {SIGNIFICANCE_ORDER.map((sig) => (
-          <span key={sig} className="inline-flex items-center gap-1.5 text-[11px] text-text-tertiary">
+          <span key={"cmSig-" + sig} className="inline-flex items-center gap-1.5 text-[11px] text-text-tertiary">
             <span
               className="w-2.5 h-2.5 rounded-full"
               style={{ background: SIGNIFICANCE_COLORS[sig] }}

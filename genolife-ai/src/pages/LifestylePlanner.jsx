@@ -128,7 +128,7 @@ export default function LifestylePlanner() {
           {/* Tick marks */}
           {[25, 50, 75].map((pct) => (
             <div
-              key={pct}
+              key={"lpPct-" + pct}
               className="absolute top-0 bottom-0 w-px bg-white/60"
               style={{ left: `${pct}%` }}
             />

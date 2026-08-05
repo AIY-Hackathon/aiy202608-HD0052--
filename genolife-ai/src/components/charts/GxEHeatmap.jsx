@@ -133,7 +133,7 @@ export default function GxEHeatmap({ genes = [] }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
         {Object.entries(INTERACTION_TYPES).map(([key, meta]) => (
           <button
-            key={key}
+            key={"interKey-" + key}
             onClick={() => setSelectedType(selectedType === key ? null : key)}
             className={`inline-flex items-center gap-1.5 text-[11px] rounded-full px-2.5 py-0.5 transition-all cursor-pointer ${
               selectedType === key ? "ring-2 ring-offset-1" : ""
@@ -157,7 +157,7 @@ export default function GxEHeatmap({ genes = [] }) {
         <svg viewBox={`0 0 ${width} ${height}`} style={{ minWidth: 420 }}>
           {/* 表头：环境因子 */}
           {presentFactors.map((f, i) => (
-            <g key={f}>
+            <g key={"hdr-" + f}>
               <text
                 x={labelW + i * cellW + cellW / 2}
                 y={headerH - 14}
@@ -242,7 +242,7 @@ export default function GxEHeatmap({ genes = [] }) {
       {/* 图例：证据强度 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
         {Object.entries(EVIDENCE_META).map(([key, meta]) => (
-          <span key={key} className="inline-flex items-center gap-1.5 text-[11px] text-text-tertiary">
+          <span key={"evKey-" + key} className="inline-flex items-center gap-1.5 text-[11px] text-text-tertiary">
             <span style={{ color: meta.color }}>{meta.dot}</span>
             {meta.label}
           </span>

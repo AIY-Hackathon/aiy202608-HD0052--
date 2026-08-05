@@ -777,7 +777,7 @@ export default function GeneMap() {
           <div className="flex items-center gap-1.5">
             {["all", "Pathogenic", "Benign", "VUS"].map((f) => (
               <button
-                key={f}
+                key={"gmFilter-" + f}
                 onClick={() => setFilterSig(f)}
                 className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer ${filterSig === f ? "bg-primary text-white shadow-sm" : "bg-gray-100 text-text-tertiary hover:text-text hover:bg-gray-200"}`}
                 style={{ border: "none" }}
@@ -859,7 +859,7 @@ export default function GeneMap() {
               { sig: "Likely_benign", color: "text-emerald-600 bg-emerald-50", label: "clinvarLikelyBenign" },
               { sig: "Benign", color: "text-emerald-600 bg-emerald-50", label: "clinvarBenign" },
             ].map(({ sig, color, label }) => (
-              <div key={sig} className="flex items-start gap-2">
+              <div key={"gmSig-" + sig} className="flex items-start gap-2">
                 <span className={`shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold ${color} mt-0.5`}>
                   {sig.replace(/_/g, " ")}
                 </span>

@@ -391,7 +391,7 @@ export default function LifeSimulation() {
               transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             />
             {[25, 50, 75].map((pct) => (
-              <div key={pct} className="absolute top-0 bottom-0 w-px bg-white/60" style={{ left: `${pct}%` }} />
+              <div key={"lsPct-" + pct} className="absolute top-0 bottom-0 w-px bg-white/60" style={{ left: `${pct}%` }} />
             ))}
           </div>
           <div className="flex items-center gap-2 mt-4">
