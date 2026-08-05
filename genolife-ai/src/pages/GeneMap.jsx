@@ -433,14 +433,13 @@ export default function GeneMap() {
                           {r.variantCount || "?"} variants · {new Date(r.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <button
-                        onClick={(e) => deleteReport(r.reportId, e)}
+                      <span
+                        onClick={(e) => { e.stopPropagation(); deleteReport(r.reportId, e); }}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-text-tertiary hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"
-                        style={{ border: "none", background: "none" }}
                         title={t("geneMap", "deleteReport")}
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </span>
                     </div>
                   ))}
                 </div>
