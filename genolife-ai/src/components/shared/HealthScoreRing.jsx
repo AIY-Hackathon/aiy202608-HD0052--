@@ -24,6 +24,10 @@ export default function HealthScoreRing({
     // 保护：非数字时不执行动画（例如传入 "--" 或 null）
     if (typeof end !== "number" || isNaN(end) || typeof start !== "number" || isNaN(start)) {
       prevScore.current = end;
+      // 如果 end 是有效数字，直接显示（例如从 "--" 变为实际分数）
+      if (typeof end === "number" && !isNaN(end)) {
+        setDisplayScore(end);
+      }
       return;
     }
     const duration = 800;
