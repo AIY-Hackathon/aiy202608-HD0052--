@@ -62,18 +62,14 @@ const pages = {
 
 function PageRenderer() {
   const { currentPage, uploaded, consentCompleted } = useLocation();
-  // 如果用户已上传过报告（localStorage 有 active report），自动跳转到基因分析页
   const initialPage = useRef(false);
   useEffect(() => {
     if (!initialPage.current && uploaded && currentPage === "home") {
       initialPage.current = true;
-      // 不强制跳转 — 用户可能想留在首页
     }
   }, [currentPage, uploaded]);
 
   const Page = pages[currentPage] || HomePage;
-
-  // 基因分析页面需要先完成知情同意（每次会话）
   const needsConsent = currentPage === "gene-map" && !consentCompleted;
 
   return (
@@ -95,20 +91,30 @@ function PageRenderer() {
   );
 }
 
+function AppInner() {
+  const { currentPage } = useLocation();
+
+  return (
+    <>
+      <BreathingBackground />
+      <Navbar />
+      <main className="min-h-screen">
+        <ErrorBoundary key={currentPage}>
+          <PageRenderer />
+        </ErrorBoundary>
+      </main>
+      <Footer />
+      <MusicPlayer />
+      <AIChatAssistant />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <LanguageProvider>
       <LocationProvider>
-        <ErrorBoundary>
-          <BreathingBackground />
-          <Navbar />
-          <main className="min-h-screen">
-            <PageRenderer />
-          </main>
-          <Footer />
-          <MusicPlayer />
-          <AIChatAssistant />
-        </ErrorBoundary>
+        <AppInner />
       </LocationProvider>
     </LanguageProvider>
   );
