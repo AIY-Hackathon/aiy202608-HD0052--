@@ -12,6 +12,8 @@ import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
 import HealthyGrowthCenter from "./pages/HealthyGrowthCenter";
 import GeneticAssistanceCenter from "./pages/GeneticAssistanceCenter";
+import PrivacyCenter from "./pages/PrivacyCenter";
+import EthicsReference from "./pages/EthicsReference";
 import { Component, useEffect, useRef } from "react";
 
 /* ── Error Boundary: catches ReactMarkdown / React 19 crashes ── */
@@ -54,10 +56,12 @@ const pages = {
   report: ReportPage,
   "healthy-growth": HealthyGrowthCenter,
   "genetic-assistance": GeneticAssistanceCenter,
+  privacy: PrivacyCenter,
+  ethics: EthicsReference,
 };
 
 function PageRenderer() {
-  const { currentPage, uploaded } = useLocation();
+  const { currentPage, uploaded, consentCompleted } = useLocation();
   // 如果用户已上传过报告（localStorage 有 active report），自动跳转到基因分析页
   const initialPage = useRef(false);
   useEffect(() => {
@@ -69,6 +73,9 @@ function PageRenderer() {
 
   const Page = pages[currentPage] || HomePage;
 
+  // 基因分析页面需要先完成知情同意（每次会话）
+  const needsConsent = currentPage === "gene-map" && !consentCompleted;
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -78,7 +85,11 @@ function PageRenderer() {
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
       >
-        <Page />
+        {needsConsent ? (
+          <GeneMap />
+        ) : (
+          <Page />
+        )}
       </motion.div>
     </AnimatePresence>
   );
@@ -88,9 +99,9 @@ export default function App() {
   return (
     <LanguageProvider>
       <LocationProvider>
-        <BreathingBackground />
-        <Navbar />
         <ErrorBoundary>
+          <BreathingBackground />
+          <Navbar />
           <main className="min-h-screen">
             <PageRenderer />
           </main>

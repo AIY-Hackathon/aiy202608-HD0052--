@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useLocation } from "./PageTransition";
 import { useLanguage } from "../../i18n";
-import { Home } from "lucide-react";
+import { Home, Shield } from "lucide-react";
 
 export default function Navbar() {
   const { currentPage, goTo, analysisResult } = useLocation();
@@ -102,14 +102,30 @@ export default function Navbar() {
         </div>
 
         {/* 语言切换 */}
-        <button
-          onClick={toggleLang}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold text-text-secondary hover:text-text bg-gray-100/60 hover:bg-gray-200/60 cursor-pointer transition-colors"
-          style={{ border: "none" }}
-        >
-          <span className="text-[14px]">{lang === "zh" ? "🌐" : "🌐"}</span>
-          {lang === "zh" ? "EN" : "中文"}
-        </button>
+        <div className="flex items-center gap-1">
+          {/* 隐私中心链接 */}
+          <button
+            onClick={() => goTo("privacy")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-colors cursor-pointer ${
+              currentPage === "privacy"
+                ? "bg-white text-accent shadow-sm"
+                : "text-text-tertiary hover:text-text"
+            }`}
+            style={{ border: "none", background: currentPage === "privacy" ? "white" : "none" }}
+          >
+            <Shield size={14} />
+            <span className="hidden sm:inline">{t("nav", "privacy")}</span>
+          </button>
+
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold text-text-secondary hover:text-text bg-gray-100/60 hover:bg-gray-200/60 cursor-pointer transition-colors"
+            style={{ border: "none" }}
+          >
+            <span className="text-[14px]">{lang === "zh" ? "🌐" : "🌐"}</span>
+            {lang === "zh" ? "EN" : "中文"}
+          </button>
+        </div>
       </div>
     </nav>
   );
