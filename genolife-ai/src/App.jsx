@@ -5,6 +5,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import BreathingBackground from "./components/effects/BreathingBackground";
 import MusicPlayer from "./components/MusicPlayer";
+import AIChatAssistant from "./components/AIChatAssistant";
 import GeneMap from "./pages/GeneMap";
 import LifeSimulation from "./pages/LifeSimulation";
 import ReportPage from "./pages/Report";
@@ -47,6 +48,7 @@ export default function App() {
         </main>
         <Footer />
         <MusicPlayer />
+        <AIChatAssistant />
       </LocationProvider>
     </LanguageProvider>
   );
