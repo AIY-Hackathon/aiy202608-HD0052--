@@ -16,9 +16,9 @@
 
 | 成员 | 负责 |
 |---|---|
-| Steven | 全栈开发、后端 API、G×E 引擎、知识库、README |
-| 队友B | 前端界面、3D 可视化、i18n 国际化 |
-| 队友C | 产品调研、儿科基因文献整理、路演 |
+| Zhijian Liang | 前端 UI/UX 开发、3D 可视化、i18n 国际化 |
+| Shaoxi Li | 后端 API、数据库设计、VCF 解析、ClinVar 查询 |
+| Yarui Xu | G×E 模型算法、推荐引擎、基因知识库、科学验证 |
 
 ---
 
@@ -115,9 +115,9 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ## 📄 版权与许可
 
-Copyright (c) 2026 Steven, 队友B, 队友C
+Copyright (c) 2026 Zhijian Liang, Shaoxi Li, Yarui Xu
 
-本作品版权归**Steven, 队友B, 队友C**共同所有，采用 [MIT License](./LICENSE) 开源，使用请署名。
+本作品版权归**Zhijian Liang, Shaoxi Li, Yarui Xu**共同所有，采用 [MIT License](./LICENSE) 开源，使用请署名。
 
 > 本项目为 AIY 黑客松 2026 深圳站参赛作品，作品归团队所有；AIY 组委会仅作收录与展示。
 > 
