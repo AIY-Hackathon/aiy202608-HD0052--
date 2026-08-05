@@ -628,7 +628,7 @@ export default function GeneMap() {
                 { label: t("geneMap", "methodologyLifestyle"), desc: t("geneMap", "methodologyLifestyleDesc") },
               ].map((item, i) => (
                 <motion.div
-                  key={i}
+                  key={item.label}
                   className="premium-card px-4 py-3 flex-1 lg:flex-none"
                   style={{ borderLeft: `3px solid ${[i === 0 ? "var(--color-primary)" : i === 1 ? "var(--color-accent)" : "var(--color-risk-moderate)"][i] || "var(--color-primary)"}` }}
                   initial={{ opacity: 0, x: -8 }}
