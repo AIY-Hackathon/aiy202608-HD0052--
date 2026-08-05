@@ -12,7 +12,40 @@ import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
 import HealthyGrowthCenter from "./pages/HealthyGrowthCenter";
 import GeneticAssistanceCenter from "./pages/GeneticAssistanceCenter";
-import { useEffect, useRef } from "react";
+import { Component, useEffect, useRef } from "react";
+
+/* ── Error Boundary: catches ReactMarkdown / React 19 crashes ── */
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center px-6">
+            <p className="text-[16px] font-bold text-text mb-2">页面渲染出错</p>
+            <p className="text-[13px] text-text-tertiary mb-4">
+              {this.state.error?.message || "未知错误"}
+            </p>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+              className="px-4 py-2 rounded-full bg-primary text-white text-[13px] font-semibold cursor-pointer"
+              style={{ border: "none" }}
+            >
+              刷新页面
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const pages = {
   home: HomePage,
@@ -55,14 +88,16 @@ export default function App() {
   return (
     <LanguageProvider>
       <LocationProvider>
-        <BreathingBackground />
-        <Navbar />
-        <main className="min-h-screen">
-          <PageRenderer />
-        </main>
-        <Footer />
-        <MusicPlayer />
-        <AIChatAssistant />
+        <ErrorBoundary>
+          <BreathingBackground />
+          <Navbar />
+          <main className="min-h-screen">
+            <PageRenderer />
+          </main>
+          <Footer />
+          <MusicPlayer />
+          <AIChatAssistant />
+        </ErrorBoundary>
       </LocationProvider>
     </LanguageProvider>
   );
