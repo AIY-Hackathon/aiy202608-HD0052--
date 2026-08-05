@@ -736,6 +736,32 @@ export default function GeneMap() {
           </div>
         </div>
 
+        {/* 科普：如何阅读 */}
+        <div className="premium-card px-5 py-4 mb-4 bg-blue-50/40 border border-blue-100/60">
+          <p className="text-[12px] font-bold text-primary mb-2.5 flex items-center gap-1.5">
+            <HelpCircle size={13} />
+            {t("geneMap", "variantHowToRead")}
+          </p>
+          <p className="text-[11px] text-text-tertiary mb-3">{t("geneMap", "variantHowToReadDesc")}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+            {[
+              { k: "variantChrPos", key2: "colChrPos" },
+              { k: "variantRsid", key2: "colRsid" },
+              { k: "variantGene", key2: "colGene" },
+              { k: "variantRefAlt", key2: "colRefAlt" },
+              { k: "variantClinvar", key2: "colClinvar" },
+              { k: "variantRisk", key2: "colRisk" },
+            ].map(({ k, key2 }) => (
+              <div key={k} className="flex items-start gap-2">
+                <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-white text-[10px] font-bold text-text-secondary border border-gray-200 mt-0.5">
+                  {t("geneMap", k)}
+                </span>
+                <p className="text-[11px] text-text-secondary leading-relaxed">{t("geneMap", key2)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
           <div className="relative flex-1 max-w-xs">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
@@ -816,6 +842,34 @@ export default function GeneMap() {
           )}
           </>
           )}
+        </div>
+
+        {/* 科普：ClinVar 标签图例 */}
+        <div className="premium-card px-5 py-4 mt-4">
+          <p className="text-[12px] font-bold text-text mb-3 flex items-center gap-1.5">
+            <HelpCircle size={13} className="text-primary" />
+            {t("geneMap", "clinvarLegend")}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2.5">
+            {[
+              { sig: "Pathogenic", color: "text-red-600 bg-red-50", label: "clinvarPathogenic" },
+              { sig: "Likely_pathogenic", color: "text-orange-600 bg-orange-50", label: "clinvarLikelyPathogenic" },
+              { sig: "Uncertain_significance", color: "text-gray-500 bg-gray-50", label: "clinvarVus" },
+              { sig: "Likely_benign", color: "text-emerald-600 bg-emerald-50", label: "clinvarLikelyBenign" },
+              { sig: "Benign", color: "text-emerald-600 bg-emerald-50", label: "clinvarBenign" },
+            ].map(({ sig, color, label }) => (
+              <div key={sig} className="flex items-start gap-2">
+                <span className={`shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold ${color} mt-0.5`}>
+                  {sig.replace(/_/g, " ")}
+                </span>
+                <p className="text-[11px] text-text-secondary leading-relaxed">{t("geneMap", label)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] text-text-tertiary leading-relaxed flex items-start gap-1.5">
+            <ShieldAlert size={13} className="shrink-0 mt-0.5 text-risk-moderate" />
+            {t("geneMap", "clinvarDisclaimer")}
+          </p>
         </div>
       </section>
 
