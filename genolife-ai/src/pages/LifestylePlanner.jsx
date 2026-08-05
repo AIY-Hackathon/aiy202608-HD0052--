@@ -163,7 +163,7 @@ export default function LifestylePlanner() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <SkeletonBlock key={i} className="h-20 rounded-2xl" />
+              <SkeletonBlock key={"lpSk" + i} className="h-20 rounded-2xl" />
             ))}
           </div>
         ) : (

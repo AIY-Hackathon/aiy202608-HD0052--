@@ -406,7 +406,7 @@ export default function LifeSimulation() {
         {/* 4-week timeline */}
         {planLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} className="h-20 rounded-2xl" />)}
+            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={"planSk" + i} className="h-20 rounded-2xl" />)}
           </div>
         ) : (
           <div className="space-y-4 mb-20">
