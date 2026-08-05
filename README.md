@@ -1,97 +1,124 @@
-# 基因分析助手网站（Gene Analysis Assistant）
+# GenoLife AI — 新生儿基因筛查智能解读平台
 
-一套服务于**基因分析与遗传咨询**的综合性 Web 应用平台，支持基因报告上传分析、基因-环境交互模拟、个性化生活方式建议三大核心功能。
+> 帮助0-6岁婴幼儿家长理解基因筛查结果、模拟发育可能、制定个性化早期照护策略
 
-> **⚠️ 免责声明**：本产品为教育研究型项目，**不构成医疗器械**，**不提供临床诊断**。所有 AI 生成的基因解读仅供学习参考，不得替代专业医疗建议。
+🏆 **AIY 黑客松 2026 深圳站** 参赛作品
 
----
+🏷 命题企业 / 赛道：基因健康 · AI for Science
 
-## 📁 项目文档（规范性文档）
+👤 团队：AIYProgram
 
-本项目的需求、设计、任务均以**规范性文档**形式管理，请在开始开发前完整阅读：
-
-| 文档 | 说明 | 链接 |
-|------|------|------|
-| **需求规格说明书** | 13 项功能需求、优先级分级（P0-P3）、FDA AI/ML 合规声明 | [docs/requirements.md](docs/requirements.md) |
-| **系统设计文档** | 技术架构、组件接口、数据模型、测试策略、AI 设计规范 | [docs/design.md](docs/design.md) |
-| **36 小时冲刺计划** | 三开发者并行任务安排（A 后端 / B 前端 / C 引擎）、时间线、Git 规范 | [docs/tasks.md](docs/tasks.md) |
+🔢 团队编号：HD0052（组委会分配）
 
 ---
 
-## 🧑💻 开发分工（三路并行）
+## 👥 团队分工
 
-| 开发者 | 分支 | 负责内容 | 目录 |
-|--------|------|----------|------|
-| **A — 后端** | `part-a-backend` | FastAPI API、数据库、VCF 解析、ClinVar 查询、PRS 计算 | `backend/` |
-| **B — 前端** | `part-b-frontend` | Streamlit 5 个页面、可视化组件、免责声明 | `frontend/` |
-| **C — 引擎** | `part-c-engine` | GxE 模型、建议引擎、报告生成、Gradio AI 判读 | `engine/` + `gradio_app.py` |
+| 成员 | 负责 |
+|---|---|
+| Steven | 全栈开发、后端 API、G×E 引擎、知识库、README |
+| 队友B | 前端界面、3D 可视化、i18n 国际化 |
+| 队友C | 产品调研、儿科基因文献整理、路演 |
 
 ---
 
-## 🚀 快速开始
+## ✨ 它能做什么
+
+- **基因档案分析**：上传宝宝 VCF 基因报告，自动注释 25 个 ACMG 核心基因，解析 ClinVar 临床意义
+- **发育模拟**：调整喂养、睡眠、运动、早教等早期照护因素，基于已发表的 G×E（基因×环境）交互模型，预测宝宝发育轨迹变化
+- **健康成长中心**：基因筛查正常时，提供 AI 育儿问答、喂养/睡眠/发育/疫苗科普
+- **遗传援助中心**：基因筛查异常时，提供基因解读和医疗资源指引
+- **报告导出**：生成个性化基因健康总结，支持 Markdown / HTML / PDF 三种格式
+- **3D 蛋白结构查看**：通过 Mol* 嵌入 PDB/AlphaFold 蛋白结构，直观展示基因变异位点
+
+---
+
+## 🎬 演示
+
+（请在此处放置一张作品运行截图或 GIF 演示）
+
+---
+
+## 🛠 用到的技术 / AI 工具
+
+- **前端**：React + Vite + Framer Motion + Tailwind CSS
+- **后端**：Python FastAPI + SQLAlchemy + aiosqlite
+- **AI**：DeepSeek API（基因科普问答）、LangChain（推荐引擎）
+- **基因注释**：ClinVar / OMIM / dbSNP 公开数据库
+- **可视化**：Recharts（风险图表）、Mol*/RCSB PDB（蛋白 3D 结构）、D3.js（基因网络）
+- **报告导出**：WeasyPrint（PDF）、react-markdown（Markdown 渲染）
+- **科学基础**：ACMG SF v3.2 基因列表、NIH RUSP 新生儿筛查 panel、中国新生儿筛查技术规范
+
+---
+
+## 🚀 怎么跑起来
+
+### 前端
+
+```bash
+cd genolife-ai
+npm install
+npm run dev
+```
+
+### 后端
+
+```bash
+pip install -r requirements.txt
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
+```
 
 ### 环境要求
 
-- Python 3.10+
-- （可选）PostgreSQL + Redis（本地开发可用 SQLite 替代）
+- **Node.js** 18+
+- **Python** 3.10+
+- （可选）WeasyPrint PDF 导出需要系统依赖：macOS `brew install glib pango cairo` / Linux `apt install libpango-1.0-0 libgobject-2.0-0`
 
-### 安装
+---
 
-```bash
-git clone git@github.com:liang03060101-stack/AIY-Program.git
-cd AIY-Program
+## 📁 项目结构
 
-# 创建虚拟环境
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Mac/Linux:
-# source venv/bin/activate
-
-# 安装依赖
-pip install -r requirements.txt
 ```
-
-### 启动后端（Part A）
-
-```bash
-uvicorn backend.main:app --reload
-# API 文档: http://127.0.0.1:8000/docs
-```
-
-### 启动前端（Part B）
-
-```bash
-streamlit run frontend/app.py
-# 页面: http://localhost:8501
-```
-
-### 启动 AI 判读（Part C）
-
-```bash
-python gradio_app.py
+├── backend/              # FastAPI 后端
+│   ├── api/              # 路由：profile, simulate, report, ai_chat
+│   └── services/         # PRS 计算引擎
+├── engine/               # G×E 交互模型 & 推荐引擎
+│   └── knowledge/        # 25 基因儿科知识库 (gene_database.json)
+├── genolife-ai/          # React 前端
+│   └── src/
+│       ├── pages/        # 6 个页面（含健康成长中心、遗传援助中心）
+│       ├── components/   # 图表、3D 查看器、AI 助手等
+│       └── data/         # Mock 数据 & PDB 结构映射
+├── sample_vcfs/          # 6 个模拟婴儿 VCF 样本
+│   ├── baby1_metabolic_star.vcf      # 代谢异常型
+│   ├── baby2_multi_challenge.vcf     # 多基因挑战型
+│   ├── baby3_immune_guardian.vcf     # 免疫警戒型
+│   ├── baby4_neuro_focus.vcf         # 神经发育型
+│   ├── baby5_cardio_watch.vcf        # 心脏关注型
+│   └── baby6_healthy_all.vcf        # 全健康型
+├── verify_science.py     # 科学性验证脚本
+├── check_science.py      # 科学内容一致性检查
+└── requirements.txt
 ```
 
 ---
 
-## 📊 数据资源
+## 📌 后续计划
 
-| 数据集 | 路径 | 大小 | 用途 |
-|--------|------|------|------|
-| ClinVar VCF (GRCh38) | `data/clinvar/clinvar_grch38.vcf.gz` | ~184 MB | 变异临床意义注释（4,458,175 条） |
-| ClinVar Tabix 索引 | `data/clinvar/clinvar_grch38.vcf.gz.tbi` | 596 KB | 快速位置查询 |
-
-> 数据文件较大，不入 Git 库。缺失时运行 `python download_data.py` 重新下载。
+- [ ] 扩展基因覆盖范围（ACMG 78 个次要发现基因）
+- [ ] 接入真实新生儿筛查数据格式
+- [ ] 移动端 PWA 适配
+- [ ] 医生端审核面板
+- [ ] 多语言扩展（日语、韩语）
 
 ---
 
-## 🧬 技术栈
+## 📄 版权与许可
 
-| 层级 | 技术选型 |
-|------|----------|
-| 前端 | Streamlit + D3.js/Recharts（可视化） |
-| AI 演示 | Gradio |
-| 后端 | Python FastAPI + SQLAlchemy |
-| 数据处理 | Pandas、NumPy |
-| 数据库 | PostgreSQL + Redis（缓存） |
-| AI 模型 | Claude API / OpenAI API |
+Copyright (c) 2026 Steven, 队友B, 队友C
+
+本作品版权归**Steven, 队友B, 队友C**共同所有，采用 [MIT License](./LICENSE) 开源，使用请署名。
+
+> 本项目为 AIY 黑客松 2026 深圳站参赛作品，作品归团队所有；AIY 组委会仅作收录与展示。
+> 
+> ⚠️ 本产品仅供教育研究，不构成医疗器械，不提供临床诊断。所有 AI 生成的基因解读仅供学习参考，不得替代专业医疗建议。
