@@ -183,7 +183,7 @@ export default function LifestylePlanner() {
 
               return (
                 <motion.div
-                  key={wi}
+                  key={"lpWeek" + wi}
                   className={`premium-card overflow-hidden ${
                     weekComplete ? "ring-2 ring-accent/20 bg-accent-light/10" : ""
                   }`}
@@ -260,7 +260,7 @@ export default function LifestylePlanner() {
                             const taskDesc = i18nTaskDesc || task.desc;
                             return (
                               <motion.div
-                                key={taskId}
+                                key={"lpTask" + taskId}
                                 className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 cursor-pointer ${
                                   done
                                     ? "bg-accent-light/30 border border-accent/20"
@@ -339,7 +339,7 @@ export default function LifestylePlanner() {
             { icon: Star, title: t("simulation", "trackReflectTitle"), desc: t("simulation", "trackReflectDesc") },
           ].map((tip, i) => (
             <motion.div
-              key={tip.title}
+              key={"lpTip" + i}
               className="premium-card p-6"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
