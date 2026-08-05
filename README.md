@@ -35,8 +35,7 @@
 
 ## 🎬 演示
 
-
-
+![GenoLife AI 首页演示](screenshot.png)
 
 ---
 
