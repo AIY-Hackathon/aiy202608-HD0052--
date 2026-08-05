@@ -252,6 +252,117 @@ def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
 </html>"""
 
 
+def _global_interpretation_markdown(scientific: dict, dims: list[dict], recs: list[dict]) -> str:
+    """生成报告整体文字解读的纯文本（Markdown）版本。"""
+    load = scientific.get("genetic_load", "中")
+    score = scientific.get("polygenic_score", 50)
+    summary = scientific.get("summary", "")
+
+    high_dims = [d for d in dims if d["score"] >= 55]
+    low_dims = [d for d in dims if d["score"] <= 45]
+    dim_text = ""
+    if high_dims:
+        dim_text += f"需要关注的健康维度：{'、'.join(d['label'] for d in high_dims)}。"
+    if low_dims:
+        dim_text += f"表现较好的维度：{'、'.join(d['label'] for d in low_dims)}。"
+    if not dim_text:
+        dim_text = "各健康维度均处于常见人群范围。"
+
+    rec_text = "、".join(r.get("title", "") for r in recs[:3]) if recs else "暂无具体建议"
+
+    return "\n\n".join([
+        f"**分析摘要**：{summary}",
+        f"**遗传负荷评估**：{load}。综合多基因评分 {score}/100。{dim_text}",
+        f"**行动建议**：根据您的基因档案，建议重点关注：{rec_text}。需要注意的是，遗传因素只是健康的一部分，生活方式、环境和医疗监测同样重要。",
+    ])
+
+
+def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> str:
+    """生成文字性基因报告（Markdown 格式，自包含）。"""
+    scientific = engine.generate_scientific_analysis(variants)
+    key_genes = scientific.get("key_genes", [])
+    dims = engine.calculate_dimension_scores(variants)
+    recs = engine.generate_recommendations({})
+    plan = engine.generate_thirty_day_plan()
+
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    # 概览
+    lines = [
+        f"# 🧬 基因健康分析报告 — {filename}",
+        "",
+        f"**报告编号**：{report_id}  ",
+        f"**生成时间**：{now}  ",
+        f"**多基因评分**：{scientific.get('polygenic_score', 0)} / 100  ",
+        f"**遗传负荷**：{scientific.get('genetic_load', '中')}  ",
+        f"**关键基因**：{len(key_genes)} 个",
+        "",
+        "> ⚠️ **免责声明**：本报告为教育研究用途，不构成临床诊断，不替代专业医疗建议。",
+        "",
+        "---",
+        "",
+        "## 一、分析概览",
+        "",
+        scientific.get("summary", ""),
+    ]
+
+    # 关键基因
+    lines.append("")
+    lines.append("## 二、关键基因分析")
+    lines.append("")
+    if not key_genes:
+        lines.append("未识别到显著关键基因。")
+    for g in key_genes:
+        lines.extend([
+            f"### {g['symbol']} — {g.get('name', '')}",
+            f"- **风险等级**：{g['risk_level']}  ",
+            f"- **功能**：{g.get('function', '')}  ",
+            f"- **人群影响**：{g.get('population_impact', '')}  ",
+            f"- **可调节建议**：{g.get('lifestyle', '')}  ",
+            f"- **解读**：{_gene_interpretation(g)}",
+            "",
+        ])
+
+    # 文字解读（全局，纯文本版）
+    lines.extend([
+        "## 三、报告文字解读",
+        "",
+        _global_interpretation_markdown(scientific, dims, recs),
+    ])
+
+    # 健康维度
+    lines.extend(["", "## 四、健康维度评分", ""])
+    for d in dims:
+        marker = "⚠️" if d["score"] >= 55 else ("✅" if d["score"] <= 45 else "•")
+        lines.append(f"- {marker} **{d['label']}**：{d['score']} / 100")
+    lines.append("")
+
+    # 建议
+    lines.extend(["## 五、个性化建议", ""])
+    if recs:
+        for r in recs[:6]:
+            lines.append(f"- **{r.get('title', '')}** — {r.get('description', '')}")
+    else:
+        lines.append("暂无具体建议。")
+    lines.append("")
+
+    # 30 天计划
+    lines.extend(["## 六、30 天健康计划", ""])
+    for w in plan.get("weeks", [])[:4]:
+        lines.append(f"### {w.get('label', '')} — {w.get('theme', '')}")
+        for task in w.get("tasks", []):
+            lines.append(f"- **{task.get('day', '')}** {task.get('title', '')}：{task.get('desc', '')}")
+        lines.append("")
+
+    lines.extend([
+        "---",
+        "",
+        f"*本报告由 GenoLife AI 自动生成 · {now} · 仅供学习参考*",
+    ])
+
+    return "\n".join(lines)
+
+
 @router.get("/report/{report_id}/export", response_class=Response)
 def export_report(
     report_id: str,
@@ -300,3 +411,21 @@ def export_report(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
+
+
+@router.get("/report/{report_id}/text", response_class=HTMLResponse)
+def text_report(report_id: str):
+    """生成文字性基因报告（Markdown 格式）。"""
+    report, variants = _load_report_data(report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail=f"报告 {report_id} 不存在")
+
+    variant_dicts = _variants_to_dicts(variants)
+    try:
+        md = _generate_markdown(report_id, report.original_filename, variant_dicts)
+        return HTMLResponse(
+            content=md,
+            headers={"Content-Disposition": f'inline; filename="genolife-report-{report_id}.md"'},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"文字报告生成失败: {e}")

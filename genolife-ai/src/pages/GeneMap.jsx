@@ -9,6 +9,7 @@ import GeneCard from "../components/shared/GeneCard";
 import RiskBar from "../components/shared/RiskBar";
 import RiskRadar from "../components/charts/RiskRadar";
 import Gene3DViewer from "../components/Gene3DViewer";
+import AdvancedVisualizations from "../components/AdvancedVisualizations";
 import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
 import { getProfile, uploadReport, getAnalysis } from "../api/client";
@@ -208,7 +209,6 @@ export default function GeneMap() {
 
   // ── 变异表格数据 ──
   const variants = analysisData?.variants || [];
-  const hasRealData = !!(uploadResult?.report_id && analysisData?.variants?.length > 0);
   const pathogenicCount = variants.filter((v) => v.clinvar_significance?.includes("Pathogenic")).length;
   const benignCount = variants.filter((v) => v.clinvar_significance === "Benign" || v.clinvar_significance === "Likely_benign").length;
   const vusCount = variants.filter((v) => v.clinvar_significance === "Uncertain_significance" || !v.clinvar_significance).length;
@@ -720,6 +720,20 @@ export default function GeneMap() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* ================================================================
+          ADVANCED VISUALIZATIONS — 基因可视化方案 A/B/D/F
+         ================================================================ */}
+      <section className="mb-16">
+        <div className="flex items-center gap-3 mb-8">
+          <ShieldAlert size={17} className="text-primary" />
+          <div>
+            <p className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Advanced Visualizations</p>
+            <h2 className="font-display font-bold text-[24px] text-text tracking-tight mt-0.5">Explore your genome from four angles</h2>
+          </div>
+        </div>
+        <AdvancedVisualizations genes={genes} variants={variants} />
       </section>
 
       {/* ================================================================

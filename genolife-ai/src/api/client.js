@@ -258,6 +258,22 @@ export async function exportReport(reportId, options = {}) {
   };
 }
 
+// ============ GET /api/report/{id}/text — 文字报告（Markdown）============
+
+export async function exportTextReport(reportId) {
+  const resp = await fetch(`${API_BASE}/report/${reportId}/text`);
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail || "文字报告生成失败");
+  }
+  const md = await resp.text();
+  return {
+    format: "text",
+    data: md,
+    filename: `genolife-report-${reportId}.md`,
+  };
+}
+
 // ============ 工具 ============
 
 function delay(ms) {
@@ -273,4 +289,5 @@ export default {
   simulate,
   getRecommendations,
   exportReport,
+  exportTextReport,
 };

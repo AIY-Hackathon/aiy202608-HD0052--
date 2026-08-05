@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
-import { FileDown, FileText, CheckCircle2, Eye, Download, ShieldAlert, FileCheck } from "lucide-react";
-import { exportReport, getProfile } from "../api/client";
+import { FileDown, FileText, CheckCircle2, Eye, Download, ShieldAlert, FileCheck, AlignLeft } from "lucide-react";
+import { exportReport, getProfile, exportTextReport } from "../api/client";
 
 export default function ReportPage() {
   const { reportId, uploaded } = useLocation();
@@ -24,6 +24,7 @@ export default function ReportPage() {
   const FORMATS = [
     { id: "html", key: "optHtmlLabel", keyDesc: "optHtmlDesc", icon: Eye },
     { id: "pdf", key: "optPdfLabel", keyDesc: "optPdfDesc", icon: Download },
+    { id: "text", key: "optTextLabel", keyDesc: "optTextDesc", icon: AlignLeft },
   ];
 
   const allSelected = selectedSections.size === SECTIONS.length;
@@ -59,6 +60,11 @@ export default function ReportPage() {
     setGenerating(true);
     setApiError("");
     try {
+      if (format === "text") {
+        const result = await exportTextReport(reportId);
+        setPreviewHtml(result.data);
+        return;
+      }
       const result = await exportReport(reportId || undefined, {
         selectedSections: Array.from(selectedSections),
         format,
@@ -68,14 +74,8 @@ export default function ReportPage() {
         // 后端返回 { format, data: htmlString, filename }
         setPreviewHtml(result.data);
       } else if (format === "pdf") {
-        // base64 编码的 PDF
-        const byteCharacters = atob(result.data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: "application/pdf" });
+        // client.js 返回的是 PDF Blob（二进制流），直接用 objectURL 下载
+        const blob = result.data;
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -91,9 +91,19 @@ export default function ReportPage() {
     }
   };
 
-  // ── 下载（HTML 预览或 PDF 均已就绪）──
+  // ── 下载（HTML 预览 / 文字报告均已就绪）──
   const handleDownload = () => {
     if (!previewHtml) return;
+    if (format === "text") {
+      const blob = new Blob([previewHtml], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `genolife-report-${reportId || "demo"}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const blob = new Blob([previewHtml], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -250,6 +260,11 @@ export default function ReportPage() {
               <Eye size={18} />
               {t("report", "generatePreview")}
             </>
+          ) : format === "text" ? (
+            <>
+              <AlignLeft size={18} />
+              {t("report", "generateText")}
+            </>
           ) : (
             <>
               <Download size={18} />
@@ -298,16 +313,22 @@ export default function ReportPage() {
                 style={{ border: "none" }}
               >
                 <Download size={14} />
-                {t("report", "downloadHtml")}
+                {format === "text" ? t("report", "downloadText") : t("report", "downloadHtml")}
               </button>
             </div>
           </div>
 
           <div className="premium-card p-8 bg-white overflow-auto max-h-[600px] shadow-inner">
-            <div
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
+            {format === "text" ? (
+              <pre className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-text-secondary font-sans" style={{ fontFamily: "inherit" }}>
+                {previewHtml}
+              </pre>
+            ) : (
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            )}
           </div>
         </motion.section>
       )}
