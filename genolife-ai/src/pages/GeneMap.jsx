@@ -699,7 +699,7 @@ export default function GeneMap() {
         </div>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} className="h-48 rounded-2xl" />)}
+            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={"geneSk" + i} className="h-48 rounded-2xl" />)}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -888,7 +888,7 @@ export default function GeneMap() {
         {loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <SkeletonBlock className="h-[320px] rounded-2xl" />
-            <div className="space-y-6">{[1, 2, 3, 4, 5].map((i) => <SkeletonBlock key={i} className="h-14 rounded-xl" />)}</div>
+            <div className="space-y-6">{[1, 2, 3, 4, 5].map((i) => <SkeletonBlock key={"riskSk" + i} className="h-14 rounded-xl" />)}</div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
