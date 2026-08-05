@@ -21,6 +21,11 @@ export function LocationProvider({ children }) {
   // 分析结果分类：null=未分析, "normal"=正常, "abnormal"=异常
   // 分类标准：pathogenicCount > 0 或 healthScore < 60 → abnormal
   const [analysisResult, setAnalysisResult] = useState(null);
+  // 隐私与伦理：双重知情同意是否已完成
+  const [consentCompleted, setConsentCompleted] = useState(() => {
+    try { return sessionStorage.getItem("genolife_consent") === "true"; }
+    catch { return false; }
+  });
 
   const goTo = useCallback((page) => {
     setCurrentPage(page);
@@ -29,7 +34,7 @@ export function LocationProvider({ children }) {
 
   return (
     <LocationContext.Provider
-      value={{ currentPage, goTo, reportId, setReportId, uploaded, setUploaded, analysisResult, setAnalysisResult }}
+      value={{ currentPage, goTo, reportId, setReportId, uploaded, setUploaded, analysisResult, setAnalysisResult, consentCompleted, setConsentCompleted }}
     >
       {children}
     </LocationContext.Provider>

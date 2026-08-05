@@ -11,6 +11,8 @@ import RiskRadar from "../components/charts/RiskRadar";
 import Gene3DViewer from "../components/Gene3DViewer";
 import AdvancedVisualizations from "../components/AdvancedVisualizations";
 import PopulationSelector from "../components/PopulationSelector";
+import ConsentFlow from "../components/ConsentFlow";
+import EthicsReminder from "../components/EthicsReminder";
 import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
 import { getProfile, uploadReport, getAnalysis } from "../api/client";
@@ -117,10 +119,31 @@ function MiniRiskBar({ score }) {
 }
 
 export default function GeneMap() {
-  const { goTo, setReportId, uploaded, setUploaded, setAnalysisResult } = useLocation();
+  const { goTo, setReportId, uploaded, setUploaded, setAnalysisResult, analysisResult, consentCompleted, setConsentCompleted } = useLocation();
   const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const [expandedGene, setExpandedGene] = useState(null);
+
+  // ── 知情同意状态 ──
+  const [showConsent, setShowConsent] = useState(false);
+
+  // 首次进入分析页（未同意）时触发知情同意流程
+  useEffect(() => {
+    if (!consentCompleted && !uploaded) {
+      const timer = setTimeout(() => setShowConsent(true), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [consentCompleted, uploaded]);
+
+  const handleConsentComplete = () => {
+    setConsentCompleted(true);
+    sessionStorage.setItem("genolife_consent", "true");
+    setShowConsent(false);
+  };
+
+  const handleConsentCancel = () => {
+    setShowConsent(false);
+  };
 
   // ── 上传状态 ──
   const [file, setFile] = useState(null);
@@ -386,6 +409,14 @@ export default function GeneMap() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-24">
+      {/* ================================================================
+          知情同意流程 (首次访问)
+         ================================================================ */}
+      <AnimatePresence>
+        {showConsent && (
+          <ConsentFlow onComplete={handleConsentComplete} onCancel={handleConsentCancel} />
+        )}
+      </AnimatePresence>
       {/* ================================================================
           HERO
          ================================================================ */}
@@ -1001,6 +1032,15 @@ export default function GeneMap() {
           />
         )}
       </AnimatePresence>
+
+      {/* ================================================================
+          伦理提醒 (已上传后显示)
+         ================================================================ */}
+      {uploaded && (
+        <EthicsReminder
+          resultType={analysisResult || "normal"}
+        />
+      )}
     </div>
   );
 }
