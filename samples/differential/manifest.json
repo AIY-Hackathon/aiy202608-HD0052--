@@ -1,0 +1,32 @@
+[
+  {
+    "file": "s1_eur_low_risk.vcf",
+    "population": "European",
+    "cn_population": "欧洲裔",
+    "risk_profile": "低风险"
+  },
+  {
+    "file": "s2_eas_metabolic_high.vcf",
+    "population": "East Asian",
+    "cn_population": "东亚裔",
+    "risk_profile": "代谢高风险"
+  },
+  {
+    "file": "s3_afr_cognitive_high.vcf",
+    "population": "African",
+    "cn_population": "非洲裔",
+    "risk_profile": "认知高风险"
+  },
+  {
+    "file": "s4_sas_cardio_high.vcf",
+    "population": "South Asian",
+    "cn_population": "南亚裔",
+    "risk_profile": "心血管高风险"
+  },
+  {
+    "file": "s5_lat_multirisk.vcf",
+    "population": "Latino",
+    "cn_population": "拉丁裔",
+    "risk_profile": "多风险叠加"
+  }
+]

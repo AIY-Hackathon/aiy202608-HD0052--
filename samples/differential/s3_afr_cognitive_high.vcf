@@ -1,0 +1,19 @@
+##fileformat=VCFv4.2
+##source=GenoLifeAI_genome
+##reference=GRCh38
+##contig=<ID=4>
+##contig=<ID=11>
+##contig=<ID=16>
+##contig=<ID=17>
+##contig=<ID=19>
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene Name:Gene ID">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical Significance">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+19	44908684	rs429358	T	C	.	PASS	GENEINFO=APOE:1000;CLNSIG=Pathogenic	GT	1/1
+19	44908822	rs7412	C	T	.	PASS	GENEINFO=APOE:1000;CLNSIG=Uncertain_significance	GT	0/0
+16	53786615	rs9939609	T	A	.	PASS	GENEINFO=FTO:1000;CLNSIG=Pathogenic	GT	0/1
+4	55435202	rs1801260	A	G	.	PASS	GENEINFO=CLOCK:1000;CLNSIG=Uncertain_significance	GT	0/0
+11	66560624	rs1815739	C	T	.	PASS	GENEINFO=ACTN3:1000;CLNSIG=Uncertain_significance	GT	0/1
+19	11216260	rs121908025	G	A	.	PASS	GENEINFO=LDLR:1000;CLNSIG=Pathogenic	GT	0/0
+17	43092900	rs80357906	T	C	.	PASS	GENEINFO=BRCA1:1000;CLNSIG=Pathogenic	GT	0/0

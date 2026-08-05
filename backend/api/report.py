@@ -698,13 +698,47 @@ def export_report(
 
 
 def _pdf_with_reportlab(html: str, filename: str) -> bytes:
-    """用 reportlab 从 HTML 提取文本生成 PDF（无需系统库，跨平台可用）。"""
+    """用 reportlab 从 HTML 提取文本生成 PDF（无需系统库，跨平台可用）。
+
+    注册系统中文字体解决中文乱码：
+      - 优先微软雅黑 (msyh.ttc, 子字体 0) / 黑体 (simhei.ttf)
+      - 其次中易宋体 (simsun.ttc)
+      - 均不可用时回退 Helvetica（此时中文可能乱码，但保证不崩溃）
+    """
+    import os
     import re
     from io import BytesIO
 
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+
+    # ── 注册中文字体 ──
+    font_dir = "C:/Windows/Fonts"
+    cn_font = None
+    candidates = [
+        ("GenoLifeCN", os.path.join(font_dir, "msyh.ttc"), 0),   # 微软雅黑
+        ("GenoLifeCN", os.path.join(font_dir, "simhei.ttf"), None),  # 黑体
+        ("GenoLifeCN", os.path.join(font_dir, "simsun.ttc"), 0),  # 宋体
+        ("GenoLifeCN", os.path.join(font_dir, "Deng.ttf"), None),  # 等线
+    ]
+    registered = False
+    for name, path, subfont in candidates:
+        try:
+            if os.path.exists(path):
+                if subfont is not None:
+                    pdfmetrics.registerFont(TTFont(name, path, subfontIndex=subfont))
+                else:
+                    pdfmetrics.registerFont(TTFont(name, path))
+                registered = True
+                cn_font = name
+                break
+        except Exception:
+            continue
+    if not registered:
+        cn_font = "Helvetica"
 
     # 提取纯文本 + 保留换行
     text = re.sub(r"<br\s*/?>", "\n", html)
@@ -716,11 +750,11 @@ def _pdf_with_reportlab(html: str, filename: str) -> bytes:
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=50, bottomMargin=50)
 
-    title_style = ParagraphStyle("title", fontName="Helvetica-Bold", fontSize=18, leading=24, alignment=1, spaceAfter=12)
-    body_style = ParagraphStyle("body", fontName="Helvetica", fontSize=9.5, leading=14, spaceAfter=6)
+    title_style = ParagraphStyle("title", fontName=cn_font, fontSize=18, leading=24, alignment=1, spaceAfter=12)
+    body_style = ParagraphStyle("body", fontName=cn_font, fontSize=9.5, leading=14, spaceAfter=6)
 
     story = []
-    story.append(Paragraph(f"🧬 Genetic Health Report — {filename}", title_style))
+    story.append(Paragraph(f"GenoLife AI 基因健康报告 — {filename}", title_style))
     story.append(Spacer(1, 10))
 
     # 分段（最多 80 段避免超长）

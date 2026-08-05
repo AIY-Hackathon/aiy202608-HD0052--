@@ -222,7 +222,7 @@ export default function LifeSimulation() {
          ================================================================ */}
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 mb-20">
         {/* LEFT: Sliders */}
-        <div className="premium-card p-6 space-y-8 self-start sticky top-24">
+        <div className="premium-card p-6 space-y-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-primary-light flex items-center justify-center">
