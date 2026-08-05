@@ -213,8 +213,8 @@ def _compute_baseline_hti(gene_total: float, env_total: float, interaction_total
     HTI = 基线值 + 基因效应(≤±40) + 环境效应(≤±60) + 交互效应(±15)
     """
     base = SIMULATION_CONFIG["baseline_hti"]
-    gene_ceil = SIMULATION_CONFIG["gene_contribution_ceiling"]
-    env_ceil = SIMULATION_CONFIG["environment_contribution_ceiling"]
+    gene_ceil = SIMULATION_CONFIG["gene_relative_weight_ceiling"]
+    env_ceil = SIMULATION_CONFIG["environment_relative_weight_ceiling"]
     inter_min, inter_max = SIMULATION_CONFIG["interaction_contribution_range"]
 
     gene_clipped = max(-gene_ceil * 100, min(gene_ceil * 100, gene_total))
