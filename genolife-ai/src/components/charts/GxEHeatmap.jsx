@@ -53,36 +53,65 @@ const INTERACTION_TYPES = {
   },
 };
 
-// 环境因子 → 中文标签 + 图标
+// 环境因子 → 中文标签 + 图标（婴儿版）
 const ENV_FACTORS = {
-  exercise: { label: "运动", icon: "🏃" },
-  diet: { label: "饮食", icon: "🥗" },
-  sleep: { label: "睡眠", icon: "🌙" },
-  stress: { label: "压力", icon: "🧘" },
-  smoking: { label: "吸烟", icon: "🚬" },
+  nutrition_type: { label: "喂养方式", icon: "🍼" },
+  sleep_quality: { label: "睡眠质量", icon: "😴" },
+  development_stimulation: { label: "发育刺激", icon: "🧸" },
+  medical_adherence: { label: "医疗依从", icon: "🏥" },
+  environmental_safety: { label: "环境安全", icon: "🏠" },
 };
 
-// 交互知识库（来自 gene_database.json environment_interaction，补充缺失条目）
+// 交互知识库（儿科版：基于 gene_database.json 的 environment_interaction 字段）
 const INTERACTIONS = {
-  APOE: {
-    exercise: { type: "protective", evidence: "moderate", desc: "规律有氧运动可降低 APOE ε4 携带者的认知相关风险约 30%，运动还促进 BDNF 分泌和脑血管健康。", ref: "Physical Activity and APOE ε4: meta-analysis, Neurology 2024" },
-    diet: { type: "protective", evidence: "moderate", desc: "地中海饮食模式（富含 Omega-3、橄榄油、低饱和脂肪）对 APOE ε4 携带者的脂蛋白和认知功能有保护作用。", ref: "Mediterranean Diet × APOE: cohort study, BMJ 2023" },
-    sleep: { type: "bidirectional", evidence: "moderate", desc: "APOE ε4 携带者对睡眠剥夺更敏感，同时长期睡眠不佳可能加速认知功能下降。", ref: "Sleep × APOE: systematic review, Sleep Medicine Reviews 2024" },
-    smoking: { type: "risk_amp", evidence: "strong", desc: "吸烟会与 APOE ε4 叠加放大心血管和认知风险，戒烟可显著降低这一风险。", ref: "Smoking × APOE: Lancet Neurology 2023" },
+  PAH: {
+    nutrition_type: { type: "protective", evidence: "strong", desc: "严格的苯丙氨酸限制饮食可完全预防 PKU 导致的神经系统损伤。早期饮食管理与预后直接相关。", ref: "PKU饮食管理指南, 中华儿科杂志 2023" },
+    medical_adherence: { type: "protective", evidence: "strong", desc: "定期监测血苯丙氨酸水平并依从特殊配方饮食，是PAH缺乏症管理的核心。", ref: "PAH deficiency management, Genetics in Medicine 2024" },
   },
-  FTO: {
-    exercise: { type: "protective", evidence: "strong", desc: "规律运动可将 FTO 风险等位基因对体重的影响降低约 27%（基于 21.8 万人的 meta 分析）。", ref: "FTO × Physical Activity: meta-analysis of 218,166 individuals, PLoS Medicine 2023" },
-    diet: { type: "protective", evidence: "moderate", desc: "高蛋白、高纤维饮食模式可部分抵消 FTO 对食欲调控的影响，饱腹感管理尤为关键。", ref: "Dietary Pattern × FTO: AJCN 2024" },
-    sleep: { type: "synergistic", evidence: "moderate", desc: "睡眠不足（<6 小时/晚）会与 FTO 风险位点产生协同效应，共同推高代谢风险水平。", ref: "Sleep Duration × FTO: International Journal of Obesity 2023" },
+  G6PD: {
+    nutrition_type: { type: "risk_amp", evidence: "strong", desc: "接触蚕豆（蚕豆病）可诱发G6PD缺乏症患儿的急性溶血性贫血，严格避免是关键。", ref: "G6PD deficiency: dietary triggers, Lancet Haematology 2023" },
+    medical_adherence: { type: "protective", evidence: "strong", desc: "告知医生G6PD缺乏情况，避免磺胺类、阿司匹林等氧化性药物，可完全预防药物性溶血。", ref: "G6PD drug safety, WHO guidelines 2023" },
+    environmental_safety: { type: "risk_amp", evidence: "moderate", desc: "樟脑丸（萘）等氧化性化学物质接触可诱发溶血，注意居家环境安全。", ref: "G6PD environmental triggers, Pediatric Research 2024" },
   },
-  CLOCK: {
-    sleep: { type: "timing", evidence: "moderate", desc: "对 CLOCK 基因型携带者而言，保持规律作息比睡眠总时长更重要；固定就寝时间能优化昼夜节律。", ref: "CLOCK × Sleep Regularity: chronobiology study, Sleep 2024" },
-    diet: { type: "timing", evidence: "moderate", desc: "进食时间影响 CLOCK 基因的节律表达——将进食控制在 8 小时窗口内，可改善代谢同步性。", ref: "Time-Restricted Feeding × CLOCK: Cell Metabolism 2023" },
-    stress: { type: "risk_amp", evidence: "preliminary", desc: "慢性压力通过皮质醇通路扰乱昼夜节律，对 CLOCK 基因型携带者的影响更明显。", ref: "Stress × Circadian: Psychoneuroendocrinology 2024" },
+  SMN1: {
+    medical_adherence: { type: "protective", evidence: "strong", desc: "症状前治疗（基因治疗/药物干预）与症状后治疗的预后差异巨大。新生儿筛查+早期干预是关键。", ref: "SMA newborn screening outcomes, NEJM 2024" },
+    development_stimulation: { type: "protective", evidence: "moderate", desc: "早期康复训练和发育刺激可显著改善SMA患儿的运动功能保留。", ref: "Early intervention in SMA, Pediatric Neurology 2023" },
   },
-  ACTN3: {
-    exercise: { type: "signaling", evidence: "strong", desc: "ACTN3 基因型影响运动训练的效果：力量型（RR）对高强度/爆发力训练响应更好，耐力型（XX）则适合长距离有氧。", ref: "ACTN3 × Training: systematic review of 88 studies, Sports Medicine 2024" },
-    diet: { type: "synergistic", evidence: "preliminary", desc: "充足蛋白质摄入与力量训练配合，可部分优化 ACTN3 基因型的肌肉响应。", ref: "Protein × ACTN3: Nutrients 2023" },
+  GJB2: {
+    development_stimulation: { type: "protective", evidence: "strong", desc: "早期听力筛查（<1月龄）+早期干预（<6月龄）+语言康复训练，可使GJB2相关听力损失患儿语言发育接近正常。", ref: "Early hearing intervention outcomes, Pediatrics 2024" },
+    medical_adherence: { type: "protective", evidence: "moderate", desc: "定期听力学随访和助听器/人工耳蜗的及时适配是GJB2听力损失管理的关键。", ref: "Cochlear implant in GJB2, Otology & Neurotology 2023" },
+  },
+  CFTR: {
+    medical_adherence: { type: "protective", evidence: "strong", desc: "CFTR调节剂治疗+定期肺功能监测+营养支持，可显著改善囊性纤维化患儿的预后。", ref: "CFTR modulator therapy, NEJM 2023" },
+    nutrition_type: { type: "protective", evidence: "moderate", desc: "高热量、高蛋白饮食+胰酶替代治疗，对CFTR相关胰腺功能不全的患儿至关重要。", ref: "Nutrition in CF, J Cystic Fibrosis 2024" },
+  },
+  HBB: {
+    medical_adherence: { type: "protective", evidence: "strong", desc: "镰状细胞病/地中海贫血患儿的定期输血、羟基脲治疗和感染预防，显著降低并发症风险。", ref: "Sickle cell management, Blood 2024" },
+    environmental_safety: { type: "risk_amp", evidence: "moderate", desc: "镰状细胞病患儿对低温、高海拔、脱水等环境因素极为敏感，需要注意防护。", ref: "Environmental triggers in SCD, American Journal of Hematology 2023" },
+  },
+  SCN1A: {
+    development_stimulation: { type: "protective", evidence: "moderate", desc: "Dravet综合征患儿通过避免发热诱因+早期发育康复，可减少癫痫持续状态并改善发育结局。", ref: "Dravet syndrome management, Epilepsia 2024" },
+    medical_adherence: { type: "protective", evidence: "strong", desc: "规范的抗癫痫药物治疗和发热管理，是SCN1A相关癫痫管理的基石。", ref: "SCN1A epilepsy guidelines, Neurology 2023" },
+  },
+  FMR1: {
+    development_stimulation: { type: "protective", evidence: "strong", desc: "脆性X综合征患儿通过早期行为干预、言语治疗和特殊教育支持，可显著改善社交沟通和适应能力。", ref: "Early intervention in Fragile X, J Developmental Pediatrics 2024" },
+    sleep_quality: { type: "bidirectional", evidence: "moderate", desc: "FMR1前突变/全突变患儿常伴睡眠障碍，改善睡眠质量可提升白天的学习和行为表现。", ref: "Sleep in Fragile X syndrome, Sleep Medicine 2023" },
+  },
+  IL2RG: {
+    medical_adherence: { type: "protective", evidence: "strong", desc: "SCID（严重联合免疫缺陷）患儿的早期诊断+造血干细胞移植/基因治疗是挽救生命的关键。感染预防至关重要。", ref: "SCID newborn screening and treatment, Blood 2024" },
+    environmental_safety: { type: "risk_amp", evidence: "strong", desc: "SCID患儿对环境病原体极度敏感，需要严格隔离和感染控制。", ref: "Infection prevention in SCID, J Clinical Immunology 2023" },
+  },
+  CYP21A2: {
+    medical_adherence: { type: "protective", evidence: "strong", desc: "先天性肾上腺皮质增生症(CAH)的糖皮质激素/盐皮质激素替代治疗，需终身依从以预防肾上腺危象。", ref: "CAH management guidelines, Endocrine Reviews 2024" },
+    nutrition_type: { type: "protective", evidence: "moderate", desc: "CAH患儿的钠补充和电解质平衡管理，对预防失盐型危象至关重要。", ref: "Salt-wasting CAH management, JCEM 2023" },
+  },
+  TSC1: {
+    medical_adherence: { type: "protective", evidence: "moderate", desc: "结节性硬化症患儿的mTOR抑制剂治疗和定期影像学监测，可延缓肿瘤生长。", ref: "TSC management, Pediatric Neurology 2024" },
+    development_stimulation: { type: "protective", evidence: "moderate", desc: "TSC常伴自闭症和癫痫，早期发育干预和行为治疗显著改善长期预后。", ref: "TSC-associated ASD, Neurology 2023" },
+  },
+  NF1: {
+    medical_adherence: { type: "protective", evidence: "moderate", desc: "NF1患儿的定期眼科、骨科和神经科随访，以及MEK抑制剂治疗，是疾病管理的基石。", ref: "NF1 management guidelines, Genetics in Medicine 2023" },
+    development_stimulation: { type: "protective", evidence: "moderate", desc: "NF1常伴学习障碍和ADHD，教育支持和认知训练可改善学业表现。", ref: "Cognitive outcomes in NF1, Developmental Medicine 2024" },
   },
 };
 
@@ -101,7 +130,7 @@ export default function GxEHeatmap({ genes = [] }) {
   const presentGenes = useMemo(() => {
     const symbols = genes.map((g) => g.symbol).filter((s) => INTERACTIONS[s]);
     if (symbols.length > 0) return symbols;
-    return ["APOE", "FTO", "CLOCK", "ACTN3"];
+    return ["PAH", "G6PD", "SMN1", "GJB2", "CFTR", "HBB", "SCN1A", "FMR1"];
   }, [genes]);
 
   // 所有出现过的环境因子（列）

@@ -5,8 +5,16 @@
       "name": "GenoLife AI 前端",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173,
-      "cwd": "/Users/stevenl/Documents/AIYProgram/genolife-ai"
+      "port": 5174,
+      "autoPort": true,
+      "cwd": "C:/Users/qbz95/OneDrive/Desktop/Gene-work/repo_temp/genolife-ai"
+    },
+    {
+      "name": "GenoLife AI 后端",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["backend.main:app", "--host", "0.0.0.0", "--port", "8000"],
+      "port": 8000,
+      "cwd": "C:/Users/qbz95/OneDrive/Desktop/Gene-work/repo_temp"
     }
   ]
 }

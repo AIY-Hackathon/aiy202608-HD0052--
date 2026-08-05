@@ -117,7 +117,7 @@ function MiniRiskBar({ score }) {
 }
 
 export default function GeneMap() {
-  const { goTo, setReportId, uploaded, setUploaded } = useLocation();
+  const { goTo, setReportId, uploaded, setUploaded, setAnalysisResult } = useLocation();
   const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const [expandedGene, setExpandedGene] = useState(null);
@@ -213,6 +213,14 @@ export default function GeneMap() {
     return () => { cancelled = true; };
   }, []);
 
+  // 页面刷新/切回时自动恢复 uploadResult（localStorage 有 activeReportId 但内存 state 丢失）
+  useEffect(() => {
+    if (uploaded && activeReportId && !uploadResult) {
+      setUploadResult({ report_id: activeReportId });
+      setUploadStatus("done");
+    }
+  }, [uploaded, activeReportId, uploadResult]);
+
   // 上传完成后加载真实 variants
   useEffect(() => {
     if (!uploadResult?.report_id) return;
@@ -231,6 +239,21 @@ export default function GeneMap() {
     loadAnalysis();
     return () => { cancelled = true; };
   }, [uploadResult?.report_id, selectedPopulation]);
+
+  // ── 分类分析结果（normal / abnormal），用于 03 分支路由
+  useEffect(() => {
+    if (!analysisData) return;
+    const variants = analysisData.variants || [];
+    const pathogenicCount = variants.filter((v) =>
+      v.clinvar_significance?.includes("Pathogenic")
+    ).length;
+    const healthScore = analysisData.profile?.summary?.score ?? 100;
+    if (pathogenicCount > 0 || healthScore < 60) {
+      setAnalysisResult("abnormal");
+    } else {
+      setAnalysisResult("normal");
+    }
+  }, [analysisData, setAnalysisResult]);
 
   // ── 数据源：优先用当前报告的 analysisData.profile（随切换刷新），
   //    无 analysisData 时用 profileData（GET /api/profile，组件 mount 时加载一次）
@@ -386,11 +409,6 @@ export default function GeneMap() {
             <div className="text-right">
               <p className="font-mono text-text-secondary font-semibold">#GNO-2026-0001</p>
               <p>Generated Aug 2026</p>
-            </div>
-            <div className="w-px h-8 bg-gray-200" />
-            <div className="text-right">
-              <p className="text-text-secondary font-semibold">Alex</p>
-              <p>Age 30 · Male</p>
             </div>
           </div>
         </div>

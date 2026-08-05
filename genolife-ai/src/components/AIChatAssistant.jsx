@@ -156,7 +156,7 @@ export default function AIChatAssistant() {
                     选中网页上不理解的基因内容，或直接提问
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                    {["什么是 APOE ε4？", "PRS 怎么计算？", "基因能改变吗？"].map((q) => (
+                    {["什么是基因×环境交互？", "基因筛查结果异常怎么办？", "宝宝的基因会改变吗？"].map((q) => (
                       <button
                         key={q}
                         onClick={() => { setInput(q); inputRef.current?.focus(); }}

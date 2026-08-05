@@ -1,14 +1,14 @@
 """
-基因分析引擎 — 对齐 GenoLife AI 新前端
-========================================
+基因分析引擎 — 儿科遗传风险意识评估
+======================================
 基于 ClinVar 变异注释，生成前端所需的三种数据：
 
   1. geneCards        — 基因卡片列表（mockData.geneCards[]）
   2. riskDimensions   — 5 维健康风险评分（mockData.riskDimensions[]）
   3. risk_scores      — 疾病风险倍数（保留原有 PRS 能力）
 
-健康维度（对齐前端 5 个维度）：
-  metabolic / cognitive / cardiovascular / athletic / sleep
+健康维度（儿科 5 个维度）：
+  metabolic / cardiovascular / neurodevelopmental / immunodeficiency / sensory
 
 公式对齐前端 mockData.js 的 calculateHealthScore()。
 """
@@ -18,48 +18,66 @@ from math import log
 
 # ============ 健康维度映射 ============
 
-# 基因 → 健康维度（新前端）
+# 基因 → 健康维度（儿科）
 DIMENSION_GENE_MAP: dict[str, set[str]] = {
-    "metabolic": {"FTO", "MC4R", "TCF7L2", "LEP", "LEPR", "GCK", "HNF1A", "HNF4A", "KCNJ11"},
-    "cognitive": {"APOE", "APP", "PSEN1", "PSEN2", "TOMM40", "CLU"},
-    "cardiovascular": {"LDLR", "APOB", "PCSK9", "SCN5A", "AGT", "ACE", "ADD1", "CYP11B2", "KCNQ1", "KCNH2"},
-    "athletic": {"ACTN3", "ACE", "MSTN", "PPARGC1A"},
-    "sleep": {"CLOCK", "PER2", "PER3", "CRY1", "DEC2", "HCRTR2"},
+    "metabolic": {"PAH", "CYP21A2", "CFTR", "DHCR7", "ACADM", "SLC2A1"},
+    "cardiovascular": {"HBB", "FBN1", "MYH7", "CHD7", "G6PD"},
+    "neurodevelopmental": {"SMN1", "SCN1A", "MECP2", "FMR1", "TSC1", "NF1"},
+    "immunodeficiency": {"IL2RG", "BTK", "RAG1"},
+    "sensory": {"GJB2", "SLC26A4", "COL1A1", "USH2A", "RB1"},
 }
 
-# 维度标签（对齐前端 riskDimensions）
+# 维度标签（对齐前端 riskDimensions，中英双语）
 DIMENSION_LABELS: dict[str, str] = {
-    "metabolic": "Metabolic",
-    "cognitive": "Cognitive",
-    "cardiovascular": "Cardiovascular",
-    "athletic": "Athletic",
-    "sleep": "Sleep",
+    "metabolic": "代谢与内分泌",
+    "cardiovascular": "心血管与血液",
+    "neurodevelopmental": "神经发育",
+    "immunodeficiency": "免疫与感染",
+    "sensory": "感官与结构",
 }
 
 # 维度基线分（前端 baseline: 50）
 DIMENSION_BASELINE: dict[str, int] = {
     "metabolic": 50,
-    "cognitive": 50,
     "cardiovascular": 50,
-    "athletic": 50,
-    "sleep": 50,
+    "neurodevelopmental": 50,
+    "immunodeficiency": 50,
+    "sensory": 50,
 }
 
 # 基因卡片元数据（符号 → 展示名/类别/图标）
 GENE_CARD_META: dict[str, dict] = {
-    "APOE": {"name": "Cognitive Health", "category": "Brain & Longevity", "icon": "🧠"},
-    "FTO": {"name": "Metabolic Tendency", "category": "Metabolism", "icon": "⚡"},
-    "ACTN3": {"name": "Muscle Performance", "category": "Athletic Performance", "icon": "💪"},
-    "CLOCK": {"name": "Sleep & Circadian Rhythm", "category": "Sleep & Recovery", "icon": "🌙"},
-    "TOMM40": {"name": "Neuroprotective Potential", "category": "Brain & Longevity", "icon": "🧠"},
-    "LDLR": {"name": "Cholesterol Metabolism", "category": "Cardiovascular", "icon": "❤️"},
-    "MC4R": {"name": "Appetite Regulation", "category": "Metabolism", "icon": "⚡"},
-    "PER3": {"name": "Sleep Duration Preference", "category": "Sleep & Recovery", "icon": "🌙"},
-    "MSTN": {"name": "Muscle Growth Potential", "category": "Athletic Performance", "icon": "💪"},
+    "PAH": {"name": "苯丙酮尿症(PKU)", "category": "代谢与内分泌", "icon": "⚡"},
+    "G6PD": {"name": "G6PD缺乏症", "category": "心血管与血液", "icon": "🩸"},
+    "CYP21A2": {"name": "先天性肾上腺皮质增生(CAH)", "category": "代谢与内分泌", "icon": "⚡"},
+    "SMN1": {"name": "脊髓性肌萎缩(SMA)", "category": "神经发育", "icon": "🧠"},
+    "GJB2": {"name": "先天性听力损失", "category": "感官与结构", "icon": "👂"},
+    "SLC26A4": {"name": "Pendred综合征/听力损失", "category": "感官与结构", "icon": "👂"},
+    "CHD7": {"name": "CHARGE综合征", "category": "心血管与血液", "icon": "❤️"},
+    "IL2RG": {"name": "X连锁严重联合免疫缺陷(SCID)", "category": "免疫与感染", "icon": "🛡️"},
+    "BTK": {"name": "X连锁无丙种球蛋白血症(XLA)", "category": "免疫与感染", "icon": "🛡️"},
+    "RAG1": {"name": "重组激活基因1缺陷(SCID)", "category": "免疫与感染", "icon": "🛡️"},
+    "CFTR": {"name": "囊性纤维化(CF)", "category": "代谢与内分泌", "icon": "⚡"},
+    "HBB": {"name": "镰状细胞病/地中海贫血", "category": "心血管与血液", "icon": "🩸"},
+    "FBN1": {"name": "马凡综合征", "category": "心血管与血液", "icon": "❤️"},
+    "MYH7": {"name": "肥厚型心肌病", "category": "心血管与血液", "icon": "❤️"},
+    "SCN1A": {"name": "Dravet综合征", "category": "神经发育", "icon": "🧠"},
+    "MECP2": {"name": "Rett综合征", "category": "神经发育", "icon": "🧠"},
+    "FMR1": {"name": "脆性X综合征", "category": "神经发育", "icon": "🧠"},
+    "TSC1": {"name": "结节性硬化症", "category": "神经发育", "icon": "🧠"},
+    "NF1": {"name": "神经纤维瘤病1型", "category": "神经发育", "icon": "🧠"},
+    "DHCR7": {"name": "Smith-Lemli-Opitz综合征", "category": "代谢与内分泌", "icon": "⚡"},
+    "ACADM": {"name": "MCAD缺乏症", "category": "代谢与内分泌", "icon": "⚡"},
+    "SLC2A1": {"name": "GLUT1缺乏症", "category": "代谢与内分泌", "icon": "⚡"},
+    "COL1A1": {"name": "成骨不全症", "category": "感官与结构", "icon": "🦴"},
+    "USH2A": {"name": "Usher综合征II型", "category": "感官与结构", "icon": "👁️"},
+    "RB1": {"name": "视网膜母细胞瘤", "category": "感官与结构", "icon": "👁️"},
 }
 
-# 基因默认卡片（无变异时兜底）
-DEFAULT_GENE_CARDS: list[str] = ["APOE", "FTO", "ACTN3", "CLOCK"]
+# 基因默认卡片（无变异时兜底 — 优先展示的核心基因）
+DEFAULT_GENE_CARDS: list[str] = [
+    "PAH", "G6PD", "SMN1", "GJB2", "CYP21A2", "CHD7", "IL2RG", "CFTR", "HBB"
+]
 
 # 基因风险等级划分（基于 ClinVar 意义）
 RISK_LEVEL_MAP: dict[str, str] = {
@@ -79,15 +97,16 @@ SIGNIFICANCE_WEIGHT: dict[str, float] = {
     "Benign": 0.0,
 }
 
-# 疾病风险映射（保留原有 PRS 能力）
+# 疾病风险映射（儿科遗传病）
 DISEASE_GENE_MAP: dict[str, set[str]] = {
-    "cardio": {"LDLR", "APOB", "PCSK9", "SCN5A", "KCNQ1", "KCNH2"},
-    "diabetes": {"HNF1A", "HNF4A", "GCK", "TCF7L2", "KCNJ11"},
-    "breast_cancer": {"BRCA1", "BRCA2", "PALB2", "CHEK2", "ATM"},
-    "colorectal": {"APC", "MLH1", "MSH2", "MSH6", "PMS2", "MUTYH"},
-    "alzheimer": {"APOE", "APP", "PSEN1", "PSEN2"},
-    "obesity": {"MC4R", "FTO", "LEP", "LEPR"},
-    "hypertension": {"AGT", "ACE", "ADD1", "CYP11B2"},
+    "metabolic_disorder": {"PAH", "CYP21A2", "CFTR", "DHCR7", "ACADM", "SLC2A1"},
+    "cardiovascular": {"FBN1", "MYH7", "CHD7", "HBB"},
+    "neurodevelopmental": {"SMN1", "SCN1A", "MECP2", "FMR1", "TSC1", "NF1"},
+    "immunodeficiency": {"IL2RG", "BTK", "RAG1"},
+    "hearing_loss": {"GJB2", "SLC26A4"},
+    "vision_disorder": {"USH2A", "RB1"},
+    "hematologic": {"HBB", "G6PD"},
+    "skeletal_dysplasia": {"COL1A1", "FBN1"},
 }
 
 
@@ -140,16 +159,7 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
     """计算 5 维健康风险评分（对齐前端 riskDimensions[]）。
 
     维度分 = 50(基线) + Σ(变异权重 × 风险偏移 × 基因型剂量)
-
-    风险偏移基于 ClinVar 意义与 odds_ratio。
-    基因型剂量（allele_dosage）反映样本差异：
-      - 纯合变异 (2) → 贡献翻倍
-      - 杂合 (1) → 正常
-      - 无剂量信息 → 1.0
-    odds_ratio 缺失时按临床意义分级（Pathogenic > VUS > Benign），
-    确保不同样本因携带不同变异而产生不同维度分。
     """
-    # 各维度累计风险贡献
     dim_risk: dict[str, float] = {dim: 50.0 for dim in DIMENSION_LABELS}
 
     for v in variants:
@@ -159,7 +169,6 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
         weight = significance_weight(v.get("clinvar_significance"))
         odds = v.get("odds_ratio")
         dosage = v.get("allele_dosage")
-        # 无基因型信息（兼容旧数据/测试）按 1 处理；明确为 0（纯合参考）才跳过
         if dosage is None:
             dose_factor = 1
         elif dosage == 0:
@@ -168,23 +177,20 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
             dose_factor = dosage
 
         if odds and odds > 1:
-            # 风险基因：odds 越高，维度分越高（风险越大）
             contribution = weight * min((log(odds) / log(4)) * 15, 15)
         else:
-            # 无效应量时按临床意义分级（反映变异潜在影响）
             sig = (v.get("clinvar_significance") or "").lower()
             if "pathogenic" in sig:
-                base = 6.0       # 致病
+                base = 6.0
             elif "uncertain" in sig or "vus" in sig:
-                base = 1.5       # 意义不明
+                base = 1.5
             elif "benign" in sig:
-                base = -1.0      # 良性（轻微降低风险）
+                base = -1.0
             else:
                 base = 0.5
             contribution = base
         dim_risk[dim] += contribution * dose_factor
 
-    # 生成前端结构
     result = []
     for dim in DIMENSION_LABELS:
         score = int(round(dim_risk[dim]))
@@ -198,7 +204,7 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
     return result
 
 
-# ============ 健康评分（对齐前端公式）============
+# ============ 健康评分（对齐前端公式 — 婴儿成长因子版）============
 
 def calculate_health_score(
     factors: dict[str, float] | None = None,
@@ -206,20 +212,27 @@ def calculate_health_score(
 ) -> int:
     """计算 0-100 健康评分（公式对齐前端 calculateHealthScore）。
 
-    影响因素：sleep(3-10) exercise(0-7) diet(1-10) stress(1-10)
+    影响因素：nutrition_type(0-10) sleep_quality(0-10)
+              development_stimulation(0-10) medical_adherence(0-10)
+              environmental_safety(0-10)
     """
     f = factors or {}
-    sleep = float(f.get("sleep", 6))
-    exercise = float(f.get("exercise", 3))
-    diet = float(f.get("diet", 5))
-    stress = float(f.get("stress", 6))
+    nutrition = float(f.get("nutrition_type", 7))
+    sleep = float(f.get("sleep_quality", 7))
+    stimulation = float(f.get("development_stimulation", 6))
+    adherence = float(f.get("medical_adherence", 9))
+    safety = float(f.get("environmental_safety", 8))
 
-    sleep_impact = ((sleep - 6) / 7) * 8
-    exercise_impact = ((exercise - 3) / 7) * 10
-    diet_impact = ((diet - 5) / 9) * 12
-    stress_impact = ((6 - stress) / 9) * 10  # 反向：低压力 = 高分
+    nutrition_impact = ((nutrition - 7) / 10) * 8
+    sleep_impact = ((sleep - 7) / 10) * 8
+    stimulation_impact = ((stimulation - 6) / 10) * 10
+    adherence_impact = ((adherence - 9) / 10) * 12
+    safety_impact = ((safety - 8) / 10) * 8
 
-    total_deviation = sleep_impact + exercise_impact + diet_impact + stress_impact
+    total_deviation = (
+        nutrition_impact + sleep_impact + stimulation_impact
+        + adherence_impact + safety_impact
+    )
     score = round(genetic_baseline + total_deviation)
     return max(35, min(98, score))
 
@@ -228,20 +241,21 @@ def calculate_dimension_scores_with_factors(
     variants: list[dict],
     factors: dict[str, float] | None = None,
 ) -> list[dict]:
-    """基于遗传 + 生活方式因素的综合维度评分（对齐前端 calculateRiskDimensions）。"""
+    """基于遗传 + 早期成长因素的综合维度评分（对齐前端 calculateRiskDimensions）。"""
     base = calculate_dimension_scores(variants)
     f = factors or {}
-    sleep = float(f.get("sleep", 6))
-    exercise = float(f.get("exercise", 3))
-    diet = float(f.get("diet", 5))
-    stress = float(f.get("stress", 6))
+    nutrition = float(f.get("nutrition_type", 7))
+    sleep = float(f.get("sleep_quality", 7))
+    stimulation = float(f.get("development_stimulation", 6))
+    adherence = float(f.get("medical_adherence", 9))
+    safety = float(f.get("environmental_safety", 8))
 
     adjustments = {
-        "metabolic": -(diet - 5) * 3 - (exercise - 3) * 2 + (stress - 5) * 1.5,
-        "cognitive": -(sleep - 6) * 3 - (stress - 5) * 2 + (exercise - 3) * -0.5,
-        "cardiovascular": -(exercise - 3) * 4 - (diet - 5) * 2 + (stress - 5) * 2,
-        "athletic": -(exercise - 3) * -3 + (sleep - 6) * -1,
-        "sleep": -(sleep - 6) * -5 + (stress - 5) * 3,
+        "metabolic": -(nutrition - 7) * 3 - (adherence - 9) * 2,
+        "cardiovascular": -(adherence - 9) * 3 - (safety - 8) * 2,
+        "neurodevelopmental": -(stimulation - 6) * 3 - (sleep - 7) * 2 - (nutrition - 7) * 1.5,
+        "immunodeficiency": -(adherence - 9) * 3 - (safety - 8) * 2.5 - (nutrition - 7) * 1.5,
+        "sensory": -(stimulation - 6) * 2 - (adherence - 9) * 2 - (safety - 8) * 1.5,
     }
     for dim in base:
         dim["score"] = max(5, min(95, int(round(dim["score"] + adjustments.get(dim["key"], 0)))))
@@ -276,13 +290,8 @@ def risk_level_from_significance(sig: str | None) -> str:
     return "moderate"
 
 
-def generate_gene_cards(variants: list[dict], top_n: int = 4) -> list[dict]:
-    """从变异生成前端 geneCards 结构。
-
-    优先展示 DEFAULT_GENE_CARDS 中的基因（与前端演示一致）。
-    若无变异数据，返回默认卡片。
-    """
-    # 收集有意义的变异基因
+def generate_gene_cards(variants: list[dict], top_n: int = 9) -> list[dict]:
+    """从变异生成前端 geneCards 结构。"""
     gene_info: dict[str, list[dict]] = {}
     for v in variants:
         gene = _normalize_gene(v.get("gene_name", ""))
@@ -292,12 +301,10 @@ def generate_gene_cards(variants: list[dict], top_n: int = 4) -> list[dict]:
             gene_info[gene] = []
         gene_info[gene].append(v)
 
-    # 决定展示哪些基因（优先默认卡片中出现的）
     display_genes = [g for g in DEFAULT_GENE_CARDS if g in gene_info]
     display_genes += [g for g in gene_info if g not in DEFAULT_GENE_CARDS]
     display_genes = display_genes[:top_n]
 
-    # 若无匹配基因，用默认卡片兜底
     if not display_genes:
         display_genes = DEFAULT_GENE_CARDS[:top_n]
 
@@ -305,7 +312,7 @@ def generate_gene_cards(variants: list[dict], top_n: int = 4) -> list[dict]:
     for gene in display_genes:
         variants_of_gene = gene_info.get(gene, [])
         meta = GENE_CARD_META.get(gene, {
-            "name": f"{gene} Gene", "category": "Genetic Analysis", "icon": "🧬"
+            "name": f"{gene} 基因", "category": "遗传分析", "icon": "🧬"
         })
 
         if variants_of_gene:
@@ -342,160 +349,173 @@ def generate_gene_cards(variants: list[dict], top_n: int = 4) -> list[dict]:
 def _build_summary(gene: str, sig: str | None) -> str:
     """生成基因卡片摘要。"""
     if sig and sig.lower().startswith(("pathogenic", "likely_pathogenic")):
-        return f"您的 {gene} 基因存在临床显著变异，与相关健康风险升高有关。"
+        return (
+            f"宝宝的 {gene} 基因存在临床显著变异，"
+            "建议遵循新生儿筛查随访和专科医生指导进行管理。"
+        )
     if sig and sig.lower().startswith("benign"):
-        return f"您的 {gene} 基因未发现显著致病变异，遗传风险处于正常水平。"
-    return f"您的 {gene} 基因与生活方式健康密切相关，遗传因素可被生活方式显著调节。"
+        return f"宝宝的 {gene} 基因未发现显著致病变异，遗传风险处于正常水平。"
+    return (
+        f"{gene} 基因与婴幼儿健康发育密切相关，"
+        "早期干预和定期监测可有效调节遗传风险。"
+    )
 
 
 def _build_interpretation(gene: str, sig: str | None, odds: float | None) -> str:
-    """生成基因卡片解读。"""
+    """生成基因卡片解读（儿科语境）。"""
+    science = _get_gene_science(gene)
+    base = science.get("function", f"{gene} 基因影响婴幼儿健康发育。")
     if odds and odds > 1:
         return (
-            f"{gene} 基因变异的效应量约为 {odds:.1f} 倍。"
-            "研究表明，规律运动、均衡饮食和良好睡眠可显著抵消遗传易感性，"
-            "生活方式对表型的影响可达 30-40%。"
+            f"{base} 该基因变异效应量约为 {odds:.1f} 倍。"
+            "早期干预（喂养、医疗随访、发育支持）可显著改善预后，"
+            "父母的日常照护对孩子的发育轨迹具有深远影响。"
         )
     return (
-        f"{gene} 基因影响身体的代谢与健康调节。"
-        "遗传只是影响因素之一，积极的生活方式改变可大幅改善健康轨迹。"
+        f"{base} 基因只是影响因素之一，"
+        "积极的早期干预和定期健康监测可大幅改善孩子的发育轨迹。"
     )
 
 
 def _build_recommendations(gene: str) -> list[str]:
-    """基于基因生成建议（对齐前端 geneCards.recommendations[]）。"""
+    """基于基因生成儿科建议。"""
     dim = classify_gene_to_dimension(gene)
     if dim == "metabolic":
         return [
-            "优先选择高蛋白、高纤维饮食以增强饱腹感",
-            "限制添加糖和精制碳水化合物的摄入",
-            "每天目标 10,000 步",
-        ]
-    if dim == "cognitive":
-        return [
-            "每周进行 150 分钟以上有氧运动",
-            "遵循地中海式饮食，补充 Omega-3",
-            "保持阅读、拼图等认知训练活动",
+            "严格遵循新生儿筛查随访和专科医生饮食指导",
+            "记录喂养情况和生长发育曲线",
+            "定期监测相关代谢指标",
         ]
     if dim == "cardiovascular":
         return [
-            "每周进行 150 分钟中等强度有氧运动",
-            "控制钠摄入，增加蔬果比例",
-            "定期监测血压和血脂水平",
+            "定期进行心脏专科评估和影像学检查",
+            "遵医嘱进行预防性用药和活动管理",
+            "关注喂养耐受性和生长发育情况",
         ]
-    if dim == "athletic":
+    if dim == "neurodevelopmental":
         return [
-            "每周加入 2-3 次高强度间歇训练",
-            "力量训练每周 2-3 次以获得最佳效果",
-            "高强度训练后注意充分恢复",
+            "尽早开始早期干预和康复训练",
+            "定期进行发育评估和里程碑监测",
+            "与儿科神经专科医生保持定期随访",
         ]
-    if dim == "sleep":
+    if dim == "immunodeficiency":
         return [
-            "早晨接触阳光以重置生物钟",
-            "即使周末也保持一致的作息时间",
-            "目标睡眠前 1-2 小时避免蓝光",
+            "严格遵循感染预防措施和免疫球蛋白替代治疗",
+            "按时完成疫苗接种计划（遵医嘱调整）",
+            "出现发热或感染迹象立即就医",
+        ]
+    if dim == "sensory":
+        return [
+            "定期进行听力和视力筛查评估",
+            "根据筛查结果尽早适配辅助设备",
+            "配合早期言语/视觉康复训练",
         ]
     return [
-        "保持规律运动和均衡饮食",
-        "定期体检，关注关键健康指标",
+        "定期儿科随访和生长发育监测",
+        "关注宝宝的喂养、睡眠和发育里程碑",
     ]
 
 
-# ============ 建议引擎 ============
+# ============ 建议引擎（儿科版）============
 
 def generate_recommendations(factors: dict[str, float] | None = None) -> list[dict]:
-    """生成个性化建议（对齐前端 generateRecommendations 输出结构）。
-
-    每条建议含：id / pillar / icon / title / description / difficulty / impact / time
-    """
+    """生成个性化育儿建议（对齐前端 generateRecommendations 输出结构）。"""
     f = factors or {}
-    sleep = float(f.get("sleep", 6))
-    exercise = float(f.get("exercise", 3))
-    diet = float(f.get("diet", 5))
-    stress = float(f.get("stress", 6))
+    nutrition = float(f.get("nutrition_type", 7))
+    sleep = float(f.get("sleep_quality", 7))
+    stimulation = float(f.get("development_stimulation", 6))
+    adherence = float(f.get("medical_adherence", 9))
+    safety = float(f.get("environmental_safety", 8))
 
     recs: list[dict] = []
 
-    if sleep < 7:
+    if nutrition < 8:
         recs.append({
-            "id": "s1", "pillar": "sleep", "icon": "🌙",
-            "title": "将睡眠增加到 7-8 小时",
-            "description": "您的基因档案显示对睡眠不足高度敏感。每晚多睡 1 小时可降低代谢风险标志物。",
+            "id": "n1", "pillar": "nutrition", "icon": "🍼",
+            "title": "优化喂养方式",
+            "description": "母乳喂养为宝宝提供最佳营养和免疫保护。如因特殊情况无法纯母乳，请咨询医生选择最适合的配方方案。",
+            "difficulty": "moderate", "impact": 5, "time": "立即开始",
+        })
+    if sleep < 8:
+        recs.append({
+            "id": "sl1", "pillar": "sleep", "icon": "😴",
+            "title": "建立规律睡眠习惯",
+            "description": "婴儿睡眠直接影响大脑发育和生长激素分泌。建立固定的睡前程序，确保安全的睡眠环境。",
             "difficulty": "moderate", "impact": 4, "time": "今晚开始",
         })
-    if exercise < 4:
+    if stimulation < 7:
         recs.append({
-            "id": "e1", "pillar": "exercise", "icon": "🏃",
-            "title": "每周增加一天锻炼",
-            "description": "结合您的力量型基因型，每周增加一次高强度训练效果显著。",
+            "id": "ds1", "pillar": "development", "icon": "🎯",
+            "title": "增加早期感官刺激",
+            "description": "互动游戏、语言暴露和适龄感官刺激对宝宝神经发育至关重要，尤其对有神经发育风险基因的宝宝。",
+            "difficulty": "easy", "impact": 5, "time": "每天进行",
+        })
+    if adherence < 9:
+        recs.append({
+            "id": "ma1", "pillar": "medical", "icon": "🏥",
+            "title": "加强医疗随访依从性",
+            "description": "新生儿筛查异常结果的随访、专科预约和按时用药直接决定宝宝的预后。请确保不遗漏关键随访。",
             "difficulty": "moderate", "impact": 5, "time": "本周内",
         })
-    if diet < 7:
+    if safety < 8:
         recs.append({
-            "id": "d1", "pillar": "diet", "icon": "🥗",
-            "title": "增加高纤维全食物摄入",
-            "description": "您的代谢基因型受益于高纤维饮食，目标每日 30g 膳食纤维。",
+            "id": "es1", "pillar": "safety", "icon": "🏠",
+            "title": "改善家居环境安全",
+            "description": "避免毒素暴露、确保安全睡眠环境(SIDS预防)、做好感染防护，为宝宝提供安全的成长空间。",
             "difficulty": "easy", "impact": 4, "time": "立即开始",
         })
-    if stress > 5:
-        recs.append({
-            "id": "st1", "pillar": "stress", "icon": "🧘",
-            "title": "每天 10 分钟正念练习",
-            "description": "您的昼夜节律基因对压力敏感，每日简短冥想可改善睡眠并降低皮质醇。",
-            "difficulty": "easy", "impact": 3, "time": "每天 10 分钟",
-        })
-    if exercise >= 4 and sleep >= 7:
+    if adherence >= 9 and nutrition >= 8:
         recs.append({
             "id": "g1", "pillar": "general", "icon": "🎯",
-            "title": "您正在养成良好习惯",
-            "description": "继续保持！持续坚持才是改变基因表达的关键。可考虑增加活动多样性。",
+            "title": "您在为宝宝打下坚实的健康基础",
+            "description": "坚持科学的喂养和照护方案，定期儿科随访。持续的优质照护是改变基因表达的关键。",
             "difficulty": "easy", "impact": 2, "time": "持续进行",
         })
 
     return recs
 
 
-# ============ 30 天计划 ============
+# ============ 30 天计划（儿科版）============
 
 def generate_thirty_day_plan(goal: str | None = None) -> dict:
-    """生成 30 天健康计划（对齐前端 thirtyDayPlan 结构）。"""
+    """生成 30 天新生儿照护计划（对齐前端 thirtyDayPlan 结构）。"""
     return {
-        "goal": goal or "改善代谢健康并降低长期心血管风险",
+        "goal": goal or "建立科学的婴儿照护方案，优化早期发育轨迹",
         "weeks": [
             {
                 "label": "第 1 周 — 基础建立",
-                "theme": "觉察与基线",
+                "theme": "记录与觉察",
                 "tasks": [
-                    {"day": "第 1-2 天", "title": "记录基线", "desc": "不做任何改变地记录睡眠、饮食和活动。"},
-                    {"day": "第 3-4 天", "title": "每日 30 分钟步行", "desc": "简单的每日散步——留意身体感受。"},
-                    {"day": "第 5-7 天", "title": "审视餐盘", "desc": "为每餐拍照，仅觉察，不评判。"},
+                    {"day": "第 1-2 天", "title": "建立喂养日记", "desc": "记录每次喂养时间、时长和方式，了解宝宝的喂养规律。"},
+                    {"day": "第 3-4 天", "title": "建立睡眠日志", "desc": "记录宝宝睡眠时间和质量，观察睡眠模式。"},
+                    {"day": "第 5-7 天", "title": "整理医疗档案", "desc": "汇总新生儿筛查报告、疫苗接种记录和专科预约时间表。"},
                 ],
             },
             {
                 "label": "第 2 周 — 激活",
                 "theme": "小改变，大影响",
                 "tasks": [
-                    {"day": "第 8-9 天", "title": "提前 30 分钟就寝", "desc": "您的生物钟基因对渐进式调整反应良好。"},
-                    {"day": "第 10-12 天", "title": "2 次 HIIT 训练", "desc": "发挥您的力量基因优势，进行短时高强度训练。"},
-                    {"day": "第 13-14 天", "title": "替换一次加工零食", "desc": "用坚果或水果代替。您的代谢基因会感谢您。"},
+                    {"day": "第 8-9 天", "title": "建立睡前程序", "desc": "固定的洗澡→喂养→安抚→入睡流程，帮助宝宝建立昼夜节律。"},
+                    {"day": "第 10-12 天", "title": "每日亲子互动时间", "desc": "每天至少 15 分钟专注的亲子互动——说话、唱歌、眼神交流。"},
+                    {"day": "第 13-14 天", "title": "完成一次专科随访", "desc": "确认所有新生儿筛查随访预约已安排并按时就诊。"},
                 ],
             },
             {
                 "label": "第 3 周 — 整合",
-                "theme": "建立动量",
+                "theme": "建立节奏",
                 "tasks": [
-                    {"day": "第 15-17 天", "title": "周日备餐", "desc": "计划并准备 3 天的高纤维餐食。"},
-                    {"day": "第 18-19 天", "title": "早晨光照", "desc": "户外 10 分钟晨光以重置昼夜节律。"},
-                    {"day": "第 20-21 天", "title": "尝试新活动", "desc": "您的力量基因偏好多样化的爆发性活动。"},
+                    {"day": "第 15-17 天", "title": "环境安全检查", "desc": "检查家居安全隐患——睡眠环境、过敏原、清洁用品存放。"},
+                    {"day": "第 18-19 天", "title": "感官刺激活动", "desc": "引入适龄的黑白卡、摇铃和触觉玩具，丰富感官体验。"},
+                    {"day": "第 20-21 天", "title": "学习婴儿发育里程碑", "desc": "了解接下来 1-3 个月的发育里程碑，知道何时该关注。"},
                 ],
             },
             {
                 "label": "第 4 周 — 维持",
                 "theme": "终身习惯",
                 "tasks": [
-                    {"day": "第 22-24 天", "title": "反思精力水平", "desc": "记录与第 1 天的对比，留意趋势。"},
-                    {"day": "第 25-27 天", "title": "分享进展", "desc": "社会支持有助于巩固基因表达的改变。"},
-                    {"day": "第 28-30 天", "title": "规划下一个 30 天", "desc": "设定新目标。健康是一场持续旅程。"},
+                    {"day": "第 22-24 天", "title": "回顾与反思", "desc": "对比第 1 天的记录，观察宝宝的发育趋势和规律变化。"},
+                    {"day": "第 25-27 天", "title": "与儿科医生沟通", "desc": "整理问题和观察，准备下一次儿科随访的讨论要点。"},
+                    {"day": "第 28-30 天", "title": "规划下一个月", "desc": "设定新的照护目标。宝宝的健康发展是一场持续的旅程。"},
                 ],
             },
         ],
@@ -505,7 +525,7 @@ def generate_thirty_day_plan(goal: str | None = None) -> dict:
 # ============ 兼容辅助 ============
 
 def calculate_prs(variants: list[dict], disease: str | None = None) -> dict:
-    """计算疾病多基因风险评分（保留原 PRS 能力，供真实分析使用）。"""
+    """计算疾病多基因风险评分（保留原 PRS 能力）。"""
     if not variants:
         risk = {d: 1.0 for d in DISEASE_GENE_MAP}
         return {
@@ -559,7 +579,7 @@ def calculate_prs(variants: list[dict], disease: str | None = None) -> dict:
 
 
 def risk_score_for_variant(clinvar_sig: str | None, odds_ratio: float | None = None) -> float:
-    """为单个变异生成 0-1 风险评分（前端展示用）。"""
+    """为单个变异生成 0-1 风险评分。"""
     weight = significance_weight(clinvar_sig)
     if odds_ratio and odds_ratio > 1:
         return round(min(weight * (log(odds_ratio) / log(4)) + weight * 0.2, 0.99), 2)
@@ -567,64 +587,234 @@ def risk_score_for_variant(clinvar_sig: str | None, odds_ratio: float | None = N
 
 
 # =============================================================================
-# 关键基因智能抓取 + 科学分析
+# 关键基因智能抓取 + 科学分析（儿科版）
 # =============================================================================
 
-# 基因科学知识库
 _GENE_SCIENCE: dict[str, dict] = {
-    "APOE": {
-        "name": "Apolipoprotein E",
-        "cn_name": "载脂蛋白E",
-        "function": "编码载脂蛋白E，参与脂蛋白代谢、胆固醇转运和神经修复。ε4 等位基因与阿尔茨海默病风险升高相关。",
+    "PAH": {
+        "name": "Phenylalanine Hydroxylase",
+        "cn_name": "苯丙氨酸羟化酶",
+        "function": "编码苯丙氨酸羟化酶。致病性变异导致苯丙酮尿症(PKU)——一种可通过饮食控制的可治疗先天性代谢缺陷。未经治疗的PKU导致严重智力障碍。",
         "evidence": "high",
-        "variants": ["rs429358", "rs7412"],
-        "population_impact": "约 25% 人群携带至少一个 ε4 等位基因",
-        "lifestyle": "规律有氧运动可降低 ε4 携带者认知风险约 30%；地中海饮食有保护作用",
+        "variants": ["rs62514927"],
+        "population_impact": "PKU 发病率约 1/10,000-1/15,000（全球），中国约 1/11,000",
+        "lifestyle": "严格苯丙氨酸限制饮食可完全预防神经系统损伤。新生儿筛查+早期饮食干预是关键。",
     },
-    "FTO": {
-        "name": "Fat Mass and Obesity-Associated",
-        "cn_name": "肥胖相关基因",
-        "function": "调控食欲和能量消耗。风险等位基因与体重管理挑战相关，但运动可显著抵消其效应。",
+    "G6PD": {
+        "name": "Glucose-6-Phosphate Dehydrogenase",
+        "cn_name": "葡萄糖-6-磷酸脱氢酶",
+        "function": "编码G6PD酶，保护红细胞免受氧化损伤。致病性变异导致G6PD缺乏症——全球最常见的遗传性酶缺乏症，接触氧化性触发因素可诱发急性溶血。",
         "evidence": "high",
-        "variants": ["rs9939609"],
-        "population_impact": "约 40-45% 人群携带风险等位基因（A）",
-        "lifestyle": "规律运动可降低 FTO 相关体重影响约 27%；高蛋白高纤维饮食有效",
+        "variants": ["rs1050828", "rs1050829"],
+        "population_impact": "全球约 4 亿人携带G6PD缺乏变异，中国南方发病率较高",
+        "lifestyle": "避免蚕豆、特定药物(如磺胺类、阿司匹林)和樟脑丸等氧化性触发因素，可完全预防溶血发作。",
     },
-    "CLOCK": {
-        "name": "Circadian Locomotor Output Cycles Kaput",
-        "cn_name": "生物钟基因",
-        "function": "核心昼夜节律调控因子，影响睡眠-觉醒周期和代谢节律。变异与睡眠偏好和节律稳定性相关。",
-        "evidence": "moderate",
-        "variants": ["rs1801260"],
-        "population_impact": "常见多态性，影响睡眠偏好（晨型/夜型）",
-        "lifestyle": "保持规律作息、固定就寝时间可优化节律；限时进食有助代谢同步",
-    },
-    "ACTN3": {
-        "name": "Alpha-Actinin-3",
-        "cn_name": "α-辅肌动蛋白-3",
-        "function": "编码快肌纤维结构蛋白。R577X 多态性与爆发力/耐力表现相关，是正常的人类基因变异。",
+    "CYP21A2": {
+        "name": "Cytochrome P450 21A2",
+        "cn_name": "21-羟化酶",
+        "function": "编码21-羟化酶，参与皮质醇和醛固酮合成。致病性变异导致先天性肾上腺皮质增生症(CAH)——盐耗型危象可危及生命。",
         "evidence": "high",
-        "variants": ["rs1815739"],
-        "population_impact": "约 18% 人群完全缺乏 ACTN3 蛋白（耐力型）",
-        "lifestyle": "力量型基因型适合高强度间歇训练；耐力型适合长距离有氧",
+        "variants": [],
+        "population_impact": "CAH 经典型发病率约 1/15,000，中国约 1/16,000",
+        "lifestyle": "激素替代治疗+应激剂量调整是管理核心。新生儿筛查可早期发现并预防危象。",
     },
-    "BRCA1": {
-        "name": "Breast Cancer Gene 1",
-        "cn_name": "乳腺癌基因1",
-        "function": "DNA 损伤修复关键基因。致病变异显著升高乳腺癌和卵巢癌风险。",
+    "SMN1": {
+        "name": "Survival Motor Neuron 1",
+        "cn_name": "运动神经元存活蛋白1",
+        "function": "编码SMN蛋白，对运动神经元存活至关重要。纯合缺失/致病变异导致脊髓性肌萎缩(SMA)——婴幼儿最常见的致死性神经肌肉疾病。",
         "evidence": "high",
-        "variants": ["rs80357906"],
-        "population_impact": "致病性变异罕见（约 1/400），但外显率高",
-        "lifestyle": "定期乳腺筛查、预防性咨询；健康生活方式可降低部分风险",
+        "variants": [],
+        "population_impact": "SMA 发病率约 1/6,000-1/10,000，携带率约 1/40-1/50",
+        "lifestyle": "新生儿筛查+症状前治疗(基因治疗/药物)可显著改变病程。治疗时机至关重要。",
     },
-    "LDLR": {
-        "name": "Low-Density Lipoprotein Receptor",
-        "cn_name": "低密度脂蛋白受体",
-        "function": "清除血液中 LDL 胆固醇。变异可导致家族性高胆固醇血症，升高心血管风险。",
+    "GJB2": {
+        "name": "Gap Junction Beta 2 (Connexin 26)",
+        "cn_name": "缝隙连接蛋白β2",
+        "function": "编码连接蛋白26(Cx26)，对内耳钾离子循环至关重要。致病性变异是遗传性先天性听力损失最常见的原因。",
         "evidence": "high",
-        "variants": ["rs121908025"],
-        "population_impact": "杂合致病变异约 1/250，显著升高 LDL",
-        "lifestyle": "低饱和脂肪饮食 + 规律运动 + 他汀治疗（遵医嘱）",
+        "variants": ["rs80338939"],
+        "population_impact": "GJB2 变异占遗传性听力损失的约 50%，中国人群携带率较高",
+        "lifestyle": "新生儿听力筛查+早期助听器/人工耳蜗(<12月龄)+语言康复可使语言发育接近正常。",
+    },
+    "SLC26A4": {
+        "name": "Solute Carrier Family 26 Member 4",
+        "cn_name": "溶质载体家族26成员4",
+        "function": "编码pendrin蛋白，参与内耳离子平衡和甲状腺碘转运。致病性变异导致Pendred综合征——先天性听力损失伴甲状腺肿。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "SLC26A4 变异是中国人群遗传性听力损失的第二大常见原因",
+        "lifestyle": "避免头部外伤(可加速听力下降)，早期听力干预和甲状腺功能监测。",
+    },
+    "CHD7": {
+        "name": "Chromodomain Helicase DNA Binding Protein 7",
+        "cn_name": "染色质解旋酶DNA结合蛋白7",
+        "function": "编码染色质重塑因子。致病性变异导致CHARGE综合征——涉及眼、心脏、鼻腔、发育、生殖器和耳部异常的多系统先天性疾病。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "CHARGE 综合征发病率约 1/8,500-1/10,000",
+        "lifestyle": "多学科综合管理(心脏科、耳鼻喉科、眼科、发育儿科)至关重要。",
+    },
+    "IL2RG": {
+        "name": "Interleukin 2 Receptor Gamma",
+        "cn_name": "白细胞介素-2受体γ链",
+        "function": "编码IL-2受体共同γ链，对淋巴细胞发育至关重要。致病性变异导致X连锁严重联合免疫缺陷(SCID-X1)——缺乏功能性T细胞和NK细胞。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "SCID-X1 是最常见的SCID类型，占所有SCID的约 45%",
+        "lifestyle": "TREC新生儿筛查+早期造血干细胞移植/基因治疗可挽救生命。治疗前严格感染防护。",
+    },
+    "BTK": {
+        "name": "Bruton Tyrosine Kinase",
+        "cn_name": "Bruton酪氨酸激酶",
+        "function": "编码B细胞发育必需的酪氨酸激酶。致病性变异导致X连锁无丙种球蛋白血症(XLA)——B细胞缺乏，抗体生成障碍，反复细菌感染。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "XLA 发病率约 1/200,000（男性）",
+        "lifestyle": "定期免疫球蛋白替代治疗(IVIG/SCIG)可维持正常生长发育和预防感染。",
+    },
+    "RAG1": {
+        "name": "Recombination Activating Gene 1",
+        "cn_name": "重组激活基因1",
+        "function": "编码V(D)J重组关键酶。致病性变异导致多种形式的SCID或Omenn综合征——T/B细胞严重缺乏。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "RAG1/2 缺陷约占所有SCID的 20-30%",
+        "lifestyle": "新生儿TREC筛查+早期造血干细胞移植是当前标准治疗。",
+    },
+    "CFTR": {
+        "name": "Cystic Fibrosis Transmembrane Conductance Regulator",
+        "cn_name": "囊性纤维化跨膜传导调节因子",
+        "function": "编码氯离子通道蛋白。致病性变异导致囊性纤维化(CF)——影响呼吸和消化系统的多系统疾病。CFTR调节剂是变异特异性靶向治疗。",
+        "evidence": "high",
+        "variants": ["rs113993960"],
+        "population_impact": "CF 在白人中发病率约 1/2,500-3,500，亚洲人群较为罕见",
+        "lifestyle": "早期营养支持、呼吸道清理、CFTR调节剂治疗和感染预防的多学科管理。",
+    },
+    "HBB": {
+        "name": "Hemoglobin Subunit Beta",
+        "cn_name": "β-珠蛋白",
+        "function": "编码β-珠蛋白链。致病性变异导致镰状细胞病和β-地中海贫血——全球最常见的严重单基因遗传病。新生儿筛查可显著降低死亡率。",
+        "evidence": "high",
+        "variants": ["rs334"],
+        "population_impact": "镰状细胞病在非洲裔人群中发病率约 1/365；地中海贫血在地中海、中东和东南亚高发",
+        "lifestyle": "预防性抗生素、疫苗接种、羟基脲治疗和定期专科随访。",
+    },
+    "FBN1": {
+        "name": "Fibrillin-1",
+        "cn_name": "原纤蛋白-1",
+        "function": "编码细胞外基质蛋白。致病性变异导致马凡综合征——以主动脉根部扩张、晶状体脱位和骨骼特征为主要表现的结缔组织疾病。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "马凡综合征发病率约 1/5,000-1/10,000",
+        "lifestyle": "定期心脏影像监测、预防性β受体阻滞剂/ARB治疗、避免高强度对抗性运动。",
+    },
+    "MYH7": {
+        "name": "Myosin Heavy Chain 7",
+        "cn_name": "β-肌球蛋白重链",
+        "function": "编码心肌肌球蛋白重链。致病性变异是家族性肥厚型心肌病最常见的遗传原因，可在婴儿期表现为心衰。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "肥厚型心肌病发病率约 1/500，MYH7 变异占家族性病例的约 30-40%",
+        "lifestyle": "定期心脏评估、避免竞技性运动和脱水、遵医嘱进行风险分层管理。",
+    },
+    "SCN1A": {
+        "name": "Sodium Voltage-Gated Channel Alpha Subunit 1",
+        "cn_name": "电压门控钠通道α1亚基",
+        "function": "编码脑钠通道Nav1.1。致病性变异导致Dravet综合征——婴儿期起病的药物难治性癫痫，常伴发热敏感和发育倒退。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "Dravet 综合征发病率约 1/15,700-1/40,000",
+        "lifestyle": "避免过热和钠通道阻滞剂类抗癫痫药物。发热管理和睡眠充足可降低发作风险。",
+    },
+    "MECP2": {
+        "name": "Methyl-CpG Binding Protein 2",
+        "cn_name": "甲基CpG结合蛋白2",
+        "function": "编码转录调控因子。致病性变异导致Rett综合征——6-18月龄出现发育倒退、手部刻板动作和语言丧失的严重神经发育障碍。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "Rett 综合征发病率约 1/10,000-1/15,000（女性）",
+        "lifestyle": "早期康复干预(物理治疗、沟通辅助、手部功能训练)可改善功能预后。",
+    },
+    "FMR1": {
+        "name": "Fragile X Mental Retardation 1",
+        "cn_name": "脆性X智力低下蛋白",
+        "function": "编码FMRP蛋白，调控突触蛋白合成。CGG重复扩增(>200)导致脆性X综合征——最常见的遗传性智力障碍。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "脆性X综合征发病率约 1/4,000(男性)和 1/8,000(女性)，前突变携带率约 1/250-1/800",
+        "lifestyle": "早期行为干预、言语治疗、特殊教育和感觉统合训练的早期综合干预。",
+    },
+    "TSC1": {
+        "name": "TSC Complex Subunit 1",
+        "cn_name": "结节性硬化症蛋白1",
+        "function": "编码hamartin蛋白，负调控mTOR信号通路。致病性变异导致结节性硬化症——多系统错构瘤疾病，影响大脑、皮肤、肾脏和心脏。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "结节性硬化症发病率约 1/6,000-1/10,000",
+        "lifestyle": "婴儿痉挛的早期识别和治疗、mTOR抑制剂靶向治疗、定期多系统监测。",
+    },
+    "NF1": {
+        "name": "Neurofibromin 1",
+        "cn_name": "神经纤维瘤蛋白",
+        "function": "编码Ras-GAP蛋白，负调控Ras信号通路。致病性变异导致神经纤维瘤病1型——咖啡牛奶斑、神经纤维瘤和视路胶质瘤。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "NF1 发病率约 1/2,500-1/3,000，是最常见的常染色体显性遗传肿瘤易感综合征之一",
+        "lifestyle": "定期肿瘤筛查(视路胶质瘤、神经纤维瘤)、学习支持和早期干预。",
+    },
+    "DHCR7": {
+        "name": "7-Dehydrocholesterol Reductase",
+        "cn_name": "7-脱氢胆固醇还原酶",
+        "function": "编码胆固醇合成关键酶。致病性变异导致Smith-Lemli-Opitz综合征——以发育迟缓、小头畸形和多发畸形为特征的胆固醇合成障碍。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "SLOS 发病率约 1/20,000-1/60,000",
+        "lifestyle": "胆固醇补充治疗可改善部分症状。发育支持和多学科管理。",
+    },
+    "ACADM": {
+        "name": "Acyl-CoA Dehydrogenase Medium Chain",
+        "cn_name": "中链酰基辅酶A脱氢酶",
+        "function": "编码脂肪酸β-氧化关键酶。致病性变异导致MCAD缺乏症——空腹可诱发低血糖和代谢危象的脂肪酸氧化障碍。新生儿筛查+喂养指导几乎消除了相关死亡率。",
+        "evidence": "high",
+        "variants": ["rs77931234"],
+        "population_impact": "MCAD 缺乏症发病率约 1/10,000-1/20,000，北欧裔中更高",
+        "lifestyle": "规律喂养、避免长时间空腹。疾病期间需特别关注能量摄入。",
+    },
+    "SLC2A1": {
+        "name": "Solute Carrier Family 2 Member 1 (GLUT1)",
+        "cn_name": "葡萄糖转运蛋白1",
+        "function": "编码GLUT1葡萄糖转运蛋白，介导葡萄糖跨越血脑屏障。致病性变异导致GLUT1缺乏症——早发性癫痫和发育迟缓。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "GLUT1 缺乏症发病率约 1/90,000",
+        "lifestyle": "生酮饮食是有效的治疗策略——通过提供酮体绕过葡萄糖转运缺陷为大脑供能。",
+    },
+    "COL1A1": {
+        "name": "Collagen Type I Alpha 1 Chain",
+        "cn_name": "I型胶原α1链",
+        "function": "编码I型胶原主要成分。致病性变异导致成骨不全症(OI)——以骨骼脆弱、反复骨折、蓝巩膜和听力损失为特征。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "成骨不全症发病率约 1/15,000-1/20,000",
+        "lifestyle": "物理治疗增强肌力、安全环境改造防跌倒、双膦酸盐治疗和多学科管理。",
+    },
+    "USH2A": {
+        "name": "Usherin",
+        "cn_name": "Usherin蛋白",
+        "function": "编码usherin蛋白，对耳蜗和内耳毛细胞以及视网膜光感受器细胞的结构完整性至关重要。致病性变异导致Usher综合征II型——先天性听力损失伴视网膜色素变性。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "Usher综合征发病率约 1/6,000-1/25,000，II型最常见",
+        "lifestyle": "早期人工耳蜗植入+定期眼科随访+低视力辅助和定向行走训练。",
+    },
+    "RB1": {
+        "name": "Retinoblastoma 1",
+        "cn_name": "视网膜母细胞瘤蛋白",
+        "function": "编码pRb肿瘤抑制蛋白，调控细胞周期。致病性变异导致视网膜母细胞瘤——婴幼儿最常见的眼内恶性肿瘤，可危及视力和生命。",
+        "evidence": "high",
+        "variants": [],
+        "population_impact": "视网膜母细胞瘤发病率约 1/15,000-1/20,000 活产儿",
+        "lifestyle": "从出生开始的定期眼底筛查+早期治疗可挽救视力并实现>95%的生存率。",
     },
 }
 
@@ -636,15 +826,14 @@ def _get_gene_science(gene: str) -> dict:
     if gene in _GENE_SCIENCE:
         return _GENE_SCIENCE[gene]
     dim = classify_gene_to_dimension(gene)
-    disease = classify_gene_to_disease(gene)
     return {
         "name": f"{gene}",
         "cn_name": f"{gene} 基因",
-        "function": f"{gene} 基因参与健康调控。具体机制因变异位点而异，建议结合 ClinVar 注释解读。",
+        "function": f"{gene} 基因参与婴幼儿健康发育调控。具体机制因变异位点而异，建议结合 ClinVar 注释和儿科医生指导解读。",
         "evidence": "moderate",
         "variants": [],
-        "population_impact": "人群频率因人群而异",
-        "lifestyle": "保持健康生活方式可部分调节遗传风险",
+        "population_impact": "人群频率因人群和地区而异",
+        "lifestyle": "科学的早期照护和定期儿科随访可部分调节遗传风险",
     }
 
 
@@ -654,35 +843,24 @@ def identify_key_genes(
     min_score: float = 1.0,
     population: str | None = None,
 ) -> list[dict]:
-    """从用户样本中智能抓取关键基因。
-
-    综合评分 = 变异严重度(0-3) × 证据权重(0.4-1.0) × 基因重要性(1-2)
-             × 人群稀有度(0.8-1.5) × 基因型剂量(1-1.6)
-
-    人群稀有度（用户特点维度）：
-      - 携带的变异等位基因在用户人群中越稀有（频率低），该基因越值得关注
-      - 例如 AFR 人群 APOE ε4 频率 38%（常见），但 rs7412(ε2) 频率 0（罕见）
-        → 携带 ε2 的 AFR 用户，APOE 关注度应更高
-      - population 为 None 时不做人群校准（保持原行为）
-
-    基因型剂量：
-      - 纯合变异（allele_dosage=2）权重 1.6
-      - 杂合（1）权重 1.2
-      - 无剂量信息（1.0）
-    """
-    # 人群特异性等位基因频率（与 engine/ancestry.py 保持一致）
+    """从用户样本中智能抓取关键基因（儿科版）。"""
     _POP_FREQ: dict[str, dict[str, float]] = {
-        "rs429358": {"EAS": 0.12, "EUR": 0.25, "AFR": 0.38, "SAS": 0.25, "LAT": 0.12},
-        "rs7412": {"EAS": 0.00, "EUR": 0.12, "AFR": 0.00, "SAS": 0.00, "LAT": 0.00},
-        "rs9939609": {"EAS": 0.25, "EUR": 0.38, "AFR": 0.25, "SAS": 0.25, "LAT": 0.38},
-        "rs1801260": {"EAS": 0.50, "EUR": 0.38, "AFR": 0.25, "SAS": 0.75, "LAT": 0.62},
-        "rs1815739": {"EAS": 0.38, "EUR": 0.50, "AFR": 0.38, "SAS": 0.12, "LAT": 0.62},
+        "rs62514927": {"EAS": 0.02, "EUR": 0.01, "AFR": 0.01, "SAS": 0.01, "LAT": 0.01},
+        "rs1050828": {"EAS": 0.05, "EUR": 0.01, "AFR": 0.20, "SAS": 0.03, "LAT": 0.05},
+        "rs1050829": {"EAS": 0.03, "EUR": 0.01, "AFR": 0.15, "SAS": 0.02, "LAT": 0.03},
+        "rs113993960": {"EAS": 0.01, "EUR": 0.02, "AFR": 0.01, "SAS": 0.01, "LAT": 0.01},
+        "rs334": {"EAS": 0.01, "EUR": 0.01, "AFR": 0.10, "SAS": 0.02, "LAT": 0.03},
+        "rs80338939": {"EAS": 0.05, "EUR": 0.02, "AFR": 0.03, "SAS": 0.04, "LAT": 0.03},
+        "rs77931234": {"EAS": 0.01, "EUR": 0.02, "AFR": 0.01, "SAS": 0.01, "LAT": 0.01},
     }
     _pop_code = None
     if population:
-        _pop_map = {"东亚": "EAS", "欧洲": "EUR", "非洲": "AFR", "南亚": "SAS", "拉丁": "LAT",
-                    "east_asian": "EAS", "european": "EUR", "african": "AFR", "south_asian": "SAS", "latino": "LAT",
-                    "EAS": "EAS", "EUR": "EUR", "AFR": "AFR", "SAS": "SAS", "LAT": "LAT"}
+        _pop_map = {
+            "东亚": "EAS", "欧洲": "EUR", "非洲": "AFR", "南亚": "SAS", "拉丁": "LAT",
+            "east_asian": "EAS", "european": "EUR", "african": "AFR",
+            "south_asian": "SAS", "latino": "LAT",
+            "EAS": "EAS", "EUR": "EUR", "AFR": "AFR", "SAS": "SAS", "LAT": "LAT",
+        }
         _pop_code = _pop_map.get(str(population))
 
     gene_info: dict[str, list[dict]] = {}
@@ -705,11 +883,9 @@ def identify_key_genes(
         evidence_w = _EVIDENCE_WEIGHT.get(science.get("evidence", "moderate"), 0.7)
         importance = 2.0 if classify_gene_to_dimension(gene) or classify_gene_to_disease(gene) else 1.0
 
-        # ── 人群稀有度因子 ──
         population_factor = 1.0
         population_rarity_note = ""
         if _pop_code:
-            # 计算该基因所有变异在用户人群中的平均频率
             freqs = []
             for v in gene_variants:
                 rs = v.get("rs_id")
@@ -717,7 +893,6 @@ def identify_key_genes(
                     freqs.append(_POP_FREQ[rs][_pop_code])
             if freqs:
                 avg_freq = sum(freqs) / len(freqs)
-                # 频率越低越稀有 → 因子越高。频率 50% 时因子≈1.0，0% 时≈1.5
                 population_factor = round(1.0 + max(0.0, (0.5 - avg_freq)) * 1.0, 3)
                 population_rarity_note = (
                     f"该基因的变异等位基因在{_pop_code}人群中的平均频率约 "
@@ -725,7 +900,6 @@ def identify_key_genes(
                     f"{'值得关注' if avg_freq < 0.3 else '属常见变异'}"
                 )
 
-        # ── 基因型剂量因子 ──
         dosage_factor = 1.0
         max_dosage = max((v.get("allele_dosage") or 0) for v in gene_variants) if gene_variants else 0
         if max_dosage >= 2:
@@ -767,7 +941,7 @@ def generate_scientific_analysis(
     variants: list[dict],
     population: str | None = None,
 ) -> dict:
-    """生成多样化的科学分析结果。"""
+    """生成多样化的科学分析结果（儿科版）。"""
     key_genes = identify_key_genes(variants, population=population)
 
     dimension_scores = calculate_dimension_scores(variants)
@@ -791,18 +965,22 @@ def generate_scientific_analysis(
 
 
 def _build_science_summary(key_genes: list[dict], load: str) -> str:
-    """生成科学总结文本。"""
+    """生成科学总结文本（儿科版）。"""
     if not key_genes:
-        return "未在您的样本中识别到显著的关键基因变异。您的基因档案总体处于常见人群范围。"
+        return (
+            "未在宝宝的样本中识别到显著的关键基因变异。"
+            "宝宝的基因档案总体处于常见人群范围。"
+        )
     gene_str = "、".join(g["symbol"] for g in key_genes[:3])
     if load == "高":
         return (
-            f"您的样本中识别到 {len(key_genes)} 个关键基因（{gene_str}）。"
-            f"遗传负荷较高，建议结合专业遗传咨询解读，并通过生活方式优化管理可调节风险。"
+            f"宝宝的样本中识别到 {len(key_genes)} 个关键基因（{gene_str}）。"
+            f"遗传负荷较高，强烈建议结合专业遗传咨询解读，"
+            "并通过早期干预和定期随访管理可调节风险。"
         )
     return (
-        f"您的样本中识别到 {len(key_genes)} 个关键基因（{gene_str}）。"
-        "整体遗传负荷处于中等水平，多数风险可通过健康生活方式有效调节。"
+        f"宝宝的样本中识别到 {len(key_genes)} 个关键基因（{gene_str}）。"
+        "整体遗传负荷处于中等水平，通过科学的早期照护可有效调节发育轨迹。"
     )
 
 

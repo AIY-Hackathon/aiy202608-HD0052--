@@ -10,7 +10,8 @@ import GeneMap from "./pages/GeneMap";
 import LifeSimulation from "./pages/LifeSimulation";
 import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
-import LifestylePlanner from "./pages/LifestylePlanner";
+import HealthyGrowthCenter from "./pages/HealthyGrowthCenter";
+import GeneticAssistanceCenter from "./pages/GeneticAssistanceCenter";
 import { useEffect, useRef } from "react";
 
 const pages = {
@@ -18,7 +19,8 @@ const pages = {
   "gene-map": GeneMap,
   simulation: LifeSimulation,
   report: ReportPage,
-  planner: LifestylePlanner,
+  "healthy-growth": HealthyGrowthCenter,
+  "genetic-assistance": GeneticAssistanceCenter,
 };
 
 function PageRenderer() {

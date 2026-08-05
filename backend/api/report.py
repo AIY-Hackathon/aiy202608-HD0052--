@@ -78,30 +78,31 @@ COLORS = {
 }
 
 GENE_CARD_META = {
-    "APOE": {
-        "name": "Apolipoprotein E",
-        "category": "Brain & Longevity",
-        "variant": "ε4 carrier",
-        "icon": "🧠",
-    },
-    "ACTN3": {
-        "name": "Alpha-Actinin-3",
-        "category": "Athletic Performance",
-        "variant": "R577X",
-        "icon": "💪",
-    },
-    "FTO": {
-        "name": "Fat Mass & Obesity-Associated",
-        "category": "Metabolic Health",
-        "variant": "rs9939609",
-        "icon": "⚡",
-    },
-    "CLOCK": {
-        "name": "Circadian Locomotor Output Cycles Kaput",
-        "category": "Sleep & Circadian Rhythm",
-        "variant": "rs1801260",
-        "icon": "🌙",
-    },
+    "PAH": {"name": "苯丙氨酸羟化酶 (Phenylalanine Hydroxylase)", "category": "代谢与内分泌", "icon": "⚡"},
+    "G6PD": {"name": "葡萄糖-6-磷酸脱氢酶 (G6PD)", "category": "心血管与血液", "icon": "🩸"},
+    "CYP21A2": {"name": "21-羟化酶 (21-Hydroxylase)", "category": "代谢与内分泌", "icon": "⚡"},
+    "SMN1": {"name": "运动神经元存活蛋白1 (SMN1)", "category": "神经发育", "icon": "🧠"},
+    "GJB2": {"name": "间隙连接蛋白β2 (Connexin 26)", "category": "感官与结构", "icon": "👂"},
+    "SLC26A4": {"name": "Pendrin 阴离子转运蛋白", "category": "感官与结构", "icon": "👂"},
+    "CHD7": {"name": "染色质解旋酶DNA结合蛋白7", "category": "心血管与血液", "icon": "❤️"},
+    "IL2RG": {"name": "白细胞介素-2受体γ链", "category": "免疫与感染", "icon": "🛡️"},
+    "BTK": {"name": "布鲁顿酪氨酸激酶", "category": "免疫与感染", "icon": "🛡️"},
+    "RAG1": {"name": "重组激活基因1", "category": "免疫与感染", "icon": "🛡️"},
+    "CFTR": {"name": "囊性纤维化跨膜传导调节因子", "category": "代谢与内分泌", "icon": "🫁"},
+    "HBB": {"name": "血红蛋白β亚基", "category": "心血管与血液", "icon": "🩸"},
+    "FBN1": {"name": "原纤蛋白-1 (Fibrillin-1)", "category": "心血管与血液", "icon": "❤️"},
+    "MYH7": {"name": "肌球蛋白重链7", "category": "心血管与血液", "icon": "❤️"},
+    "SCN1A": {"name": "电压门控钠通道α亚基1", "category": "神经发育", "icon": "🧠"},
+    "MECP2": {"name": "甲基CpG结合蛋白2", "category": "神经发育", "icon": "🧠"},
+    "FMR1": {"name": "脆性X智力低下蛋白 (FMRP)", "category": "神经发育", "icon": "🧠"},
+    "TSC1": {"name": "错构瘤蛋白 (Hamartin)", "category": "神经发育", "icon": "🧠"},
+    "NF1": {"name": "神经纤维瘤蛋白 (Neurofibromin)", "category": "神经发育", "icon": "🧠"},
+    "DHCR7": {"name": "7-脱氢胆固醇还原酶", "category": "代谢与内分泌", "icon": "⚡"},
+    "ACADM": {"name": "中链酰基辅酶A脱氢酶", "category": "代谢与内分泌", "icon": "⚡"},
+    "SLC2A1": {"name": "葡萄糖转运蛋白1 (GLUT1)", "category": "神经发育", "icon": "🧠"},
+    "COL1A1": {"name": "I型胶原α1链", "category": "感官与结构", "icon": "🦴"},
+    "USH2A": {"name": "Usherin 蛋白", "category": "感官与结构", "icon": "👂"},
+    "RB1": {"name": "视网膜母细胞瘤蛋白 (pRb)", "category": "感官与结构", "icon": "👁️"},
 }
 
 RISK_LABELS = {
@@ -578,77 +579,197 @@ def _generate_html(report_id: str, filename: str, variants: list[dict]) -> str:
 
 
 def _generate_markdown(report_id: str, filename: str, variants: list[dict]) -> str:
-    """生成文字性基因报告（Markdown 格式）。"""
+    """生成可读的 Markdown 基因报告（儿科版）。"""
     scientific = engine.generate_scientific_analysis(variants)
     key_genes = scientific.get("key_genes", [])
     dims = engine.calculate_dimension_scores(variants)
     recs = engine.generate_recommendations({})
-    plan = engine.generate_thirty_day_plan()
 
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(timezone.utc).strftime("%Y年%m月%d日 %H:%M UTC")
+
+    # ── 统计 ──
+    pathogenic = [v for v in variants if "Pathogenic" in (v.get("clinvar_significance") or "")]
+    vus = [v for v in variants if "Uncertain" in (v.get("clinvar_significance") or "")]
+    benign = [v for v in variants if "Benign" in (v.get("clinvar_significance") or "")]
 
     lines = [
-        f"# 🧬 基因健康分析报告 — {filename}",
+        f"# 🧬 GenoLife AI — 新生儿基因风险评估报告",
         "",
-        f"**报告编号**：{report_id}  ",
+        f"**报告编号**：`{report_id}`  ",
+        f"**原始文件**：{filename}  ",
         f"**生成时间**：{now}  ",
-        f"**多基因评分**：{scientific.get('polygenic_score', 0)} / 100  ",
-        f"**遗传负荷**：{scientific.get('genetic_load', '中')}  ",
-        f"**关键基因**：{len(key_genes)} 个",
-        "",
-        "> ⚠️ **免责声明**：本报告为教育研究用途，不构成临床诊断，不替代专业医疗建议。",
+        f"**分析变异数**：{len(variants)} 个",
         "",
         "---",
         "",
-        "## 一、分析概览",
+        "> ⚠️ **重要免责声明**：本报告为教育科研用途，不构成临床诊断。",
+        "> 基因检测结果仅供参考，任何医疗决策请咨询专业儿科医生或遗传咨询师。",
+        "> 本报告不替代新生儿疾病筛查、常规体检和专业医疗建议。",
         "",
-        scientific.get("summary", ""),
+        "---",
         "",
-        "## 二、关键基因分析",
+        "## 一、检测概览",
         "",
     ]
 
-    if not key_genes:
-        lines.append("未识别到显著关键基因。")
-    for g in key_genes:
-        lines.extend([
-            f"### {g['symbol']} — {g.get('name', '')}",
-            f"- **风险等级**：{g['risk_level']}  ",
-            f"- **功能**：{g.get('function', '')}  ",
-            f"- **人群影响**：{g.get('population_impact', '')}  ",
-            f"- **可调节建议**：{g.get('lifestyle', '')}  ",
-            f"- **解读**：{_gene_interpretation(g)}",
-            "",
-        ])
+    # 健康评分
+    health_score = scientific.get("polygenic_score", 72)
+    if isinstance(health_score, str):
+        try:
+            health_score = float(health_score)
+        except ValueError:
+            health_score = 72
+    health_score = min(max(health_score, 0), 100)
+
+    if health_score >= 80:
+        level_str = "低风险 (Low Risk)"
+        level_desc = "宝宝的基因筛查结果整体良好，未发现显著致病变异。建议保持常规儿童保健随访。"
+    elif health_score >= 60:
+        level_str = "中等关注 (Moderate)"
+        level_desc = "宝宝的基因筛查提示部分遗传风险需要关注，建议针对性地进行专科随访和早期干预。"
+    else:
+        level_str = "需重点关注 (Elevated)"
+        level_desc = "宝宝的基因筛查发现较多致病变异，强烈建议尽快咨询儿科遗传专科医生，制定个性化的随访和干预计划。"
 
     lines.extend([
-        "## 三、健康维度评分",
+        f"| 项目 | 结果 |",
+        f"|------|------|",
+        f"| **综合健康评分** | {int(health_score)} / 100 |",
+        f"| **风险等级** | {level_str} |",
+        f"| **致病性变异** | {len(pathogenic)} 个 |",
+        f"| **意义不明确变异 (VUS)** | {len(vus)} 个 |",
+        f"| **良性/可能良性变异** | {len(benign)} 个 |",
+        "",
+        f"> {level_desc}",
+        "",
+        scientific.get("summary", ""),
         "",
     ])
-    for d in dims:
-        marker = "⚠️" if d["score"] >= 55 else ("✅" if d["score"] <= 45 else "•")
-        lines.append(f"- {marker} **{d['label']}**：{d['score']} / 100")
-    lines.append("")
 
-    lines.extend(["## 四、个性化建议", ""])
-    if recs:
-        for r in recs[:6]:
-            lines.append(f"- **{r.get('title', '')}** — {r.get('description', '')}")
-    else:
-        lines.append("暂无具体建议。")
-    lines.append("")
-
-    lines.extend(["## 五、30 天健康计划", ""])
-    for w in plan.get("weeks", [])[:4]:
-        lines.append(f"### {w.get('label', '')} — {w.get('theme', '')}")
-        for task in w.get("tasks", []):
-            lines.append(f"- **{task.get('day', '')}** {task.get('title', '')}：{task.get('desc', '')}")
-        lines.append("")
-
+    # ── 二、关键基因 ──
     lines.extend([
         "---",
         "",
-        f"*本报告由 GenoLife AI 自动生成 · {now} · 仅供学习参考*",
+        "## 二、关键基因分析",
+        "",
+    ])
+
+    if not key_genes:
+        lines.append("本次分析未识别到显著关键基因变异。")
+        lines.append("")
+    else:
+        for g in key_genes:
+            symbol = g.get("symbol", "")
+            meta = GENE_CARD_META.get(symbol, {"name": symbol, "category": "未知", "icon": "🧬"})
+            risk = g.get("risk_level", "moderate")
+
+            risk_cn = {"elevated": "⚠️ 高风险", "high": "⚠️ 高风险", "moderate": "• 中等关注", "low": "✅ 低风险"}.get(risk, "• 中等关注")
+
+            lines.extend([
+                f"### {meta.get('icon','🧬')} {symbol} — {meta.get('name', '')}",
+                f"- **风险等级**：{risk_cn}  ",
+                f"- **健康维度**：{meta.get('category', '')}  ",
+                f"- **功能**：{g.get('function', '')}  ",
+                f"- **人群影响**：{g.get('population_impact', '')}  ",
+                f"- **可调节因素**：{g.get('lifestyle', '')}  ",
+                f"- **解读**：{_gene_interpretation(g)}",
+                "",
+            ])
+
+    # ── 三、健康维度评分 ──
+    lines.extend([
+        "---",
+        "",
+        "## 三、五大健康维度评分",
+        "",
+        "| 维度 | 评分 | 解读 |",
+        "|------|------|------|",
+    ])
+    for d in dims:
+        score = d.get("score", 50)
+        if score >= 70:
+            interpret = "⚠️ 需重点关注"
+        elif score >= 50:
+            interpret = "• 中等关注"
+        else:
+            interpret = "✅ 相对良好"
+        lines.append(f"| **{d.get('label', '')}** | {int(score)} / 100 | {interpret} |")
+    lines.append("")
+
+    lines.extend([
+        "**维度说明**：",
+        "- **代谢与内分泌**：涉及氨基酸代谢、糖代谢、脂质代谢及内分泌激素合成相关基因",
+        "- **心血管与血液**：涉及心肌结构、血管发育、血红蛋白及凝血功能相关基因",
+        "- **神经发育**：涉及神经元功能、突触传递、脑发育及神经保护相关基因",
+        "- **免疫与感染**：涉及免疫细胞发育、抗体生成及感染防御相关基因",
+        "- **感官与结构**：涉及听力、视力、骨骼发育及结缔组织结构相关基因",
+        "",
+    ])
+
+    # ── 四、变异详情 ──
+    lines.extend([
+        "---",
+        "",
+        "## 四、变异详情",
+        "",
+    ])
+
+    if pathogenic:
+        lines.append("### ⚠️ 致病性/可能致病性变异")
+        lines.append("")
+        lines.append("| 基因 | 位置 | rsID | ClinVar 意义 |")
+        lines.append("|------|------|------|-------------|")
+        for v in pathogenic[:20]:
+            lines.append(f"| **{v.get('gene_name','—')}** | {v.get('chromosome','')}:{v.get('position','')} | {v.get('rs_id','—')} | {v.get('clinvar_significance','')} |")
+        lines.append("")
+
+    if vus:
+        lines.append("### VUS (意义不明确变异)")
+        lines.append("")
+        lines.append("| 基因 | 位置 | rsID |")
+        lines.append("|------|------|------|")
+        for v in vus[:10]:
+            lines.append(f"| **{v.get('gene_name','—')}** | {v.get('chromosome','')}:{v.get('position','')} | {v.get('rs_id','—')} |")
+        lines.append("")
+
+    # ── 五、个性化建议 ──
+    lines.extend([
+        "---",
+        "",
+        "## 五、个性化照护建议",
+        "",
+    ])
+    if recs:
+        for i, r in enumerate(recs[:8]):
+            lines.append(f"{i+1}. **{r.get('title', '')}** — {r.get('description', '')}")
+        lines.append("")
+    else:
+        lines.append("暂无针对性的个性化建议。建议保持常规儿童保健随访。")
+        lines.append("")
+
+    # ── 六、家长须知 ──
+    lines.extend([
+        "---",
+        "",
+        "## 六、家长须知",
+        "",
+        "1. **基因不是命运**：基因检测结果反映的是"倾向"和"风险"，而非确定性的命运。",
+        "   科学的早期照护、定期随访和良好的成长环境可以对孩子的健康发展产生深远影响。",
+        "2. **G×E 交互**：基因（Gene）× 环境（Environment）交互是当代医学的核心认知。",
+        "   即使携带致病变异，通过优化喂养方式、睡眠质量、发育刺激等环境因素，也可以显著改善预后。",
+        "3. **定期随访**：请按照儿科医生的建议进行定期生长发育评估和必要的专科随访。",
+        "4. **新生儿筛查**：本报告不能替代国家规定的新生儿疾病筛查（如 PKU、先天性甲低等）。",
+        "5. **遗传咨询**：如有疑问，建议咨询有资质的遗传咨询师或儿科遗传专科医生。",
+        "",
+    ])
+
+    # ── 尾部 ──
+    lines.extend([
+        "---",
+        "",
+        f"*本报告由 GenoLife AI 自动生成 · {now}*  ",
+        "*GenoLife AI 是面向非医疗消费者的新生儿基因风险科普平台，不属于医疗器械。*  ",
+        "*基因检测结果仅供学习参考，不构成医疗建议。*",
     ])
 
     return "\n".join(lines)

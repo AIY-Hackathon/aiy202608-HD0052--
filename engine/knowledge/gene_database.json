@@ -1,235 +1,445 @@
 {
   "_meta": {
-    "description": "基因健康知识库 — G×E 模拟引擎的基因科学参考数据",
-    "version": "1.0.0",
-    "last_updated": "2026-08-04",
-    "disclaimer": "本知识库仅用于健康风险教育演示，不构成临床诊断或医疗建议。所有信息均来自公开科学文献。",
+    "description": "儿科基因健康知识库 — 新生儿 VCF 基因风险筛查教育参考数据",
+    "version": "3.0.0-pediatric",
+    "last_updated": "2026-08-05",
+    "disclaimer": "本知识库仅用于新生儿基因风险意识教育演示，不构成临床诊断或医疗建议。所有信息均来自公开科学文献。",
     "sources": [
-      "GWAS Catalog (https://www.ebi.ac.uk/gwas/)",
-      "NCBI Gene Database (https://www.ncbi.nlm.nih.gov/gene/)",
-      "OMIM (https://www.omim.org/)",
+      "ACMG SF v3.2 次要发现基因列表",
       "ClinVar (https://www.ncbi.nlm.nih.gov/clinvar/)",
-      "SNPedia (https://www.snpedia.com/)"
+      "OMIM (https://www.omim.org/)",
+      "NCBI Gene Database (https://www.ncbi.nlm.nih.gov/gene/)",
+      "U.S. RUSP 新生儿筛查推荐统一筛查 panel",
+      "中国新生儿筛查技术规范"
     ]
   },
   "genes": [
     {
-      "symbol": "APOE",
-      "name": "Apolipoprotein E",
-      "function": "编码载脂蛋白E，参与脂蛋白代谢、胆固醇转运和神经修复过程",
-      "biological_role": "APOE 在脂质代谢中起核心作用，将脂质从外周组织转运至肝脏进行清除。在中枢神经系统中，APOE 参与神经元修复、突触可塑性和β-淀粉样蛋白清除。ε2/ε3/ε4 三种同源异构体的功能差异显著。",
-      "health_domain": "脂质代谢、认知功能和心血管调节",
+      "symbol": "PAH",
+      "name": "苯丙氨酸羟化酶 (Phenylalanine Hydroxylase)",
+      "function": "编码苯丙氨酸羟化酶，将苯丙氨酸转化为酪氨酸。致病性变异导致苯丙酮尿症(PKU)。",
+      "biological_role": "PAH 是苯丙氨酸代谢途径的限速酶。致病性变异降低酶活性，导致苯丙氨酸在血液和组织中蓄积，未经治疗可致严重智力障碍。",
+      "health_domain": "代谢与内分泌",
       "evidence_level": "high",
-      "chromosome": "19q13.32",
-      "key_variants": [
-        {
-          "rs_id": "rs429358",
-          "effect": "定义 ε4 等位基因（C 等位基因）"
-        },
-        {
-          "rs_id": "rs7412",
-          "effect": "与 rs429358 共同决定 ε2/ε3/ε4 基因型"
-        }
-      ],
+      "chromosome": "12q23.2",
+      "key_variants": [{"rs_id": "rs62514927", "effect": "常见致病变异，与经典型PKU相关"}],
       "environment_interaction": [
-        {
-          "factor": "exercise",
-          "interaction_type": "缓冲保护",
-          "description": "规律有氧运动可降低 APOE ε4 携带者与认知相关的风险约 30%，运动促进 BDNF 分泌和脑血管健康",
-          "evidence_strength": "moderate",
-          "reference": "Physical Activity and APOE ε4: meta-analysis, Neurology 2024"
-        },
-        {
-          "factor": "diet",
-          "interaction_type": "缓冲保护",
-          "description": "地中海饮食模式（高 Omega-3、多酚、低饱和脂肪）对 APOE ε4 携带者的脂质谱和认知功能有保护作用",
-          "evidence_strength": "moderate",
-          "reference": "Mediterranean Diet × APOE: cohort study, BMJ 2023"
-        },
-        {
-          "factor": "sleep",
-          "interaction_type": "双向交互",
-          "description": "APOE ε4 携带者对睡眠剥夺更敏感；同时，慢性睡眠不足可能加速认知功能下降",
-          "evidence_strength": "moderate",
-          "reference": "Sleep × APOE: systematic review, Sleep Medicine Reviews 2024"
-        },
-        {
-          "factor": "smoking",
-          "interaction_type": "风险放大",
-          "description": "吸烟与 APOE ε4 的交互显著升高心血管和认知风险，戒烟可显著降低该风险",
-          "evidence_strength": "strong",
-          "reference": "Smoking × APOE: Lancet Neurology 2023"
-        }
+        {"factor": "nutrition_type", "interaction_type": "决定性干预", "description": "严格的苯丙氨酸限制饮食可完全预防PKU的神经系统损伤——最经典的G×E交互案例", "evidence_strength": "strong", "reference": "Blau et al. (2010) Lancet 376:1417-1427"},
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期血苯丙氨酸监测和饮食调整的依从性直接决定神经系统预后", "evidence_strength": "strong", "reference": "PKU管理国际共识"}
       ],
-      "summary_for_display": "APOE 基因影响身体如何处理脂肪和胆固醇，并参与脑细胞保护。不同基因型对环境因素的响应不同——健康生活方式可以显著优化该基因带来的潜在风险。",
-      "confidence": {
-        "gene": "high",
-        "interaction": "moderate"
-      }
+      "summary_for_display": "PAH 基因的致病变异导致苯丙酮尿症(PKU)——一种可通过新生儿筛查发现并通过饮食管理完全预防智力障碍的可治疗代谢病。",
+      "confidence": {"gene": "high", "interaction": "high"}
     },
     {
-      "symbol": "FTO",
-      "name": "Fat Mass and Obesity-Associated Protein",
-      "function": "参与能量稳态调控、食欲调节和脂肪组织分化",
-      "biological_role": "FTO 编码一种 RNA 去甲基化酶，在下丘脑中调控食欲相关基因表达。FTO 变异（尤其是 rs9939609）改变了能量摄入的神经调控，影响饱腹感信号和食物偏好。FTO 并非'直接导致体重增加'，而是改变了对食物环境和能量平衡的神经反应灵敏度。",
-      "health_domain": "代谢调节与体重管理",
+      "symbol": "G6PD",
+      "name": "葡萄糖-6-磷酸脱氢酶 (Glucose-6-Phosphate Dehydrogenase)",
+      "function": "编码G6PD酶，保护红细胞免受氧化损伤。致病性变异导致G6PD缺乏症。",
+      "biological_role": "G6PD 是磷酸戊糖途径的关键酶，生成NADPH维持红细胞内谷胱甘肽的还原状态。酶缺乏使红细胞对氧化应激敏感，接触触发因素可诱发急性溶血。",
+      "health_domain": "心血管与血液",
       "evidence_level": "high",
-      "chromosome": "16q12.2",
-      "key_variants": [
-        {
-          "rs_id": "rs9939609",
-          "effect": "A 等位基因与能量摄入调节差异相关（效应量约 0.3-0.4 kg/m²）"
-        }
-      ],
+      "chromosome": "Xq28",
+      "key_variants": [{"rs_id": "rs1050828", "effect": "G6PD A- 变异（非洲型），酶活性中度降低"}, {"rs_id": "rs1050829", "effect": "G6PD Mediterranean 变异，酶活性严重降低"}],
       "environment_interaction": [
-        {
-          "factor": "exercise",
-          "interaction_type": "显著缓冲",
-          "description": "体力活动对 FTO 变异效应有最显著的调节作用，规律运动可降低 FTO 相关体重管理挑战约 27%",
-          "evidence_strength": "strong",
-          "reference": "FTO × Physical Activity: meta-analysis of 218,166 individuals, PLoS Medicine 2023"
-        },
-        {
-          "factor": "diet",
-          "interaction_type": "缓冲保护",
-          "description": "高蛋白、高纤维饮食模式可部分抵消 FTO 变异对食欲调控的影响，早餐规律性尤为重要",
-          "evidence_strength": "moderate",
-          "reference": "Dietary Pattern × FTO: AJCN 2024"
-        },
-        {
-          "factor": "sleep",
-          "interaction_type": "协同作用",
-          "description": "睡眠不足（<6小时/晚）与 FTO 风险等位基因存在协同效应，共同影响代谢激素水平",
-          "evidence_strength": "moderate",
-          "reference": "Sleep Duration × FTO: International Journal of Obesity 2023"
-        }
+        {"factor": "environmental_safety", "interaction_type": "决定因素", "description": "避免氧化性触发因素（蚕豆、磺胺类药物、樟脑丸等）可完全预防溶血发作", "evidence_strength": "strong", "reference": "Luzzatto & Arese (2018) NEJM 378:60-71"},
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "建立完整的禁忌清单并告知所有照护者和医疗提供者", "evidence_strength": "strong", "reference": "WHO G6PD缺乏症管理指南"}
       ],
-      "summary_for_display": "FTO 基因参与食欲和能量消耗的调节。尽管某些基因型会让体重管理更具挑战，但规律运动和高纤维饮食可以显著改善这一状况——基因不是命运。",
-      "confidence": {
-        "gene": "high",
-        "interaction": "strong"
-      }
+      "summary_for_display": "G6PD 缺乏症是全球最常见的遗传性酶缺乏症。避免特定触发因素是预防急性溶血的经典G×E交互案例。",
+      "confidence": {"gene": "high", "interaction": "high"}
     },
     {
-      "symbol": "CLOCK",
-      "name": "Circadian Locomotor Output Cycles Kaput",
-      "function": "核心昼夜节律调控因子，驱动生物钟基因网络的转录-翻译反馈环路",
-      "biological_role": "CLOCK 蛋白与 BMAL1 形成异二聚体，激活 PER、CRY 等下游节律基因的转录。CLOCK 基因变异改变了生物钟周期长度和振幅，影响睡眠-觉醒节律、褪黑素分泌时间、核心体温波动和代谢节律同步性。CLOCK 的多效性影响延伸至葡萄糖代谢、脂质合成和免疫节律。",
-      "health_domain": "昼夜节律与睡眠调节",
-      "evidence_level": "moderate",
-      "chromosome": "4q12",
-      "key_variants": [
-        {
-          "rs_id": "rs1801260",
-          "effect": "3111T/C 多态性，与睡眠偏好和昼夜节律稳定性相关"
-        }
-      ],
+      "symbol": "CYP21A2",
+      "name": "21-羟化酶 (Cytochrome P450 21A2)",
+      "function": "编码21-羟化酶，参与皮质醇和醛固酮合成。致病性变异导致先天性肾上腺皮质增生症(CAH)。",
+      "biological_role": "CYP21A2 在肾上腺类固醇合成中起关键作用。酶缺乏导致皮质醇合成受阻、ACTH反馈性升高和肾上腺增生，雄激素前体积聚。",
+      "health_domain": "代谢与内分泌",
+      "evidence_level": "high",
+      "chromosome": "6p21.33",
+      "key_variants": [],
       "environment_interaction": [
-        {
-          "factor": "sleep",
-          "interaction_type": "核心交互",
-          "description": "规律作息对 CLOCK 基因携带者尤为重要，不规律睡眠模式与代谢标志物紊乱的关联在特定基因型中更显著",
-          "evidence_strength": "moderate",
-          "reference": "CLOCK × Sleep Regularity: chronobiology study, Sleep 2024"
-        },
-        {
-          "factor": "diet",
-          "interaction_type": "时间依赖交互",
-          "description": "进食时间对 CLOCK 基因型有独特影响——限制性时间进食（如 8 小时进食窗口）可改善生物钟同步性",
-          "evidence_strength": "moderate",
-          "reference": "Time-Restricted Feeding × CLOCK: Cell Metabolism 2023"
-        },
-        {
-          "factor": "stress",
-          "interaction_type": "风险放大",
-          "description": "慢性压力通过糖皮质激素通路扰乱昼夜节律，在 CLOCK 变异携带者中该影响更显著",
-          "evidence_strength": "preliminary",
-          "reference": "Stress × Circadian: Psychoneuroendocrinology 2024"
-        }
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "激素替代治疗的规律依从性是预防盐耗危象和维持正常生长发育的关键", "evidence_strength": "strong", "reference": "Speiser et al. (2018) J Clin Endocrinol Metab"},
+        {"factor": "environmental_safety", "interaction_type": "应激管理", "description": "感染/手术等应激状态下的激素剂量调整（应激剂量）是预防危象的安全保障", "evidence_strength": "strong", "reference": "CAH临床实践指南"}
       ],
-      "summary_for_display": "CLOCK 基因是身体的'中央时钟'，调控睡眠-觉醒周期和代谢节律。保持规律作息、固定就寝时间和合理的进食窗口，可以优化 CLOCK 基因带来的生理节奏模式。",
-      "confidence": {
-        "gene": "moderate",
-        "interaction": "moderate"
-      }
+      "summary_for_display": "CYP21A2 致病变异导致CAH——新生儿筛查可早期发现，激素替代治疗的依从性直接决定预后。",
+      "confidence": {"gene": "high", "interaction": "high"}
     },
     {
-      "symbol": "ACTN3",
-      "name": "Alpha-Actinin-3",
-      "function": "编码 α-辅肌动蛋白-3，一种快肌纤维（II 型）Z 线结构蛋白",
-      "biological_role": "ACTN3 在快肌纤维的肌节结构中起锚定作用，影响肌肉收缩速度和爆发力。R577X 无义多态性（rs1815739）导致约 18% 人群完全缺乏 ACTN3 蛋白——这并非'缺陷'，而是与耐力运动表现相关的正常基因变异。ACTN3 基因型影响训练响应——不同基因型对力量和耐力训练的适应性存在差异。",
-      "health_domain": "肌肉功能与体能表现",
+      "symbol": "SMN1",
+      "name": "运动神经元存活蛋白1 (Survival Motor Neuron 1)",
+      "function": "编码SMN蛋白，对运动神经元存活至关重要。纯合缺失/致病变异导致脊髓性肌萎缩(SMA)。",
+      "biological_role": "SMN蛋白参与snRNP组装，对全身细胞（尤其是运动神经元）的RNA代谢至关重要。SMN1缺失导致运动神经元进行性退化和肌肉萎缩。SMN2拷贝数影响疾病严重程度。",
+      "health_domain": "神经发育",
       "evidence_level": "high",
-      "chromosome": "11q13.2",
-      "key_variants": [
-        {
-          "rs_id": "rs1815739",
-          "effect": "R577X（C→T），TT 基因型 = α-辅肌动蛋白-3 缺乏（关联耐力型）"
-        }
-      ],
+      "chromosome": "5q13.2",
+      "key_variants": [],
       "environment_interaction": [
-        {
-          "factor": "exercise",
-          "interaction_type": "基因型特异性响应",
-          "description": "ACTN3 基因型显著影响运动训练的效应——不同基因型对力量训练和耐力训练的适应幅度存在差异，个性化训练方案可最大化效益",
-          "evidence_strength": "strong",
-          "reference": "ACTN3 × Training: systematic review of 88 studies, Sports Medicine 2024"
-        },
-        {
-          "factor": "diet",
-          "interaction_type": "辅助调节",
-          "description": "蛋白质摄入时机和量的优化可部分调节 ACTN3 基因型的肌肉适应差异",
-          "evidence_strength": "preliminary",
-          "reference": "Protein × ACTN3: Nutrients 2023"
-        }
+        {"factor": "medical_adherence", "interaction_type": "决定性干预", "description": "症状前治疗（新生儿筛查+早期基因治疗/药物）vs 症状后治疗的预后差异巨大——最具时间紧迫性的G×E交互", "evidence_strength": "strong", "reference": "Mendell et al. (2017) NEJM 377:1713-1722"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "物理治疗和呼吸管理的早期启动可改善功能预后", "evidence_strength": "moderate", "reference": "SMA管理共识"}
       ],
-      "summary_for_display": "ACTN3 基因主要影响快肌纤维功能，与爆发力和耐力表现相关。R577X 多态性是正常的人类基因变异——不同基因型的人适合不同类型的运动训练，但这不限制个人的运动能力发展空间。",
-      "confidence": {
-        "gene": "high",
-        "interaction": "strong"
-      }
+      "summary_for_display": "SMA 是最具时间紧迫性的G×E交互案例——新生儿筛查+症状前治疗可显著改变病程。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "GJB2",
+      "name": "缝隙连接蛋白β2 / 连接蛋白26 (Connexin 26)",
+      "function": "编码连接蛋白26(Cx26)，对内耳钾离子循环至关重要。致病变异是遗传性先天性听力损失最常见的原因。",
+      "biological_role": "GJB2 在内耳毛细胞和支持细胞中表达，形成缝隙连接通道维持耳蜗内淋巴的钾离子稳态。功能丧失导致毛细胞无法将声波转换为神经信号。",
+      "health_domain": "感官与结构",
+      "evidence_level": "high",
+      "chromosome": "13q12.11",
+      "key_variants": [{"rs_id": "rs80338939", "effect": "c.35delG——欧洲人群中最常见的GJB2致病变异"}],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "决定性干预", "description": "新生儿听力筛查+早期助听器/人工耳蜗(<12月龄)+语言康复=接近正常的语言发育", "evidence_strength": "strong", "reference": "JCIH (2019) 婴幼儿听力联合委员会立场声明"},
+        {"factor": "development_stimulation", "interaction_type": "核心支持", "description": "言语康复训练和早期语言暴露是听力干预效果最大化的关键", "evidence_strength": "strong", "reference": "早期听力干预效果研究"}
+      ],
+      "summary_for_display": "GJB2 听力损失是G×E交互的典范——早期听力干预可使语言发育接近正常水平。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "SLC26A4",
+      "name": "溶质载体家族26成员4 / Pendrin (Pendrin)",
+      "function": "编码pendrin蛋白，参与内耳离子平衡和甲状腺碘转运。致病变异导致Pendred综合征/大前庭导水管综合征(EVA)。",
+      "biological_role": "Pendrin 在内耳和内淋巴囊中表达，调节氯离子和碳酸氢盐转运，维持内淋巴液组成。功能异常导致内淋巴积水、前庭导水管扩大和进行性听力损失。",
+      "health_domain": "感官与结构",
+      "evidence_level": "high",
+      "chromosome": "7q22.3",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "避免头部外伤可延缓EVA相关的听力下降——轻微头部撞击即可导致听力骤降", "evidence_strength": "moderate", "reference": "EVA管理建议"},
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期听力监测和甲状腺功能评估是标准随访方案", "evidence_strength": "moderate", "reference": "Pendred综合征管理共识"}
+      ],
+      "summary_for_display": "SLC26A4 是中国人群遗传性听力损失的第二大常见原因。避免头部外伤是独特的预防措施。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "CHD7",
+      "name": "染色质解旋酶DNA结合蛋白7 (Chromodomain Helicase DNA Binding Protein 7)",
+      "function": "编码染色质重塑因子。致病变异导致CHARGE综合征——涉及多系统的先天性疾病。",
+      "biological_role": "CHD7 通过ATP依赖的染色质重塑调控胚胎发育过程中的基因表达。功能丧失导致神经嵴细胞迁移和分化异常，影响眼、耳、心脏、鼻腔等多器官发育。",
+      "health_domain": "心血管与血液",
+      "evidence_level": "high",
+      "chromosome": "8q12.2",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "综合管理", "description": "多学科协调管理（心脏科/耳鼻喉科/眼科/发育儿科/营养科）是改善预后的核心", "evidence_strength": "moderate", "reference": "Hale et al. (2016) CHARGE综合征临床诊断标准"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "早期发育支持和多感官刺激可改善功能预后", "evidence_strength": "moderate", "reference": "CHARGE综合征管理共识"}
+      ],
+      "summary_for_display": "CHARGE综合征需要多学科综合管理——各专科的协同照护是改善婴儿预后的核心。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "IL2RG",
+      "name": "白细胞介素-2受体共同γ链 (Interleukin 2 Receptor Gamma)",
+      "function": "编码多种白细胞介素受体的共同γ链。致病变异导致X连锁严重联合免疫缺陷(SCID-X1)。",
+      "biological_role": "IL2RG 是IL-2、IL-4、IL-7、IL-9、IL-15和IL-21受体的必需组分，对T细胞和NK细胞发育至关重要。功能丧失导致T细胞和NK细胞完全缺乏，B细胞数量正常但功能受损。",
+      "health_domain": "免疫与感染",
+      "evidence_level": "high",
+      "chromosome": "Xq13.1",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "挽救生命", "description": "TREC新生儿筛查+3.5月龄前造血干细胞移植→生存率>95%——最具决定性的G×E交互", "evidence_strength": "strong", "reference": "Kwan et al. (2014) JAMA 312:729-738"},
+        {"factor": "environmental_safety", "interaction_type": "关键保护", "description": "移植前的严格感染防护（限制访客、手卫生、避免公共场所）是挽救生命的关键", "evidence_strength": "strong", "reference": "SCID管理指南"}
+      ],
+      "summary_for_display": "SCID-X1 是G×E交互的最极端案例——早期诊断和治疗直接决定生死。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "BTK",
+      "name": "Bruton酪氨酸激酶 (Bruton Tyrosine Kinase)",
+      "function": "编码B细胞发育必需的酪氨酸激酶。致病变异导致X连锁无丙种球蛋白血症(XLA)。",
+      "biological_role": "BTK 是B细胞受体信号通路的关键激酶，在pre-B细胞阶段驱动B细胞的分化和成熟。功能丧失导致B细胞发育停滞在pre-B阶段，外周血缺乏成熟B细胞和所有免疫球蛋白。",
+      "health_domain": "免疫与感染",
+      "evidence_level": "high",
+      "chromosome": "Xq22.1",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期免疫球蛋白替代治疗(IVIG/SCIG)可维持正常生长发育和预防感染", "evidence_strength": "strong", "reference": "Conley et al. (2009) Annu Rev Immunol"},
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "避免活疫苗接种和感染暴露是附加保护措施", "evidence_strength": "strong", "reference": "XLA管理指南"}
+      ],
+      "summary_for_display": "XLA 患儿通过定期免疫球蛋白替代治疗可维持正常生长发育——经典的G×E管理案例。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "RAG1",
+      "name": "重组激活基因1 (Recombination Activating Gene 1)",
+      "function": "编码V(D)J重组关键酶。致病变异导致多种形式的SCID或Omenn综合征。",
+      "biological_role": "RAG1 与RAG2共同催化免疫球蛋白和TCR基因的V(D)J重组，是适应性免疫系统多样性的基础。功能丧失导致T/B细胞完全缺乏；部分功能丧失可导致Omenn综合征——自身反应性T细胞的寡克隆扩增。",
+      "health_domain": "免疫与感染",
+      "evidence_level": "high",
+      "chromosome": "11p12",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "挽救生命", "description": "新生儿TREC筛查+早期HSCT是当前标准治疗——移植时机决定预后", "evidence_strength": "strong", "reference": "Schuetz et al. (2014) Blood"},
+        {"factor": "environmental_safety", "interaction_type": "关键保护", "description": "Omenn综合征患儿需要额外免疫调节治疗和严格的感染防护", "evidence_strength": "strong", "reference": "SCID/Omenn管理指南"}
+      ],
+      "summary_for_display": "RAG1 缺陷导致的SCID通过新生儿筛查+早期移植可挽救生命并重建免疫功能。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "CFTR",
+      "name": "囊性纤维化跨膜传导调节因子 (Cystic Fibrosis Transmembrane Conductance Regulator)",
+      "function": "编码氯离子通道蛋白。致病变异导致囊性纤维化(CF)——影响呼吸和消化系统的多系统疾病。",
+      "biological_role": "CFTR 在上皮细胞顶膜形成cAMP调控的氯离子通道，调节气道表面液体、胰液和肠液的离子组成。功能丧失导致粘稠分泌物阻塞气道和胰管，引起慢性感染和营养不良。",
+      "health_domain": "代谢与内分泌",
+      "evidence_level": "high",
+      "chromosome": "7q31.2",
+      "key_variants": [{"rs_id": "rs113993960", "effect": "F508del——最常见的CFTR致病变异（约占全球CF等位基因的70%）"}],
+      "environment_interaction": [
+        {"factor": "nutrition_type", "interaction_type": "核心支持", "description": "胰酶替代治疗和高热量饮食支持是维持正常营养状态的基础", "evidence_strength": "strong", "reference": "Castellani et al. (2018) J Cyst Fibros"},
+        {"factor": "medical_adherence", "interaction_type": "综合管理", "description": "CFTR调节剂治疗+呼吸道清理+营养支持+感染预防的多学科综合管理", "evidence_strength": "strong", "reference": "CF管理共识"}
+      ],
+      "summary_for_display": "CF 的多学科管理将这一曾经的致死性儿童疾病转变为可管理的慢性病——G×E综合干预的典范。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "HBB",
+      "name": "β-珠蛋白 (Hemoglobin Subunit Beta)",
+      "function": "编码β-珠蛋白链。致病变异导致镰状细胞病和β-地中海贫血。",
+      "biological_role": "HBB 编码成人血红蛋白的β链。镰状细胞突变(Glu6Val)导致HbS聚合，使红细胞呈镰刀状并堵塞微血管；地中海贫血突变导致β链合成减少，α/β链不平衡导致无效红细胞生成。",
+      "health_domain": "心血管与血液",
+      "evidence_level": "high",
+      "chromosome": "11p15.4",
+      "key_variants": [{"rs_id": "rs334", "effect": "Glu6Val (HbS)——镰状细胞病致病变异"}],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "预防性抗生素+疫苗接种+羟基脲治疗+定期血液科随访显著降低儿童死亡率", "evidence_strength": "strong", "reference": "Piel et al. (2017) NEJM 376:1561-1573"},
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "避免脱水、低氧和寒冷等触发因素可减少血管闭塞危象", "evidence_strength": "moderate", "reference": "镰状细胞病管理指南"}
+      ],
+      "summary_for_display": "新生儿筛查+预防性管理彻底改变了镰状细胞病的儿童死亡率——基因筛查改变疾病自然史的典范。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "FBN1",
+      "name": "原纤蛋白-1 (Fibrillin-1)",
+      "function": "编码细胞外基质蛋白。致病变异导致马凡综合征——以主动脉、眼部和骨骼表现为特征的结缔组织疾病。",
+      "biological_role": "FBN1 是微纤维的主要结构组分，为弹性纤维提供支架并调节TGF-β的生物利用度。功能丧失导致弹性纤维结构缺陷和TGF-β信号过度激活，引起主动脉中层变性和晶状体悬韧带松弛。",
+      "health_domain": "心血管与血液",
+      "evidence_level": "high",
+      "chromosome": "15q21.1",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期心脏影像监测+预防性β受体阻滞剂/ARB治疗可延缓主动脉扩张", "evidence_strength": "strong", "reference": "Loeys et al. (2010) J Med Genet"},
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "避免高强度对抗性运动和等长收缩训练以减轻主动脉壁应力", "evidence_strength": "moderate", "reference": "马凡综合征管理共识"}
+      ],
+      "summary_for_display": "马凡综合征的预防性管理已将平均寿命从32岁延长至接近正常——定期监测和药物预防是核心。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "MYH7",
+      "name": "β-肌球蛋白重链 (Myosin Heavy Chain 7)",
+      "function": "编码心肌肌球蛋白重链。致病变异是家族性肥厚型心肌病(HCM)最常见的遗传原因。",
+      "biological_role": "MYH7 编码心肌肌球蛋白重链β亚型，是心肌收缩装置的核心组分。致病变异改变肌球蛋白的力产生特性，导致心肌细胞能量消耗增加、排列紊乱和间质纤维化。",
+      "health_domain": "心血管与血液",
+      "evidence_level": "high",
+      "chromosome": "14q11.2",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期心脏评估+活动限制+脱水预防是预防心衰和猝死的标准方案", "evidence_strength": "strong", "reference": "Maron et al. (2014) JACC"},
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "避免竞技性运动和极端温度环境以降低心脏事件风险", "evidence_strength": "moderate", "reference": "AHA/ACC HCM指南"}
+      ],
+      "summary_for_display": "MYH7 相关的HCM可在婴儿期表现为心衰。定期心脏评估和活动管理是标准照护。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "SCN1A",
+      "name": "电压门控钠通道α1亚基 (Sodium Voltage-Gated Channel Alpha Subunit 1)",
+      "function": "编码脑钠通道Nav1.1。致病变异导致Dravet综合征——婴儿期起病的药物难治性癫痫。",
+      "biological_role": "SCN1A 在GABA能抑制性中间神经元中高表达。功能丧失导致抑制性神经元兴奋性降低，使大脑网络兴奋-抑制平衡偏向过度兴奋，引起热敏感性和药物难治性癫痫发作。",
+      "health_domain": "神经发育",
+      "evidence_level": "high",
+      "chromosome": "2q24.3",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "environmental_safety", "interaction_type": "核心管理", "description": "避免过热（洗澡水温、环境温度、发热及时降温）和选择适当抗癫痫药物是明确的发作控制措施", "evidence_strength": "strong", "reference": "Dravet综合征管理指南"},
+        {"factor": "sleep_quality", "interaction_type": "触发管理", "description": "充足睡眠可降低癫痫发作阈值——睡眠不足是常见的发作诱因", "evidence_strength": "moderate", "reference": "癫痫与睡眠研究"}
+      ],
+      "summary_for_display": "Dravet综合征是多因素G×E管理的典型案例——发热管理、药物选择和睡眠充足共同影响发作控制。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "MECP2",
+      "name": "甲基CpG结合蛋白2 (Methyl-CpG Binding Protein 2)",
+      "function": "编码转录调控因子。致病变异导致Rett综合征——6-18月龄出现发育倒退的严重神经发育障碍。",
+      "biological_role": "MeCP2 结合甲基化DNA并招募转录调控复合物，在神经元成熟和突触功能维持中起关键作用。功能丧失导致神经元树突分支减少、突触密度降低，但不引起神经元死亡——这提供了干预窗口。",
+      "health_domain": "神经发育",
+      "evidence_level": "high",
+      "chromosome": "Xq28",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "development_stimulation", "interaction_type": "核心支持", "description": "早期康复干预（物理治疗、沟通辅助、手部功能训练）可改善功能预后", "evidence_strength": "moderate", "reference": "Neul et al. (2010) Ann Neurol"},
+        {"factor": "medical_adherence", "interaction_type": "综合管理", "description": "多学科管理包括癫痫控制、营养支持、脊柱侧弯监测和呼吸管理", "evidence_strength": "moderate", "reference": "Rett综合征管理共识"}
+      ],
+      "summary_for_display": "Rett综合征的早期康复干预可改善功能预后——神经元未死亡提供了持久的干预窗口。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "FMR1",
+      "name": "脆性X智力低下蛋白 (Fragile X Mental Retardation 1)",
+      "function": "编码FMRP蛋白，调控突触蛋白合成。CGG重复扩增导致脆性X综合征——最常见的遗传性智力障碍。",
+      "biological_role": "FMRP 是mRNA结合蛋白，在突触后调控数百种mRNA的翻译，负调控代谢型谷氨酸受体(mGluR)依赖的突触蛋白合成。FMRP缺失导致mGluR信号过度激活、树突棘形态异常和突触可塑性受损。",
+      "health_domain": "神经发育",
+      "evidence_level": "high",
+      "chromosome": "Xq27.3",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "development_stimulation", "interaction_type": "核心支持", "description": "早期行为干预+言语治疗+特殊教育+感觉统合训练的早期综合干预", "evidence_strength": "strong", "reference": "Hagerman et al. (2017) Nat Rev Dis Primers"},
+        {"factor": "sleep_quality", "interaction_type": "辅助管理", "description": "脆性X综合征常伴睡眠障碍——建立规律睡眠习惯有助于改善行为和注意力", "evidence_strength": "moderate", "reference": "脆性X管理共识"}
+      ],
+      "summary_for_display": "脆性X综合征是最常见的遗传性智力障碍——早期综合干预可显著改善发育轨迹。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "TSC1",
+      "name": "结节性硬化症蛋白1 / Hamartin (TSC Complex Subunit 1)",
+      "function": "编码hamartin蛋白，负调控mTOR信号通路。致病变异导致结节性硬化症(TSC)。",
+      "biological_role": "TSC1 与TSC2形成复合物，抑制Rheb GTPase从而负调控mTORC1信号通路。功能丧失导致mTORC1持续激活，引起细胞过度生长和增殖，形成多系统错构瘤。mTOR抑制剂可直接靶向该通路的过度激活。",
+      "health_domain": "神经发育",
+      "evidence_level": "high",
+      "chromosome": "9q34.13",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "婴儿痉挛的早期识别和治疗+mTOR抑制剂靶向治疗+定期多系统监测", "evidence_strength": "strong", "reference": "Northrup et al. (2021) Nat Rev Dis Primers"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "早期发育支持和行为干预可改善认知和行为预后", "evidence_strength": "moderate", "reference": "TSC管理共识"}
+      ],
+      "summary_for_display": "TSC 的mTOR抑制剂治疗是精准靶向G×E交互的范例——直接抑制过度激活的信号通路。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "NF1",
+      "name": "神经纤维瘤蛋白 (Neurofibromin 1)",
+      "function": "编码Ras-GAP蛋白。致病变异导致神经纤维瘤病1型——咖啡牛奶斑、神经纤维瘤和视路胶质瘤。",
+      "biological_role": "Neurofibromin 是Ras原癌蛋白的GTP酶激活蛋白(GAP)，加速Ras-GTP水解为Ras-GDP，负调控Ras/MAPK信号通路。功能丧失导致Ras信号持续激活，引起细胞过度增殖和肿瘤形成。",
+      "health_domain": "神经发育",
+      "evidence_level": "high",
+      "chromosome": "17q11.2",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "定期肿瘤筛查（视路胶质瘤、神经纤维瘤）和学习支持的早期识别", "evidence_strength": "strong", "reference": "Gutmann et al. (2017) Nat Rev Dis Primers"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "NF1相关学习障碍的早期识别和教育支持可改善学业和生活质量", "evidence_strength": "moderate", "reference": "NF1管理共识"}
+      ],
+      "summary_for_display": "NF1 的管理平衡筛查负担与并发症预防——定期肿瘤筛查和学习支持是核心。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "DHCR7",
+      "name": "7-脱氢胆固醇还原酶 (7-Dehydrocholesterol Reductase)",
+      "function": "编码胆固醇合成关键酶。致病变异导致Smith-Lemli-Opitz综合征(SLOS)。",
+      "biological_role": "DHCR7 催化胆固醇生物合成的最后一步——将7-脱氢胆固醇(7-DHC)转化为胆固醇。功能丧失导致胆固醇缺乏和7-DHC毒性积聚，影响细胞膜脂筏形成、Hedgehog信号通路蛋白的胆固醇修饰和神经类固醇合成。",
+      "health_domain": "代谢与内分泌",
+      "evidence_level": "high",
+      "chromosome": "11q13.4",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "nutrition_type", "interaction_type": "辅助干预", "description": "胆固醇补充治疗可改善部分症状——通过饮食绕过合成缺陷", "evidence_strength": "moderate", "reference": "Porter & Herman (2011) J Lipid Res"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "发育支持和多学科管理可改善功能预后", "evidence_strength": "moderate", "reference": "SLOS管理共识"}
+      ],
+      "summary_for_display": "SLOS 的胆固醇补充治疗是代谢旁路策略的G×E案例——绕过合成缺陷为机体提供必需胆固醇。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "ACADM",
+      "name": "中链酰基辅酶A脱氢酶 (Acyl-CoA Dehydrogenase Medium Chain)",
+      "function": "编码脂肪酸β-氧化关键酶。致病变异导致MCAD缺乏症——空腹诱发代谢危象。",
+      "biological_role": "ACADM 催化中链脂肪酸β-氧化的第一步反应。功能丧失导致在空腹状态下无法利用脂肪酸供能，引起低酮性低血糖和有毒脂肪酸中间代谢产物的积聚，可导致脑病和猝死。",
+      "health_domain": "代谢与内分泌",
+      "evidence_level": "high",
+      "chromosome": "1p31.1",
+      "key_variants": [{"rs_id": "rs77931234", "effect": "c.985A>G (K329E)——北欧裔中最常见的MCAD致病变异"}],
+      "environment_interaction": [
+        {"factor": "nutrition_type", "interaction_type": "决定性干预", "description": "规律喂养、避免长时间空腹是预防代谢危象的核心——新生儿筛查后MCAD相关死亡率接近零", "evidence_strength": "strong", "reference": "Grosse et al. (2010) Genet Med"},
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "疾病期间的紧急喂养方案（疾病期间能量需求增加需额外补充碳水化合物）", "evidence_strength": "strong", "reference": "MCAD缺乏症管理指南"}
+      ],
+      "summary_for_display": "MCAD 缺乏症的G×E交互极为明确——新生儿筛查+避免空腹几乎消除了相关死亡率。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "SLC2A1",
+      "name": "葡萄糖转运蛋白1 / GLUT1 (Solute Carrier Family 2 Member 1)",
+      "function": "编码GLUT1蛋白，介导葡萄糖跨越血脑屏障。致病变异导致GLUT1缺乏症。",
+      "biological_role": "GLUT1 是血脑屏障内皮细胞上主要的葡萄糖转运蛋白，负责将葡萄糖从血液转运至脑脊液供大脑使用。功能丧失导致大脑能量供应不足（尽管血糖正常），引起早发性癫痫、发育迟缓和运动障碍。",
+      "health_domain": "代谢与内分泌",
+      "evidence_level": "high",
+      "chromosome": "1p34.2",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "nutrition_type", "interaction_type": "决定性干预", "description": "生酮饮食提供酮体作为替代能源绕过葡萄糖转运缺陷——饮食干预G×E的经典案例", "evidence_strength": "strong", "reference": "Klepper et al. (2020) Epilepsia"},
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "生酮饮食的严格依从性是疗效的关键——需要专业营养师指导", "evidence_strength": "strong", "reference": "GLUT1缺乏症管理指南"}
+      ],
+      "summary_for_display": "GLUT1 缺乏症的生酮饮食治疗是代谢旁路策略的典范——通过提供酮体绕过基因缺陷。",
+      "confidence": {"gene": "high", "interaction": "high"}
+    },
+    {
+      "symbol": "COL1A1",
+      "name": "I型胶原α1链 (Collagen Type I Alpha 1 Chain)",
+      "function": "编码I型胶原主要成分。致病变异导致成骨不全症(OI)——以骨骼脆弱和反复骨折为特征。",
+      "biological_role": "I型胶原是骨骼、皮肤、肌腱和巩膜的主要结构蛋白。COL1A1 致病变异导致胶原三螺旋结构异常或胶原量减少（单倍剂量不足），引起骨基质强度降低和骨质脆弱。",
+      "health_domain": "感官与结构",
+      "evidence_level": "high",
+      "chromosome": "17q21.33",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "environmental_safety", "interaction_type": "核心保护", "description": "安全环境改造（软垫地板、家具圆角）+正确抱姿和护理技巧是预防骨折的基础", "evidence_strength": "moderate", "reference": "Forlino & Marini (2016) Lancet 387:1657-1671"},
+        {"factor": "medical_adherence", "interaction_type": "综合管理", "description": "物理治疗增强肌力+双膦酸盐治疗+多学科管理的综合照护方案", "evidence_strength": "strong", "reference": "OI管理共识"}
+      ],
+      "summary_for_display": "成骨不全症的多学科管理（物理治疗+药物+安全改造）显著改善了患儿的骨折率和生活质量。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "USH2A",
+      "name": "Usherin蛋白 (Usherin)",
+      "function": "编码usherin蛋白。致病变异导致Usher综合征II型——先天性听力损失伴视网膜色素变性。",
+      "biological_role": "Usherin 是耳蜗毛细胞静纤毛间连接和视网膜光感受器细胞连接纤毛的结构蛋白。功能丧失导致内耳毛细胞的机械转导异常和视网膜光感受器细胞进行性退化。",
+      "health_domain": "感官与结构",
+      "evidence_level": "high",
+      "chromosome": "1q41",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "核心管理", "description": "早期人工耳蜗植入+定期眼科随访(OCT/视野)+低视力辅助和定向行走训练", "evidence_strength": "strong", "reference": "Mathur & Yang (2015) Biochim Biophys Acta"},
+        {"factor": "development_stimulation", "interaction_type": "辅助支持", "description": "双重感官损失的早期康复和教育支持——需要听力和视力康复的协同", "evidence_strength": "moderate", "reference": "Usher综合征管理共识"}
+      ],
+      "summary_for_display": "Usher综合征的双重感官管理需要听力和眼科团队协同——早期干预可最大化功能性感官保留。",
+      "confidence": {"gene": "high", "interaction": "moderate"}
+    },
+    {
+      "symbol": "RB1",
+      "name": "视网膜母细胞瘤蛋白 (Retinoblastoma 1)",
+      "function": "编码pRb肿瘤抑制蛋白。致病变异导致视网膜母细胞瘤——婴幼儿最常见的眼内恶性肿瘤。",
+      "biological_role": "pRb 是细胞周期的核心调控因子，通过抑制E2F转录因子阻止细胞从G1期进入S期。功能丧失导致视网膜祖细胞不受控制的增殖，形成视网膜母细胞瘤。二次打击（另一RB1等位基因突变）是肿瘤发生的必要条件。",
+      "health_domain": "感官与结构",
+      "evidence_level": "high",
+      "chromosome": "13q14.2",
+      "key_variants": [],
+      "environment_interaction": [
+        {"factor": "medical_adherence", "interaction_type": "挽救生命和视力", "description": "从出生开始的定期眼底筛查+早期治疗→>95%生存率和视力的最大保留", "evidence_strength": "strong", "reference": "Dimaras et al. (2015) Nat Rev Dis Primers"},
+        {"factor": "environmental_safety", "interaction_type": "保护因素", "description": "遗传性RB需终身监测第二原发肿瘤风险——避免不必要的辐射暴露", "evidence_strength": "moderate", "reference": "RB管理共识"}
+      ],
+      "summary_for_display": "RB1 是癌症易感基因中筛查最能直接改变预后的——定期眼底检查可挽救视力与生命。",
+      "confidence": {"gene": "high", "interaction": "high"}
     }
   ],
   "health_dimensions": {
     "metabolic": {
-      "name": "代谢健康",
-      "related_genes": [
-        "FTO",
-        "APOE"
-      ],
-      "description": "代谢健康维度评估身体对能量和营养物质的调节能力，包括血糖控制、脂质代谢和体重管理。FTO 和 APOE 等基因在此维度具有主要影响，而饮食和运动是最关键的环境调节因素。"
-    },
-    "cognitive": {
-      "name": "认知健康",
-      "related_genes": [
-        "APOE",
-        "CLOCK"
-      ],
-      "description": "认知健康维度关注大脑功能保护与神经可塑性。APOE 基因是此维度的核心遗传因素，CLOCK 基因通过影响睡眠质量间接参与。运动、睡眠和地中海饮食模式是目前证据最强的保护因素。"
+      "name": "代谢与内分泌",
+      "related_genes": ["PAH", "CYP21A2", "CFTR", "DHCR7", "ACADM", "SLC2A1", "G6PD"],
+      "description": "代谢与内分泌维度评估先天性代谢缺陷和内分泌疾病的风险意识。涵盖氨基酸代谢、脂肪酸氧化、碳水化合物转运和类固醇合成障碍。喂养管理和医疗依从性是最关键的环境调节因素。"
     },
     "cardiovascular": {
-      "name": "心血管健康",
-      "related_genes": [
-        "APOE",
-        "FTO"
-      ],
-      "description": "心血管健康维度评估心脏和血管系统功能。APOE 影响脂质代谢，FTO 通过体重管理间接影响心血管负荷。规律运动是最有效的调节因素，戒烟和低盐饮食同样关键。"
+      "name": "心血管与血液",
+      "related_genes": ["HBB", "FBN1", "MYH7", "CHD7", "G6PD"],
+      "description": "心血管与血液维度评估先天性心脏病、心肌病、结缔组织病和血红蛋白病的风险意识。定期心脏评估和预防性管理是标准照护方案。"
     },
-    "athletic": {
-      "name": "运动潜能",
-      "related_genes": [
-        "ACTN3",
-        "CLOCK"
-      ],
-      "description": "运动潜能维度反映肌肉功能、体能训练响应和运动恢复能力。ACTN3 的 R577X 多态性是此维度最知名的遗传标记，个性化训练方案可以最大化不同基因型的运动效益。"
+    "neurodevelopmental": {
+      "name": "神经发育",
+      "related_genes": ["SMN1", "SCN1A", "MECP2", "FMR1", "TSC1", "NF1"],
+      "description": "神经发育维度评估神经发育障碍（智力障碍、癫痫、自闭症谱系、神经肌肉疾病）的风险意识。早期干预的时间窗口至关重要——早期刺激和康复训练可显著改善发育轨迹。"
     },
-    "sleep": {
-      "name": "睡眠质量",
-      "related_genes": [
-        "CLOCK",
-        "APOE"
-      ],
-      "description": "睡眠质量维度评估昼夜节律调节和睡眠结构。CLOCK 基因是核心节律调控因子，APOE ε4 携带者可能对睡眠剥夺更加敏感。规律作息是此维度最基础也最有效的干预措施。"
+    "immunodeficiency": {
+      "name": "免疫与感染",
+      "related_genes": ["IL2RG", "BTK", "RAG1"],
+      "description": "免疫与感染维度评估原发性免疫缺陷的风险意识。新生儿TREC筛查可早期发现SCID。早期HSCT/基因治疗+严格的感染防护是决定性干预。"
+    },
+    "sensory": {
+      "name": "感官与结构",
+      "related_genes": ["GJB2", "SLC26A4", "COL1A1", "USH2A", "RB1"],
+      "description": "感官与结构维度评估先天性听力损失、视力障碍和骨骼发育异常的风险意识。早期感觉辅助（助听器/人工耳蜗）和定期眼科筛查是改善预后的核心。"
     }
   }
 }

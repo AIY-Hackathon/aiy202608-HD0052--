@@ -94,7 +94,7 @@ export default function LifeSimulation() {
   const healthScore = uploaded ? (apiResult?.healthScore ?? null) : null;
   const optimizedScore = uploaded ? (apiResult?.optimizedScore ?? null) : null;
   const currentRisks = uploaded ? (apiResult?.riskDimensions ?? []) : [];
-  const optimizedFactors = { sleep: 8, exercise: 5, diet: 8, stress: 3 };
+  const optimizedFactors = { nutrition_type: 8, sleep_quality: 9, development_stimulation: 8, medical_adherence: 10, environmental_safety: 9 };
   const optimizedRisks = uploaded ? (apiResult?.riskDimensions ? calculateRiskDimensions(optimizedFactors) : []) : [];
   const trendData = uploaded ? (apiResult?.trendData ?? []) : [];
   const recommendations = uploaded ? (apiResult?.recommendations ?? []) : [];
@@ -339,7 +339,7 @@ export default function LifeSimulation() {
       </section>
 
       {/* ================================================================
-          30-DAY HEALTH PLAN
+          90-DAY CARE PLAN (3 个月照护计划)
          ================================================================ */}
       <section className="mt-20">
         <div className="flex items-center gap-3 mb-6">
@@ -524,9 +524,9 @@ export default function LifeSimulation() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: Clock, title: t("simulation", "morningLightTitle"), desc: t("simulation", "morningLightDesc") },
-            { icon: Target, title: t("simulation", "moveDailyTitle"), desc: t("simulation", "moveDailyDesc") },
-            { icon: Star, title: t("simulation", "trackReflectTitle"), desc: t("simulation", "trackReflectDesc") },
+            { icon: Clock, title: "喂养规律记录", desc: "记录每次喂养时间和方式，观察宝宝的饥饿信号和饱足反应。规律的喂养是婴儿健康成长的基石。" },
+            { icon: Target, title: "亲子互动时间", desc: "每天至少20分钟专注的亲子互动——说话、微笑、抚触。早期互动刺激对大脑发育至关重要。" },
+            { icon: Star, title: "健康观察追踪", desc: "关注体温、排便、皮肤颜色和精神状态变化。及时发现红旗信号，记录以备医生随访时参考。" },
           ].map((tip, i) => (
             <motion.div
               key={"lsTip" + i}

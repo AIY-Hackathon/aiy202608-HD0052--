@@ -13,51 +13,107 @@
  */
 import { useMemo, useState } from "react";
 
-// 基因 → 健康维度/疾病 映射（对齐后端 prs_calculator 知识库）
+// 基因 → 健康维度/疾病 映射（儿科版：25 个基因 → 5 大健康维度）
 const GENE_LINKS = {
-  APOE: [
-    { target: "认知健康", type: "dimension", strength: 3 },
-    { target: "阿尔茨海默", type: "disease", strength: 3 },
-    { target: "心血管健康", type: "dimension", strength: 2 },
+  PAH: [
+    { target: "代谢与内分泌", type: "dimension", strength: 3 },
+    { target: "苯丙酮尿症(PKU)", type: "disease", strength: 3 },
   ],
-  FTO: [
-    { target: "代谢健康", type: "dimension", strength: 3 },
-    { target: "肥胖", type: "disease", strength: 2 },
-    { target: "2型糖尿病", type: "disease", strength: 1 },
+  G6PD: [
+    { target: "心血管与血液", type: "dimension", strength: 3 },
+    { target: "G6PD缺乏症(蚕豆病)", type: "disease", strength: 3 },
   ],
-  CLOCK: [
-    { target: "睡眠节律", type: "dimension", strength: 3 },
-    { target: "代谢健康", type: "dimension", strength: 2 },
+  CYP21A2: [
+    { target: "代谢与内分泌", type: "dimension", strength: 3 },
+    { target: "先天性肾上腺皮质增生症", type: "disease", strength: 3 },
   ],
-  ACTN3: [
-    { target: "运动表现", type: "dimension", strength: 3 },
-    { target: "力量代谢", type: "dimension", strength: 1 },
+  SMN1: [
+    { target: "神经发育", type: "dimension", strength: 3 },
+    { target: "脊髓性肌萎缩(SMA)", type: "disease", strength: 3 },
   ],
-  LDLR: [
-    { target: "心血管健康", type: "dimension", strength: 3 },
-    { target: "家族性高胆固醇", type: "disease", strength: 3 },
+  GJB2: [
+    { target: "感官与结构", type: "dimension", strength: 3 },
+    { target: "先天性听力损失", type: "disease", strength: 3 },
   ],
-  MC4R: [
-    { target: "代谢健康", type: "dimension", strength: 3 },
-    { target: "肥胖", type: "disease", strength: 3 },
+  SLC26A4: [
+    { target: "感官与结构", type: "dimension", strength: 2 },
+    { target: "大前庭导水管综合征", type: "disease", strength: 2 },
   ],
-  BRCA1: [
-    { target: "乳腺癌", type: "disease", strength: 3 },
-    { target: "卵巢癌", type: "disease", strength: 2 },
+  CHD7: [
+    { target: "心血管与血液", type: "dimension", strength: 2 },
+    { target: "CHARGE综合征", type: "disease", strength: 3 },
   ],
-  BRCA2: [
-    { target: "乳腺癌", type: "disease", strength: 3 },
-    { target: "前列腺癌", type: "disease", strength: 2 },
+  IL2RG: [
+    { target: "免疫与感染", type: "dimension", strength: 3 },
+    { target: "重症联合免疫缺陷(SCID)", type: "disease", strength: 3 },
   ],
-  TOMM40: [
-    { target: "认知健康", type: "dimension", strength: 2 },
-    { target: "阿尔茨海默", type: "disease", strength: 2 },
+  BTK: [
+    { target: "免疫与感染", type: "dimension", strength: 2 },
+    { target: "X-连锁无丙种球蛋白血症", type: "disease", strength: 3 },
   ],
-  PER3: [
-    { target: "睡眠节律", type: "dimension", strength: 2 },
+  RAG1: [
+    { target: "免疫与感染", type: "dimension", strength: 2 },
+    { target: "重症联合免疫缺陷", type: "disease", strength: 3 },
   ],
-  MSTN: [
-    { target: "运动表现", type: "dimension", strength: 2 },
+  CFTR: [
+    { target: "代谢与内分泌", type: "dimension", strength: 3 },
+    { target: "囊性纤维化(CF)", type: "disease", strength: 3 },
+  ],
+  HBB: [
+    { target: "心血管与血液", type: "dimension", strength: 3 },
+    { target: "镰状细胞病/地中海贫血", type: "disease", strength: 3 },
+  ],
+  FBN1: [
+    { target: "心血管与血液", type: "dimension", strength: 2 },
+    { target: "马凡综合征", type: "disease", strength: 3 },
+  ],
+  MYH7: [
+    { target: "心血管与血液", type: "dimension", strength: 2 },
+    { target: "肥厚型心肌病", type: "disease", strength: 3 },
+  ],
+  SCN1A: [
+    { target: "神经发育", type: "dimension", strength: 3 },
+    { target: "Dravet综合征", type: "disease", strength: 3 },
+  ],
+  MECP2: [
+    { target: "神经发育", type: "dimension", strength: 2 },
+    { target: "Rett综合征", type: "disease", strength: 3 },
+  ],
+  FMR1: [
+    { target: "神经发育", type: "dimension", strength: 3 },
+    { target: "脆性X综合征", type: "disease", strength: 3 },
+  ],
+  TSC1: [
+    { target: "神经发育", type: "dimension", strength: 2 },
+    { target: "结节性硬化症(TSC)", type: "disease", strength: 3 },
+  ],
+  NF1: [
+    { target: "神经发育", type: "dimension", strength: 2 },
+    { target: "神经纤维瘤病1型", type: "disease", strength: 3 },
+  ],
+  DHCR7: [
+    { target: "代谢与内分泌", type: "dimension", strength: 2 },
+    { target: "Smith-Lemli-Opitz综合征", type: "disease", strength: 3 },
+  ],
+  ACADM: [
+    { target: "代谢与内分泌", type: "dimension", strength: 2 },
+    { target: "中链酰基辅酶A脱氢酶缺乏症", type: "disease", strength: 3 },
+  ],
+  SLC2A1: [
+    { target: "神经发育", type: "dimension", strength: 2 },
+    { target: "GLUT1缺乏综合征", type: "disease", strength: 3 },
+  ],
+  COL1A1: [
+    { target: "感官与结构", type: "dimension", strength: 2 },
+    { target: "成骨不全症", type: "disease", strength: 3 },
+  ],
+  USH2A: [
+    { target: "感官与结构", type: "dimension", strength: 2 },
+    { target: "Usher综合征(听力-视力)", type: "disease", strength: 3 },
+  ],
+  RB1: [
+    { target: "感官与结构", type: "dimension", strength: 2 },
+    { target: "视网膜母细胞瘤", type: "disease", strength: 3 },
   ],
 };
 
@@ -89,7 +145,7 @@ export default function GeneDiseaseNetwork({ genes = [] }) {
 
   // 收集出现的基因符号（支持对象数组 geneCards[] 或字符串数组）
   const presentGenes = useMemo(() => {
-    if (genes.length === 0) return ["APOE", "FTO", "CLOCK", "ACTN3"];
+    if (genes.length === 0) return ["PAH", "G6PD", "SMN1", "GJB2", "CFTR", "HBB", "SCN1A", "FMR1"];
     // 统一提取符号：对象有 symbol 字段，字符串直接用
     return genes.map((g) => (typeof g === "object" ? g.symbol : g)).filter(Boolean);
   }, [genes]);

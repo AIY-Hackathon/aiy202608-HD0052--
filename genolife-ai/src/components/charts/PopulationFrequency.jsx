@@ -12,44 +12,56 @@
  */
 import { useMemo, useState } from "react";
 
-// 常见位点的人群频率（风险等位基因携带率，%）
-// 数据来源：1000 Genomes Phase 3 / gnomAD（教育演示用近似值）
+// 儿科基因位点的人群频率（致病/风险等位基因携带率，%）
+// 数据来源：gnomAD / 中国新生儿筛查数据 / 文献汇总（教育演示用近似值）
 const POPULATION_FREQ = {
-  APOE: {
-    label: "APOE ε4",
-    variant: "rs429358",
-    populations: { 东亚: 8.0, 欧洲: 15.0, 非洲: 30.0, 南亚: 12.0 },
-    note: "ε4 携带率因人群差异大：东亚约 7-9%，欧洲约 15%，非洲约 30%。",
+  PAH: {
+    label: "PAH — 苯丙酮尿症(PKU)",
+    variant: "中国发病率 ~1/11,000",
+    populations: { 东亚: 1.8, 欧洲: 1.5, 非洲: 0.3, 南亚: 1.0 },
+    note: "中国PKU发病率约1/11,000，北方高于南方。PAH致病变异携带率约1/50。",
   },
-  FTO: {
-    label: "FTO rs9939609",
-    variant: "rs9939609",
-    populations: { 东亚: 12.0, 欧洲: 40.0, 非洲: 50.0, 南亚: 35.0 },
-    note: "FTO 风险等位基因（A）在欧洲人群非常常见（约 40%），是研究最充分的肥胖相关位点。",
+  G6PD: {
+    label: "G6PD — G6PD缺乏症",
+    variant: "中国南方携带率 ~5-10%",
+    populations: { 东亚: 7.0, 欧洲: 0.5, 非洲: 15.0, 南亚: 8.0 },
+    note: "全球约4亿人携带G6PD缺乏变异。中国南方（广东、广西、海南）发病率较高，约5-10%。",
   },
-  CLOCK: {
-    label: "CLOCK rs1801260",
-    variant: "rs1801260",
-    populations: { 东亚: 45.0, 欧洲: 30.0, 非洲: 25.0, 南亚: 38.0 },
-    note: "CLOCK 昼夜节律相关多态性在世界各人群均有较高频率。",
+  SMN1: {
+    label: "SMN1 — 脊髓性肌萎缩(SMA)",
+    variant: "中国人群携带率 ~1/40-1/50",
+    populations: { 东亚: 2.0, 欧洲: 2.5, 非洲: 1.5, 南亚: 2.0 },
+    note: "SMN1缺失是中国人群最常见的严重遗传病携带之一，携带率约1/40-1/50。",
   },
-  ACTN3: {
-    label: "ACTN3 R577X",
-    variant: "rs1815739",
-    populations: { 东亚: 42.0, 欧洲: 18.0, 非洲: 25.0, 南亚: 30.0 },
-    note: "约 18% 的欧洲人完全缺乏 ACTN3 蛋白（XX 型），而东亚人群缺失频率更高。",
+  GJB2: {
+    label: "GJB2 — 先天性听力损失",
+    variant: "中国人群携带率 ~2-3%",
+    populations: { 东亚: 2.5, 欧洲: 1.5, 非洲: 1.0, 南亚: 2.0 },
+    note: "GJB2 c.235delC是中国人群最常见的致病变异，约占遗传性听力损失的50%。",
   },
-  TOMM40: {
-    label: "TOMM40 rs2075650",
-    variant: "rs2075650",
-    populations: { 东亚: 12.0, 欧洲: 18.0, 非洲: 28.0, 南亚: 15.0 },
-    note: "TOMM40 与 APOE 相邻，常一起用于认知健康评估。",
+  CFTR: {
+    label: "CFTR — 囊性纤维化",
+    variant: "亚洲人群发病率极低",
+    populations: { 东亚: 0.05, 欧洲: 4.0, 非洲: 1.5, 南亚: 0.5 },
+    note: "CF在东亚人群中极为罕见，但在欧美人群携带率高达1/25。",
   },
-  MC4R: {
-    label: "MC4R rs17782313",
-    variant: "rs17782313",
-    populations: { 东亚: 25.0, 欧洲: 22.0, 非洲: 30.0, 南亚: 26.0 },
-    note: "MC4R 附近的 rs17782313 与食欲调控和 BMI 相关。",
+  HBB: {
+    label: "HBB — 镰状细胞病/地中海贫血",
+    variant: "中国南方携带率 ~3-8%",
+    populations: { 东亚: 4.0, 欧洲: 0.5, 非洲: 25.0, 南亚: 8.0 },
+    note: "中国南方（广东、广西）地中海贫血携带率约3-8%，非洲镰状细胞携带率高达25%。",
+  },
+  SCN1A: {
+    label: "SCN1A — Dravet综合征",
+    variant: "发病率 ~1/15,000-1/40,000",
+    populations: { 东亚: 0.05, 欧洲: 0.05, 非洲: 0.05, 南亚: 0.05 },
+    note: "Dravet综合征为罕见病，多为新生突变。SCN1A致病变异通常为杂合子。",
+  },
+  FMR1: {
+    label: "FMR1 — 脆性X综合征",
+    variant: "男性发病率 ~1/4,000-1/7,000",
+    populations: { 东亚: 0.5, 欧洲: 1.0, 非洲: 0.8, 南亚: 0.6 },
+    note: "脆性X综合征是最常见的遗传性智力障碍病因之一，前突变携带率约1/250-1/800。",
   },
 };
 
@@ -68,7 +80,7 @@ export default function PopulationFrequency({ genes = [] }) {
   const presentGenes = useMemo(() => {
     const symbols = genes.map((g) => g.symbol).filter((s) => POPULATION_FREQ[s]);
     if (symbols.length > 0) return symbols;
-    return Object.keys(POPULATION_FREQ).slice(0, 4); // 兜底演示
+    return Object.keys(POPULATION_FREQ).slice(0, 6); // 兜底演示
   }, [genes]);
 
   // 最大频率用于比例

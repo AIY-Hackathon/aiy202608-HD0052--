@@ -1,6 +1,6 @@
 """
-POST /api/simulate — 生活方式模拟
-===================================
+POST /api/simulate — 婴儿早期成长环境模拟
+===========================================
 使用 Part C 的 G×E 引擎（engine.gxe_model）替换简化公式。
 
 引擎入口：
@@ -9,7 +9,7 @@ POST /api/simulate — 生活方式模拟
 
 科学增强：
   - 个性化遗传基线（从用户真实基因档案构建，替代固定 72）
-  - 基因 × 环境交互效应（HTI = 基因 + 环境 + 交互）
+  - 基因 × 早期成长环境交互效应（HTI = 基因 + 环境 + 交互）
   - 置信区间（不确定性量化）
 """
 from __future__ import annotations
@@ -25,26 +25,42 @@ from backend.schemas import ApiResponse, SimulateRequest
 
 router = APIRouter(prefix="/api", tags=["simulate"])
 
-# 优化后的理想生活因素
-OPTIMIZED_FACTORS = {"exercise": 8, "sleep": 8, "diet": 8, "stress": 2, "smoking": 0}
+# 优化后的理想婴儿成长因素
+OPTIMIZED_FACTORS = {
+    "nutrition_type": 8,
+    "sleep_quality": 9,
+    "development_stimulation": 8,
+    "medical_adherence": 10,
+    "environmental_safety": 9,
+}
 
-# 环境因素默认值
-DEFAULT_ENV = {"exercise": 3, "sleep": 6, "diet": 5, "stress": 6, "smoking": 0}
+# 婴儿成长环境因素默认值
+DEFAULT_ENV = {
+    "nutrition_type": 7,
+    "sleep_quality": 7,
+    "development_stimulation": 6,
+    "medical_adherence": 9,
+    "environmental_safety": 8,
+}
 
 
 def _environment_from_factors(factors: dict) -> dict[str, float]:
     """将前端 factors 映射到引擎 environment 格式。"""
     return {
-        "exercise": float(factors.get("exercise", DEFAULT_ENV["exercise"])),
-        "sleep": float(factors.get("sleep", DEFAULT_ENV["sleep"])),
-        "diet": float(factors.get("diet", DEFAULT_ENV["diet"])),
-        "stress": float(factors.get("stress", DEFAULT_ENV["stress"])),
-        "smoking": float(factors.get("smoking", 0)),
+        "nutrition_type": float(factors.get("nutrition_type", DEFAULT_ENV["nutrition_type"])),
+        "sleep_quality": float(factors.get("sleep_quality", DEFAULT_ENV["sleep_quality"])),
+        "development_stimulation": float(factors.get("development_stimulation", DEFAULT_ENV["development_stimulation"])),
+        "medical_adherence": float(factors.get("medical_adherence", DEFAULT_ENV["medical_adherence"])),
+        "environmental_safety": float(factors.get("environmental_safety", DEFAULT_ENV["environmental_safety"])),
     }
 
 
-def _load_genetic_profile() -> dict[str, float]:
-    """从用户最近上传的真实基因报告构建遗传基线。"""
+def _load_genetic_profile(report_id: str | None = None) -> dict[str, float]:
+    """从用户上传的真实基因报告构建遗传基线。
+
+    Args:
+        report_id: 可选，指定报告 ID。未传时使用最近完成的报告。
+    """
     try:
         from backend.database import SessionLocal
         from backend.models import GeneticReport, GeneticVariant
@@ -53,13 +69,25 @@ def _load_genetic_profile() -> dict[str, float]:
 
         async def _query():
             async with SessionLocal() as session:
-                result = await session.execute(
-                    select(GeneticReport)
-                    .where(GeneticReport.parsing_status == "completed")
-                    .order_by(desc(GeneticReport.created_at))
-                    .limit(1)
-                )
-                report = result.scalars().first()
+                if report_id:
+                    report = await session.get(GeneticReport, report_id)
+                    if not report or report.parsing_status != "completed":
+                        # 指定报告不存在或未完成，回退到最新完成报告
+                        result = await session.execute(
+                            select(GeneticReport)
+                            .where(GeneticReport.parsing_status == "completed")
+                            .order_by(desc(GeneticReport.created_at))
+                            .limit(1)
+                        )
+                        report = result.scalars().first()
+                else:
+                    result = await session.execute(
+                        select(GeneticReport)
+                        .where(GeneticReport.parsing_status == "completed")
+                        .order_by(desc(GeneticReport.created_at))
+                        .limit(1)
+                    )
+                    report = result.scalars().first()
                 if not report:
                     return []
                 result = await session.execute(
@@ -102,8 +130,13 @@ def _load_genetic_profile() -> dict[str, float]:
 
 
 def _default_profile() -> dict[str, float]:
-    """默认基因 sensitivity（无用户数据时）。"""
-    return {"APOE": 0.7, "FTO": 0.5, "CLOCK": 0.3, "ACTN3": 0.4}
+    """默认基因 sensitivity — 儿科核心基因（无用户数据时）。"""
+    return {
+        "PAH": 0.4, "G6PD": 0.3, "CYP21A2": 0.4,
+        "SMN1": 0.5, "GJB2": 0.35, "SLC26A4": 0.3,
+        "CHD7": 0.35, "IL2RG": 0.5, "CFTR": 0.35,
+        "HBB": 0.4, "SCN1A": 0.4, "FMR1": 0.4,
+    }
 
 
 def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: dict[str, float] | None = None) -> dict | None:
@@ -122,7 +155,6 @@ def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: di
         sim = simulate_health_trajectory(genetic, env)
         recs = generate_from_simulation(sim, genetic, env)
 
-        # 优化环境轨迹（若提供）：同一基因档案 + 优化环境
         opt_sim = None
         if optimized_env:
             opt_sim = simulate_health_trajectory(genetic, optimized_env)
@@ -189,7 +221,7 @@ def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: di
 def simulate(req: SimulateRequest):
     """运行 G×E 健康模拟，返回健康评分与风险维度。"""
     factors = req.factors or {}
-    genetic = _load_genetic_profile()
+    genetic = _load_genetic_profile(req.report_id)
     env = _environment_from_factors(factors)
     optimized_env = _environment_from_factors(OPTIMIZED_FACTORS)
 

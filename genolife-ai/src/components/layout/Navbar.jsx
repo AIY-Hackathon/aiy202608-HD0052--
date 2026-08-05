@@ -3,16 +3,21 @@ import { useLocation } from "./PageTransition";
 import { useLanguage } from "../../i18n";
 import { Home } from "lucide-react";
 
-const links = [
-  { id: "gene-map", labelKey: "analysis", step: "01", icon: "🧬" },
-  { id: "simulation", labelKey: "simulation", step: "02", icon: "📊" },
-  { id: "planner", labelKey: "planner", step: "03", icon: "📅" },
-  { id: "report", labelKey: "report", step: "04", icon: "📋" },
-];
-
 export default function Navbar() {
-  const { currentPage, goTo } = useLocation();
+  const { currentPage, goTo, analysisResult } = useLocation();
   const { t, lang, toggleLang } = useLanguage();
+
+  // 步骤 03 根据分析结果动态切换
+  const step03 = analysisResult === "abnormal"
+    ? { id: "genetic-assistance", label: "异常辅助", step: "03", icon: "🏥" }
+    : { id: "healthy-growth", label: "健康成长", step: "03", icon: "🌱" };
+
+  const links = [
+    { id: "gene-map", labelKey: "analysis", step: "01", icon: "🧬" },
+    { id: "simulation", labelKey: "simulation", step: "02", icon: "📊" },
+    step03,
+    { id: "report", labelKey: "report", step: "04", icon: "📋" },
+  ];
 
   return (
     <nav className="glass-nav fixed top-0 inset-x-0 z-50">
@@ -61,6 +66,7 @@ export default function Navbar() {
 
           {links.map((link) => {
             const isActive = currentPage === link.id;
+            const labelText = link.labelKey ? t("nav", link.labelKey) : link.label;
             return (
               <button
                 key={link.id}
@@ -81,7 +87,7 @@ export default function Navbar() {
                   {link.step}
                 </span>
                 {/* Label */}
-                <span className="text-[12px] font-semibold">{t("nav", link.labelKey)}</span>
+                <span className="text-[12px] font-semibold">{labelText}</span>
                 {/* Active indicator dot */}
                 {isActive && (
                   <motion.span

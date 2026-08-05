@@ -463,10 +463,19 @@ def _effect_magnitude(value: float) -> str:
 # =============================================================================
 
 def _validate_genetic_profile(profile: dict[str, float]) -> dict[str, float]:
+    """校验基因档案，只保留在 GENE_WEIGHTS 中注册且有实际数据的基因。
+
+    不自动填充未传入的基因默认值，确保不同 VCF 报告产生差异化结果。
+    """
     validated = {}
-    for gene in GENE_WEIGHTS:
-        value = profile.get(gene, 0.3)
-        validated[gene] = max(0.0, min(1.0, float(value)))
+    for gene, value in profile.items():
+        if gene in GENE_WEIGHTS:
+            validated[gene] = max(0.0, min(1.0, float(value)))
+    # 若没有任何已注册基因，使用最小默认集（避免模拟结果全为 0）
+    if not validated:
+        validated = {
+            "PAH": 0.3, "G6PD": 0.3, "SMN1": 0.3, "GJB2": 0.3, "CFTR": 0.3,
+        }
     return validated
 
 
@@ -519,20 +528,20 @@ def calculate_gxe(
 
 if __name__ == "__main__":
     sample_genetic = {
-        "APOE": 0.7,
-        "FTO": 0.5,
-        "CLOCK": 0.3,
-        "ACTN3": 0.4,
+        "PAH": 0.4, "G6PD": 0.3, "CYP21A2": 0.4,
+        "SMN1": 0.5, "GJB2": 0.35, "SLC26A4": 0.3,
+        "CHD7": 0.35, "IL2RG": 0.5, "CFTR": 0.35,
+        "HBB": 0.4, "SCN1A": 0.4, "FMR1": 0.4,
     }
 
     scenarios = {
-        "Ideal Lifestyle": {"exercise": 8, "sleep": 8, "diet": 8, "stress": 2, "smoking": 0},
-        "Average Lifestyle": {"exercise": 5, "sleep": 6, "diet": 5, "stress": 5, "smoking": 2},
-        "Poor Lifestyle": {"exercise": 2, "sleep": 5, "diet": 3, "stress": 8, "smoking": 6},
+        "理想婴儿成长环境": {"nutrition_type": 8, "sleep_quality": 9, "development_stimulation": 8, "medical_adherence": 10, "environmental_safety": 9},
+        "一般婴儿成长环境": {"nutrition_type": 6, "sleep_quality": 6, "development_stimulation": 5, "medical_adherence": 7, "environmental_safety": 6},
+        "不利婴儿成长环境": {"nutrition_type": 3, "sleep_quality": 4, "development_stimulation": 2, "medical_adherence": 3, "environmental_safety": 3},
     }
 
     print("=" * 70)
-    print("G×E Health Trajectory Index (HTI) Engine — Demo")
+    print("G×E 婴儿健康轨迹指数 (HTI) 引擎 — Demo")
     print("=" * 70)
 
     for name, env in scenarios.items():

@@ -2,18 +2,21 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
-import { FileDown, FileText, CheckCircle2, Eye, Download, ShieldAlert, FileCheck, AlignLeft } from "lucide-react";
+import { FileDown, FileText, CheckCircle2, Eye, Download, ShieldAlert, FileCheck, AlignLeft, Copy, Check } from "lucide-react";
 import { exportReport, getProfile, exportTextReport } from "../api/client";
 import DOMPurify from "dompurify";
+import ReactMarkdown from "react-markdown";
 
 export default function ReportPage() {
   const { reportId, uploaded } = useLocation();
   const { t } = useLanguage();
   const [selectedSections, setSelectedSections] = useState(new Set(["summary", "variants", "risk", "recommendations"]));
-  const [format, setFormat] = useState("html");
+  const [format, setFormat] = useState("text");
   const [generating, setGenerating] = useState(false);
   const [previewHtml, setPreviewHtml] = useState(null);
+  const [previewMd, setPreviewMd] = useState(null);
   const [apiError, setApiError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const SECTIONS = [
     { id: "summary", key: "sectionSummary", keyDesc: "sectionSummaryDesc", icon: FileText },
@@ -23,9 +26,9 @@ export default function ReportPage() {
   ];
 
   const FORMATS = [
+    { id: "text", key: "optTextLabel", keyDesc: "optTextDesc", icon: AlignLeft },
     { id: "html", key: "optHtmlLabel", keyDesc: "optHtmlDesc", icon: Eye },
     { id: "pdf", key: "optPdfLabel", keyDesc: "optPdfDesc", icon: Download },
-    { id: "text", key: "optTextLabel", keyDesc: "optTextDesc", icon: AlignLeft },
   ];
 
   const allSelected = selectedSections.size === SECTIONS.length;
@@ -60,22 +63,29 @@ export default function ReportPage() {
   const handleGenerate = async () => {
     setGenerating(true);
     setApiError("");
+    setCopied(false);
     try {
       if (format === "text") {
         const result = await exportTextReport(reportId);
-        setPreviewHtml(result.data);
+        setPreviewMd(result.data);
+        setPreviewHtml(null);
         return;
       }
-      const result = await exportReport(reportId || undefined, {
-        selectedSections: Array.from(selectedSections),
-        format,
-      });
-
       if (format === "html") {
-        // 后端返回 { format, data: htmlString, filename }
+        const result = await exportReport(reportId || undefined, {
+          selectedSections: Array.from(selectedSections),
+          format: "html",
+        });
         setPreviewHtml(result.data);
-      } else if (format === "pdf") {
-        // 客户端返回 Blob 对象，直接下载
+        setPreviewMd(null);
+        return;
+      }
+      if (format === "pdf") {
+        // PDF 需要后端 WeasyPrint 支持，先尝试获取
+        const result = await exportReport(reportId || undefined, {
+          selectedSections: Array.from(selectedSections),
+          format: "pdf",
+        });
         const blob = result.data instanceof Blob
           ? result.data
           : new Blob([result.data], { type: "application/pdf" });
@@ -85,20 +95,22 @@ export default function ReportPage() {
         a.download = result.filename || `genolife-report-${reportId || "demo"}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
+        setPreviewHtml(null);
+        setPreviewMd(null);
       }
     } catch (err) {
       setApiError(err.message || "报告生成失败");
       setPreviewHtml(null);
+      setPreviewMd(null);
     } finally {
       setGenerating(false);
     }
   };
 
-  // ── 下载（HTML 预览 / 文字报告均已就绪）──
+  // ── 下载 ──
   const handleDownload = () => {
-    if (!previewHtml) return;
-    if (format === "text") {
-      const blob = new Blob([previewHtml], { type: "text/markdown" });
+    if (previewMd) {
+      const blob = new Blob([previewMd], { type: "text/markdown" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -107,13 +119,27 @@ export default function ReportPage() {
       URL.revokeObjectURL(url);
       return;
     }
-    const blob = new Blob([previewHtml], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `genolife-report-${reportId || "demo"}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (previewHtml) {
+      const blob = new Blob([previewHtml], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `genolife-report-${reportId || "demo"}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // ── 复制 Markdown ──
+  const handleCopy = async () => {
+    if (!previewMd) return;
+    try {
+      await navigator.clipboard.writeText(previewMd);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+    }
   };
 
   return (
@@ -258,15 +284,15 @@ export default function ReportPage() {
               <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               {t("report", "generatingReport")}
             </>
-          ) : format === "html" ? (
-            <>
-              <Eye size={18} />
-              {t("report", "generatePreview")}
-            </>
           ) : format === "text" ? (
             <>
               <AlignLeft size={18} />
               {t("report", "generateText")}
+            </>
+          ) : format === "html" ? (
+            <>
+              <Eye size={18} />
+              {t("report", "generatePreview")}
             </>
           ) : (
             <>
@@ -288,9 +314,9 @@ export default function ReportPage() {
       </div>
 
       {/* ================================================================
-          HTML PREVIEW
+          PREVIEW
          ================================================================ */}
-      {previewHtml && (
+      {(previewHtml || previewMd) && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -300,32 +326,44 @@ export default function ReportPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-[18px] text-text">{t("report", "previewTitle")}</h2>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold text-text-secondary hover:text-text bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
-                style={{ border: "none" }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 12H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2" /><rect x="6" y="14" width="12" height="8" />
-                </svg>
-                {t("report", "print")}
-              </button>
+              {previewMd && (
+                <button
+                  onClick={handleCopy}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold text-text-secondary hover:text-text bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                  style={{ border: "none" }}
+                >
+                  {copied ? <Check size={14} className="text-accent" /> : <Copy size={14} />}
+                  {copied ? t("report", "copied") || "已复制" : t("report", "copyMarkdown") || "复制 Markdown"}
+                </button>
+              )}
+              {previewHtml && (
+                <button
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold text-text-secondary hover:text-text bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                  style={{ border: "none" }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 12H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2" /><rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                  {t("report", "print")}
+                </button>
+              )}
               <button
                 onClick={handleDownload}
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-white text-[13px] font-semibold hover:bg-primary-600 transition-colors shadow-lg shadow-primary/20 cursor-pointer"
                 style={{ border: "none" }}
               >
                 <Download size={14} />
-                {format === "text" ? t("report", "downloadText") : t("report", "downloadHtml")}
+                {previewMd ? t("report", "downloadText") : t("report", "downloadHtml")}
               </button>
             </div>
           </div>
 
           <div className="premium-card p-8 bg-white overflow-auto max-h-[600px] shadow-inner">
-            {format === "text" ? (
-              <pre className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-text-secondary font-sans" style={{ fontFamily: "inherit" }}>
-                {previewHtml}
-              </pre>
+            {previewMd ? (
+              <div className="prose prose-sm max-w-none text-[14px] leading-relaxed text-text-secondary">
+                <ReactMarkdown>{previewMd}</ReactMarkdown>
+              </div>
             ) : (
               <div
                 className="prose prose-sm max-w-none"

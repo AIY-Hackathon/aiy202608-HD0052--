@@ -18,6 +18,9 @@ export function LocationProvider({ children }) {
     try { return !!localStorage.getItem("genolife_active_report"); }
     catch { return false; }
   });
+  // 分析结果分类：null=未分析, "normal"=正常, "abnormal"=异常
+  // 分类标准：pathogenicCount > 0 或 healthScore < 60 → abnormal
+  const [analysisResult, setAnalysisResult] = useState(null);
 
   const goTo = useCallback((page) => {
     setCurrentPage(page);
@@ -26,7 +29,7 @@ export function LocationProvider({ children }) {
 
   return (
     <LocationContext.Provider
-      value={{ currentPage, goTo, reportId, setReportId, uploaded, setUploaded }}
+      value={{ currentPage, goTo, reportId, setReportId, uploaded, setUploaded, analysisResult, setAnalysisResult }}
     >
       {children}
     </LocationContext.Provider>

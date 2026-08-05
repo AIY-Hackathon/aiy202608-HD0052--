@@ -1,0 +1,36 @@
+##fileformat=VCFv4.2
+##fileDate=2026-08-05
+##source=GenoLifeDemo-Baby4
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene symbol">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical significance">
+##INFO=<ID=CLNREVSTAT,Number=1,Type=String,Description="ClinVar review status">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# Baby 4 — "神经关注" Neuro-Focus
+# 特征: FMR1 CGG 扩增（脆性X前突变）+ TSC1 致病变异 + SCN1A 杂合致病变异
+# 神经发育维度极高风险，但代谢/免疫/心血管维度正常
+X	147912050	.	CGG	CGGCGGCGGCGGCGGCGGCGGCGGCGG	.	.	GENEINFO=FMR1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# 结节性硬化 — TSC1 致病变异
+9	132891002	rs118203447	C	T	.	.	GENEINFO=TSC1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# Dravet 综合征 — SCN1A 杂合
+2	166915073	rs121917918	C	T	.	.	GENEINFO=SCN1A;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# NF1 — 杂合致病变异
+17	31227343	rs121434591	G	A	.	.	GENEINFO=NF1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# MECP2 — 正常（男性无致病变异）
+X	154030604	rs61750240	G	G	.	.	GENEINFO=MECP2;CLNSIG=Benign	GT	0/0
+# PAH — 正常
+12	103234215	rs62514927	A	A	.	.	GENEINFO=PAH;CLNSIG=Benign	GT	0/0
+# G6PD — 正常
+X	153764217	rs1050828	C	C	.	.	GENEINFO=G6PD;CLNSIG=Benign	GT	0/0
+# SMN1 — 正常
+5	70247770	.	T	T	.	.	GENEINFO=SMN1;CLNSIG=Benign	GT	0/0
+# GJB2 — 正常
+13	20189513	rs80338939	A	A	.	.	GENEINFO=GJB2;CLNSIG=Benign	GT	0/0
+# IL2RG — 正常
+X	71107751	rs121434590	C	C	.	.	GENEINFO=IL2RG;CLNSIG=Benign	GT	0/0
+# CFTR — 正常
+7	117199645	rs113993960	TCTT	TCTT	.	.	GENEINFO=CFTR;CLNSIG=Benign	GT	0/0
+# HBB — 正常
+11	5227002	rs334	A	A	.	.	GENEINFO=HBB;CLNSIG=Benign	GT	0/0
+# ACADM — 正常
+1	17383109	rs77931234	T	T	.	.	GENEINFO=ACADM;CLNSIG=Benign	GT	0/0

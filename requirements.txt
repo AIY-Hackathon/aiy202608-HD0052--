@@ -15,7 +15,7 @@ pytest-asyncio>=1.0        # 异步 fixture（test_models 需要）
 httpx>=0.28
 
 # === Part C: 引擎/报告/AI 依赖（由开发者 C 添加）===
-# reportlab>=4.0          # PDF 报告生成
+reportlab>=4.0          # PDF 报告生成
 # jinja2>=3.1             # HTML 报告模板
 # gradio>=5.0             # AI 判读演示
 # anthropic>=0.40         # Claude API

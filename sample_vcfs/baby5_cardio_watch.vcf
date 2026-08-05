@@ -1,0 +1,38 @@
+##fileformat=VCFv4.2
+##fileDate=2026-08-05
+##source=GenoLifeDemo-Baby5
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene symbol">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical significance">
+##INFO=<ID=CLNREVSTAT,Number=1,Type=String,Description="ClinVar review status">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# Baby 5 — "心血管守护" Cardio-Watch
+# 特征: HBB 镰状细胞杂合（SCT）+ MYH7 致病变异（HCM风险）+ FBN1 杂合致病变异
+# 心血管维度高风险，但代谢/神经/免疫维度正常
+11	5227002	rs334	A	T	.	.	GENEINFO=HBB;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# 肥厚型心肌病 — MYH7 杂合致病变异
+14	23431600	rs121913627	G	A	.	.	GENEINFO=MYH7;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# 马凡综合征 — FBN1 杂合致病变异
+15	48574829	rs140583	G	A	.	.	GENEINFO=FBN1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# CHD7 — CHARGE 综合征杂合致病变异
+8	61734871	rs587783025	C	T	.	.	GENEINFO=CHD7;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# 成骨不全 — COL1A1 杂合致病变异
+17	50191682	rs72658152	G	A	.	.	GENEINFO=COL1A1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# PAH — 正常
+12	103234215	rs62514927	A	A	.	.	GENEINFO=PAH;CLNSIG=Benign	GT	0/0
+# G6PD — 正常
+X	153764217	rs1050828	C	C	.	.	GENEINFO=G6PD;CLNSIG=Benign	GT	0/0
+# SMN1 — 正常
+5	70247770	.	T	T	.	.	GENEINFO=SMN1;CLNSIG=Benign	GT	0/0
+# GJB2 — 正常
+13	20189513	rs80338939	A	A	.	.	GENEINFO=GJB2;CLNSIG=Benign	GT	0/0
+# IL2RG — 正常
+X	71107751	rs121434590	C	C	.	.	GENEINFO=IL2RG;CLNSIG=Benign	GT	0/0
+# CFTR — 正常
+7	117199645	rs113993960	TCTT	TCTT	.	.	GENEINFO=CFTR;CLNSIG=Benign	GT	0/0
+# SCN1A — 正常
+2	166915073	rs121917918	C	C	.	.	GENEINFO=SCN1A;CLNSIG=Benign	GT	0/0
+# FMR1 — 正常
+X	147912050	.	CGG	CGG	.	.	GENEINFO=FMR1;CLNSIG=Benign	GT	0/0
+# CYP21A2 — 正常
+6	32006953	rs7755898	T	T	.	.	GENEINFO=CYP21A2;CLNSIG=Benign	GT	0/0

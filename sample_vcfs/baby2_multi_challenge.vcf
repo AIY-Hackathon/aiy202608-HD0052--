@@ -1,0 +1,33 @@
+##fileformat=VCFv4.2
+##fileDate=2026-08-05
+##source=GenoLifeDemo-Baby2
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene symbol">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical significance">
+##INFO=<ID=CLNREVSTAT,Number=1,Type=String,Description="ClinVar review status">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# Baby 2 — "多重挑战" Multiple Challenges
+# 特征: 4 个基因同时有致病变异 — PAH(PKU) + GJB2(耳聋) + CFTR(CF) + SCN1A(Dravet)
+# 代谢、感官、神经发育三个维度均有显著风险
+12	103234215	rs62514927	A	G	.	.	GENEINFO=PAH;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+12	102894482	rs5030858	T	TA	.	.	GENEINFO=PAH;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# 先天性听力损失 — GJB2 c.35delG 纯合
+13	20189513	rs80338939	A	G	.	.	GENEINFO=GJB2;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# 囊性纤维化 — CFTR F508del 纯合
+7	117199645	rs113993960	TCTT	T	.	.	GENEINFO=CFTR;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# Dravet 综合征 — SCN1A 杂合致病变异
+2	166915073	rs121917918	C	T	.	.	GENEINFO=SCN1A;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	0/1
+# SMN1 — 正常
+5	70247770	.	T	T	.	.	GENEINFO=SMN1;CLNSIG=Benign	GT	0/0
+# G6PD — 正常
+X	153764217	rs1050828	C	C	.	.	GENEINFO=G6PD;CLNSIG=Benign	GT	0/0
+# HBB — 正常
+11	5227002	rs334	A	A	.	.	GENEINFO=HBB;CLNSIG=Benign	GT	0/0
+# IL2RG — 正常
+X	71107751	rs121434590	C	C	.	.	GENEINFO=IL2RG;CLNSIG=Benign	GT	0/0
+# ACADM — 正常
+1	17383109	rs77931234	T	T	.	.	GENEINFO=ACADM;CLNSIG=Benign	GT	0/0
+# CYP21A2 — 正常
+6	32006953	rs7755898	T	T	.	.	GENEINFO=CYP21A2;CLNSIG=Benign	GT	0/0
+# FMR1 — 正常（无CGG扩增）
+X	147912050	.	CGG	CGGCGG	.	.	GENEINFO=FMR1;CLNSIG=Benign	GT	0/0

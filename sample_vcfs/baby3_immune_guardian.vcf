@@ -1,0 +1,36 @@
+##fileformat=VCFv4.2
+##fileDate=2026-08-05
+##source=GenoLifeDemo-Baby3
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene symbol">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical significance">
+##INFO=<ID=CLNREVSTAT,Number=1,Type=String,Description="ClinVar review status">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# Baby 3 — "免疫守护者" Immune Guardian
+# 特征: IL2RG/BTK/RAG1 全部正常 → 免疫维度无风险
+# 但 GJB2 纯合致病变异 → 先天性听力损失高风险  +  G6PD 严重缺乏
+13	20189513	rs80338939	A	G	.	.	GENEINFO=GJB2;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# G6PD Mediterranean — 纯合（酶活性严重降低）
+X	153761303	rs1050829	T	C	.	.	GENEINFO=G6PD;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# IL2RG — 正常
+X	71107751	rs121434590	C	C	.	.	GENEINFO=IL2RG;CLNSIG=Benign	GT	0/0
+# BTK — 正常
+X	100610949	rs12862038	G	G	.	.	GENEINFO=BTK;CLNSIG=Benign	GT	0/0
+# RAG1 — 正常
+11	36596750	rs104894286	C	C	.	.	GENEINFO=RAG1;CLNSIG=Benign	GT	0/0
+# SMN1 — 正常（杂合携带但 exon 7 完整）
+5	70247770	.	T	T	.	.	GENEINFO=SMN1;CLNSIG=Benign	GT	0/0
+# PAH — 正常
+12	103234215	rs62514927	A	A	.	.	GENEINFO=PAH;CLNSIG=Benign	GT	0/0
+# CFTR — 正常
+7	117199645	rs113993960	TCTT	TCTT	.	.	GENEINFO=CFTR;CLNSIG=Benign	GT	0/0
+# HBB — 正常
+11	5227002	rs334	A	A	.	.	GENEINFO=HBB;CLNSIG=Benign	GT	0/0
+# SCN1A — 正常
+2	166915073	rs121917918	C	C	.	.	GENEINFO=SCN1A;CLNSIG=Benign	GT	0/0
+# CYP21A2 — 正常
+6	32006953	rs7755898	T	T	.	.	GENEINFO=CYP21A2;CLNSIG=Benign	GT	0/0
+# FBN1 — 正常
+15	48574829	rs140583	G	G	.	.	GENEINFO=FBN1;CLNSIG=Benign	GT	0/0
+# COL1A1 — 正常
+17	50191682	rs72658152	G	G	.	.	GENEINFO=COL1A1;CLNSIG=Benign	GT	0/0

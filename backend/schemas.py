@@ -115,7 +115,11 @@ class SimulateRequest(BaseModel):
 
     factors: dict[str, float] = Field(
         default_factory=dict,
-        description="生活因素：sleep/exercise/diet/stress",
+        description="生活因素：nutrition_type/sleep_quality/development_stimulation/medical_adherence/environmental_safety",
+    )
+    report_id: str | None = Field(
+        None,
+        description="可选，指定报告 ID。未传时使用数据库中最近完成的报告。",
     )
 
 

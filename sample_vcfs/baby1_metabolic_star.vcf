@@ -1,0 +1,33 @@
+##fileformat=VCFv4.2
+##fileDate=2026-08-05
+##source=GenoLifeDemo-Baby1
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene symbol">
+##INFO=<ID=CLNSIG,Number=1,Type=String,Description="Clinical significance">
+##INFO=<ID=CLNREVSTAT,Number=1,Type=String,Description="ClinVar review status">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+# Baby 1 — "代谢之星" Metabolic Champion
+# 特征: PAH/MCAD 完全正常 + SLCO1B1/G6PD 正常 — 代谢维度风险极低
+# 但 SMN1 有致病变异，神经发育维度需关注
+1	45798466	rs5030858	TT	TAA	.	.	GENEINFO=PAH;CLNSIG=Benign;CLNREVSTAT=reviewed_by_expert_panel	GT	0/0
+1	17383109	rs77931234	T	T	.	.	GENEINFO=ACADM;CLNSIG=Benign;CLNREVSTAT=reviewed_by_expert_panel	GT	0/0
+1	17380236	rs121434291	A	A	.	.	GENEINFO=ACADM;CLNSIG=Benign	GT	0/0
+1	43385971	rs1799941	C	C	.	.	GENEINFO=SLC2A1;CLNSIG=Benign	GT	0/0
+1	71155391	rs80356683	G	G	.	.	GENEINFO=DHCR7;CLNSIG=Benign	GT	0/0
+X	153764217	rs1050828	C	C	.	.	GENEINFO=G6PD;CLNSIG=Benign	GT	0/0
+X	153761303	rs1050829	T	T	.	.	GENEINFO=G6PD;CLNSIG=Benign	GT	0/0
+# 脊髓性肌萎缩 — SMN1 exon 7 纯合缺失
+5	70247770	.	T	TAA	.	.	GENEINFO=SMN1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+5	70238396	.	C	CA	.	.	GENEINFO=SMN1;CLNSIG=Pathogenic;CLNREVSTAT=reviewed_by_expert_panel	GT	1/1
+# 先天性听力损失 — GJB2 杂合携带（parent carrier），不表达
+13	20189513	rs80338939	A	A	.	.	GENEINFO=GJB2;CLNSIG=Benign;CLNREVSTAT=reviewed_by_expert_panel	GT	0/0
+# IL2RG — 正常
+X	71107751	rs121434590	C	C	.	.	GENEINFO=IL2RG;CLNSIG=Benign	GT	0/0
+# CFTR — 杂合携带（parent carrier）
+7	117199645	rs113993960	TCTT	TCTT	.	.	GENEINFO=CFTR;CLNSIG=Benign;CLNREVSTAT=reviewed_by_expert_panel	GT	0/0
+# HBB — 正常（无镰状/地中海贫血）
+11	5227002	rs334	A	A	.	.	GENEINFO=HBB;CLNSIG=Benign	GT	0/0
+# SCN1A — 正常
+2	166915073	rs121917918	C	C	.	.	GENEINFO=SCN1A;CLNSIG=Benign	GT	0/0
+# FBN1 — 正常
+15	48574829	rs140583	G	G	.	.	GENEINFO=FBN1;CLNSIG=Benign	GT	0/0
