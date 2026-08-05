@@ -11,6 +11,7 @@ import LifeSimulation from "./pages/LifeSimulation";
 import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
 import LifestylePlanner from "./pages/LifestylePlanner";
+import { useEffect, useRef } from "react";
 
 const pages = {
   home: HomePage,
@@ -21,7 +22,16 @@ const pages = {
 };
 
 function PageRenderer() {
-  const { currentPage } = useLocation();
+  const { currentPage, uploaded } = useLocation();
+  // 如果用户已上传过报告（localStorage 有 active report），自动跳转到基因分析页
+  const initialPage = useRef(false);
+  useEffect(() => {
+    if (!initialPage.current && uploaded && currentPage === "home") {
+      initialPage.current = true;
+      // 不强制跳转 — 用户可能想留在首页
+    }
+  }, [currentPage, uploaded]);
+
   const Page = pages[currentPage] || HomePage;
 
   return (
