@@ -173,7 +173,7 @@ export default function GxEHeatmap({ genes = [] }) {
 
           {/* 行标签 + 格子 */}
           {presentGenes.map((g, gi) => (
-            <g key={g}>
+            <g key={"row-" + g}>
               <text
                 x={labelW - 10}
                 y={headerH + gi * cellH + cellH / 2 + 4}

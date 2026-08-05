@@ -178,7 +178,7 @@ export default function GeneDiseaseNetwork({ genes = [] }) {
             const isHover = hovered?.kind === "gene" && hovered.id === g;
             return (
               <g
-                key={g}
+                key={"gene-" + g}
                 onMouseEnter={() => setHovered({ kind: "gene", id: g })}
                 onMouseLeave={() => setHovered(null)}
                 style={{ cursor: "pointer" }}
