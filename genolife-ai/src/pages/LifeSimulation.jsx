@@ -271,6 +271,9 @@ export default function LifeSimulation() {
               {t("simulation", "projectedRisk")}
             </p>
             <RiskTrendLine data={trendData} height={280} />
+            <p className="mt-3 text-[11px] text-text-tertiary leading-relaxed bg-blue-50/40 border border-blue-100/60 rounded-xl px-3 py-2.5">
+              {t("simulation", "trajectoryHint")}
+            </p>
           </motion.div>
 
           {/* Before / After bars */}

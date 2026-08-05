@@ -87,11 +87,12 @@ const RISK_LABELS = {
 export default function GeneDiseaseNetwork({ genes = [] }) {
   const [hovered, setHovered] = useState(null); // {kind:'gene'|'target', id}
 
-  // 收集出现的基因（无数据时用默认演示基因）
-  const presentGenes = useMemo(
-    () => (genes.length > 0 ? genes : ["APOE", "FTO", "CLOCK", "ACTN3"]),
-    [genes]
-  );
+  // 收集出现的基因符号（支持对象数组 geneCards[] 或字符串数组）
+  const presentGenes = useMemo(() => {
+    if (genes.length === 0) return ["APOE", "FTO", "CLOCK", "ACTN3"];
+    // 统一提取符号：对象有 symbol 字段，字符串直接用
+    return genes.map((g) => (typeof g === "object" ? g.symbol : g)).filter(Boolean);
+  }, [genes]);
 
   // 计算右侧所有目标节点及连线
   const { targets, edges } = useMemo(() => {

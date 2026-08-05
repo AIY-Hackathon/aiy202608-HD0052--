@@ -143,9 +143,16 @@ def build_profile(variants: list[dict] | None = None, population: str | None = N
     mini_prs = _run_mini_prs(variants)
 
     # 5. 健康概览
-    avg_score = int(round(sum(d["score"] for d in risk_dimensions) / len(risk_dimensions)))
-    # 平均风险分映射到健康分（分数越高 = 风险越低 = 健康越好）
-    health_score = max(35, min(98, 100 - avg_score + 20))
+    # 健康指数基于样本实际携带的变异贡献（72 基线 ± 变异影响），
+    # 让不同基因型样本产生明显差异。
+    if variants:
+        dims_avg = sum(d["score"] for d in risk_dimensions) / len(risk_dimensions)
+        # 维度分相对基线 50 的偏移 → 风险方向（>50 = 风险升）
+        risk_deviation = dims_avg - 50
+        health_score = round(72 - risk_deviation * 1.6)
+        health_score = max(35, min(98, health_score))
+    else:
+        health_score = 72
     if health_score >= 80:
         level, level_label = "low", "Low Genetic Risk"
     elif health_score >= 60:

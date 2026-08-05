@@ -139,8 +139,15 @@ def classify_gene_to_disease(gene_name: str) -> str | None:
 def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
     """计算 5 维健康风险评分（对齐前端 riskDimensions[]）。
 
-    维度分 = 50(基线) + Σ(变异权重 × 风险偏移)
+    维度分 = 50(基线) + Σ(变异权重 × 风险偏移 × 基因型剂量)
+
     风险偏移基于 ClinVar 意义与 odds_ratio。
+    基因型剂量（allele_dosage）反映样本差异：
+      - 纯合变异 (2) → 贡献翻倍
+      - 杂合 (1) → 正常
+      - 无剂量信息 → 1.0
+    odds_ratio 缺失时按临床意义分级（Pathogenic > VUS > Benign），
+    确保不同样本因携带不同变异而产生不同维度分。
     """
     # 各维度累计风险贡献
     dim_risk: dict[str, float] = {dim: 50.0 for dim in DIMENSION_LABELS}
@@ -150,13 +157,32 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
         if not dim:
             continue
         weight = significance_weight(v.get("clinvar_significance"))
-        odds = v.get("odds_ratio") or 1.0
-        if odds > 1:
+        odds = v.get("odds_ratio")
+        dosage = v.get("allele_dosage")
+        # 无基因型信息（兼容旧数据/测试）按 1 处理；明确为 0（纯合参考）才跳过
+        if dosage is None:
+            dose_factor = 1
+        elif dosage == 0:
+            continue
+        else:
+            dose_factor = dosage
+
+        if odds and odds > 1:
             # 风险基因：odds 越高，维度分越高（风险越大）
             contribution = weight * min((log(odds) / log(4)) * 15, 15)
         else:
-            contribution = -weight * 5  # 保护性变异降低风险
-        dim_risk[dim] += contribution
+            # 无效应量时按临床意义分级（反映变异潜在影响）
+            sig = (v.get("clinvar_significance") or "").lower()
+            if "pathogenic" in sig:
+                base = 6.0       # 致病
+            elif "uncertain" in sig or "vus" in sig:
+                base = 1.5       # 意义不明
+            elif "benign" in sig:
+                base = -1.0      # 良性（轻微降低风险）
+            else:
+                base = 0.5
+            contribution = base
+        dim_risk[dim] += contribution * dose_factor
 
     # 生成前端结构
     result = []

@@ -675,25 +675,62 @@ def export_report(
                 headers={"Content-Disposition": f'inline; filename="genolife-report-{report_id}.html"'},
             )
 
-        # PDF：使用 WeasyPrint 将 HTML 渲染为 PDF
+        # PDF：优先 WeasyPrint（视觉与 HTML 一致），缺失时降级 reportlab（纯 Python）
+        pdf_bytes = None
         try:
-            from weasyprint import HTML
+            try:
+                from weasyprint import HTML
+                pdf_bytes = HTML(string=html).write_pdf()
+            except Exception as e:
+                print(f"[report] WeasyPrint 不可用（{type(e).__name__}: {e}），降级 reportlab")
+                pdf_bytes = _pdf_with_reportlab(html, report.original_filename)
+        except Exception as e:
+            print(f"[report] PDF 生成失败: {e}")
+            raise HTTPException(status_code=500, detail=f"PDF 生成失败: {e}")
 
-            pdf_bytes = HTML(string=html).write_pdf()
-
-            return Response(
-                content=pdf_bytes,
-                media_type="application/pdf",
-                headers={"Content-Disposition": f'attachment; filename="genolife-report-{report_id}.pdf"'},
-            )
-        except OSError as e:
-            # WeasyPrint 依赖缺失（如 macOS 缺少 libgobject）→ 降级为 HTML 下载
-            raise HTTPException(
-                status_code=503,
-                detail="PDF 生成需要安装系统依赖（macOS: brew install glib pango cairo; Linux: apt install libpango-1.0-0 libgobject-2.0-0）。当前仅支持 HTML 格式导出。",
-            )
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="genolife-report-{report_id}.pdf"'},
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
+
+
+def _pdf_with_reportlab(html: str, filename: str) -> bytes:
+    """用 reportlab 从 HTML 提取文本生成 PDF（无需系统库，跨平台可用）。"""
+    import re
+    from io import BytesIO
+
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+
+    # 提取纯文本 + 保留换行
+    text = re.sub(r"<br\s*/?>", "\n", html)
+    text = re.sub(r"</(div|p|h\d|li)>", "\n", text)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n\s*\n+", "\n\n", text).strip()
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=50, bottomMargin=50)
+
+    title_style = ParagraphStyle("title", fontName="Helvetica-Bold", fontSize=18, leading=24, alignment=1, spaceAfter=12)
+    body_style = ParagraphStyle("body", fontName="Helvetica", fontSize=9.5, leading=14, spaceAfter=6)
+
+    story = []
+    story.append(Paragraph(f"🧬 Genetic Health Report — {filename}", title_style))
+    story.append(Spacer(1, 10))
+
+    # 分段（最多 80 段避免超长）
+    for para in text.split("\n\n")[:80]:
+        clean = para.strip()
+        if clean:
+            story.append(Paragraph(clean[:1200], body_style))
+
+    doc.build(story)
+    return buf.getvalue()
 
 
 @router.get("/report/{report_id}/text", response_class=HTMLResponse)

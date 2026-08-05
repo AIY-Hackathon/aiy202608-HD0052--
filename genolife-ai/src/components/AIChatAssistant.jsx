@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X, Send, Sparkles, Loader2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { API_BASE } from "../api/client";
 
 /**
@@ -180,7 +181,34 @@ export default function AIChatAssistant() {
                         : "bg-white text-text-secondary border border-gray-100 rounded-bl-sm shadow-sm"
                     }`}
                   >
-                    {m.content}
+                    {m.role === "user" ? (
+                      m.content
+                    ) : (
+                      <ReactMarkdown
+                        className="ai-markdown"
+                        components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          strong: ({ children }) => <strong className="font-bold text-text">{children}</strong>,
+                          ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          h1: ({ children }) => <p className="font-bold text-text text-[14px] mb-1">{children}</p>,
+                          h2: ({ children }) => <p className="font-bold text-text text-[14px] mb-1">{children}</p>,
+                          h3: ({ children }) => <p className="font-bold text-text text-[13px] mb-1">{children}</p>,
+                          code: ({ children }) => (
+                            <code className="px-1 py-0.5 rounded bg-gray-100 text-[11px] font-mono text-primary">{children}</code>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-2 border-primary/30 pl-2 my-1.5 text-text-tertiary">{children}</blockquote>
+                          ),
+                          a: ({ href, children }) => (
+                            <a href={href} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-2">{children}</a>
+                          ),
+                        }}
+                      >
+                        {m.content}
+                      </ReactMarkdown>
+                    )}
                   </div>
                 </div>
               ))}

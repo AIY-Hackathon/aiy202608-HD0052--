@@ -55,8 +55,25 @@ export default function RecommendationCard({ rec, index = 0, onToggle, checked =
             {rec.description}
           </p>
 
+          {/* 个性化理由 */}
+          {rec.why_for_this_user && (
+            <p className="text-[12px] text-text leading-relaxed mb-2 bg-blue-50/50 border border-blue-100 rounded-lg px-2.5 py-2">
+              <strong className="text-primary">为什么适合你：</strong>{rec.why_for_this_user}
+            </p>
+          )}
+
           {/* Meta chips */}
           <div className="flex items-center gap-2 flex-wrap">
+            {rec.related_gene?.length > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                🧬 {rec.related_gene.join(" · ")}
+              </span>
+            )}
+            {rec.evidence_level && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-gray-50 text-text-tertiary border border-gray-200">
+                {rec.evidence_level} evidence
+              </span>
+            )}
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${diff.bg} ${diff.text}`}>
               {diff.label}
             </span>
