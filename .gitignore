@@ -33,3 +33,5 @@ Thumbs.db
 uploads/
 exports/
 *.log
+*.db
+node_modules/

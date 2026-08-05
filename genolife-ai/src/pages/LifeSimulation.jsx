@@ -245,6 +245,8 @@ export default function LifeSimulation() {
               key={factor.key}
               factor={factor}
               value={factors[factor.key]}
+              label={t("simulation", `slider_${factor.key}_label`)}
+              description={t("simulation", `slider_${factor.key}_desc`)}
               onChange={handleFactorChange}
             />
           ))}

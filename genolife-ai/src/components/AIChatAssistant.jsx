@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X, Send, Sparkles, Loader2 } from "lucide-react";
+import { API_BASE } from "../api/client";
 
 /**
  * AI Chat Assistant — DeepSeek 基因科普问答浮窗
@@ -46,7 +47,7 @@ export default function AIChatAssistant() {
     setLoading(true);
 
     try {
-      const resp = await fetch("http://localhost:8000/api/ai/chat", {
+      const resp = await fetch(`${API_BASE}/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

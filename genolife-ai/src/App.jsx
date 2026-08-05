@@ -10,12 +10,14 @@ import GeneMap from "./pages/GeneMap";
 import LifeSimulation from "./pages/LifeSimulation";
 import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
+import LifestylePlanner from "./pages/LifestylePlanner";
 
 const pages = {
   home: HomePage,
   "gene-map": GeneMap,
   simulation: LifeSimulation,
   report: ReportPage,
+  planner: LifestylePlanner,
 };
 
 function PageRenderer() {

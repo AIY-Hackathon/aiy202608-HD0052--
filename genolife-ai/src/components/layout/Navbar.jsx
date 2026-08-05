@@ -6,7 +6,8 @@ import { Home } from "lucide-react";
 const links = [
   { id: "gene-map", labelKey: "analysis", step: "01", icon: "🧬" },
   { id: "simulation", labelKey: "simulation", step: "02", icon: "📊" },
-  { id: "report", labelKey: "report", step: "03", icon: "📋" },
+  { id: "planner", labelKey: "planner", step: "03", icon: "📅" },
+  { id: "report", labelKey: "report", step: "04", icon: "📋" },
 ];
 
 export default function Navbar() {

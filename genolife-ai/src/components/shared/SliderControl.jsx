@@ -1,11 +1,13 @@
 /**
  * Premium lifestyle slider with dynamic gradient track.
  */
-export default function SliderControl({ factor, value, onChange }) {
+export default function SliderControl({ factor, value, onChange, label, description }) {
   const pct = ((value - factor.min) / (factor.max - factor.min)) * 100;
   const gradientStyle = {
     background: `linear-gradient(to right, #0D9488 0%, #1E3A5F ${pct}%, #E5E7EB ${pct}%)`,
   };
+  const displayLabel = label || factor.label;
+  const displayDesc = description || factor.description;
 
   return (
     <div className="space-y-3">
@@ -14,7 +16,7 @@ export default function SliderControl({ factor, value, onChange }) {
           <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-lg shadow-sm">
             {factor.icon}
           </div>
-          <span className="text-[14px] font-semibold text-text">{factor.label}</span>
+          <span className="text-[14px] font-semibold text-text">{displayLabel}</span>
         </div>
         <div className="flex items-baseline gap-0.5">
           <span className="text-lg font-display font-bold text-text tabular-nums">
@@ -39,7 +41,7 @@ export default function SliderControl({ factor, value, onChange }) {
 
       <div className="flex justify-between text-[11px] text-text-tertiary font-medium">
         <span>{factor.min}{factor.unit}</span>
-        <span>{factor.description}</span>
+        <span>{displayDesc}</span>
         <span>{factor.max}{factor.unit}</span>
       </div>
     </div>

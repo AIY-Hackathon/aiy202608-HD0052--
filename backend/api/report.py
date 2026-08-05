@@ -676,15 +676,22 @@ def export_report(
             )
 
         # PDF：使用 WeasyPrint 将 HTML 渲染为 PDF
-        from weasyprint import HTML
+        try:
+            from weasyprint import HTML
 
-        pdf_bytes = HTML(string=html).write_pdf()
+            pdf_bytes = HTML(string=html).write_pdf()
 
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename="genolife-report-{report_id}.pdf"'},
-        )
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'attachment; filename="genolife-report-{report_id}.pdf"'},
+            )
+        except OSError as e:
+            # WeasyPrint 依赖缺失（如 macOS 缺少 libgobject）→ 降级为 HTML 下载
+            raise HTTPException(
+                status_code=503,
+                detail="PDF 生成需要安装系统依赖（macOS: brew install glib pango cairo; Linux: apt install libpango-1.0-0 libgobject-2.0-0）。当前仅支持 HTML 格式导出。",
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
 

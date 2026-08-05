@@ -9,7 +9,7 @@ const LanguageContext = createContext(null);
 export const translations = {
   en: {
     // 导航
-    nav: { analysis: "Genetic Analysis", simulation: "Health Simulation", report: "Export Report" },
+    nav: { analysis: "Genetic Analysis", simulation: "Health Simulation", planner: "Plan", report: "Export Report" },
     // 通用
     common: {
       uploadFirst: "Please upload your genetic report to view analysis",
@@ -141,6 +141,14 @@ export const translations = {
       noRecommendations: "Your lifestyle is already well-optimized for your genetics",
       optimizedWell: "Your lifestyle is well-optimized",
       keepHabits: "Keep maintaining your healthy habits. Your health trajectory looks excellent.",
+      slider_sleep_label: "Sleep Quality",
+      slider_exercise_label: "Physical Activity",
+      slider_diet_label: "Diet Quality",
+      slider_stress_label: "Stress Level",
+      slider_sleep_desc: "Hours per night",
+      slider_exercise_desc: "Days per week",
+      slider_diet_desc: "Healthy eating score",
+      slider_stress_desc: "Lower = better",
       estimatedImprovement: "Estimated health score improvement:",
       points: "points",
       planTitle: "30-Day Health Plan",
@@ -221,7 +229,7 @@ export const translations = {
   },
   zh: {
     // 导航
-    nav: { analysis: "基因分析", simulation: "健康模拟", report: "报告导出" },
+    nav: { analysis: "基因分析", simulation: "健康模拟", planner: "计划", report: "报告导出" },
     // 通用
     common: {
       uploadFirst: "请先上传您的基因报告以查看分析",
@@ -353,6 +361,14 @@ export const translations = {
       noRecommendations: "您的生活方式已针对基因充分优化",
       optimizedWell: "你的生活方式已经优化得很好",
       keepHabits: "继续保持你的健康习惯。你的健康轨迹非常优秀。",
+      slider_sleep_label: "睡眠质量",
+      slider_exercise_label: "运动频率",
+      slider_diet_label: "饮食质量",
+      slider_stress_label: "压力水平",
+      slider_sleep_desc: "每晚小时数",
+      slider_exercise_desc: "每周天数",
+      slider_diet_desc: "健康饮食评分",
+      slider_stress_desc: "越低越好",
       estimatedImprovement: "预计健康评分提升：",
       points: "分",
       planTitle: "30 天健康计划",

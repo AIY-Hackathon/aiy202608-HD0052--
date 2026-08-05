@@ -4,6 +4,7 @@ import { useLocation } from "../components/layout/PageTransition";
 import { useLanguage } from "../i18n";
 import { FileDown, FileText, CheckCircle2, Eye, Download, ShieldAlert, FileCheck, AlignLeft } from "lucide-react";
 import { exportReport, getProfile, exportTextReport } from "../api/client";
+import DOMPurify from "dompurify";
 
 export default function ReportPage() {
   const { reportId, uploaded } = useLocation();
@@ -328,7 +329,7 @@ export default function ReportPage() {
             ) : (
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
               />
             )}
           </div>
