@@ -145,7 +145,7 @@ export default function GeneCard({ gene, index = 0, isExpanded, onToggle, onView
                 <ul className="space-y-2">
                   {gene.recommendations.map((rec, i) => (
                     <li
-                      key={i}
+                      key={rec.slice(0, 30) + "-" + i}
                       className="flex items-start gap-3 text-[14px] text-text-secondary bg-white rounded-xl p-3 border border-gray-100"
                     >
                       <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-light text-accent flex items-center justify-center text-[10px] font-bold mt-0.5">

@@ -162,7 +162,7 @@ export default function GeneDiseaseNetwork({ genes = [] }) {
             const strengthOpacity = 0.25 + e.strength * 0.2;
             return (
               <line
-                key={i}
+                key={e.gene + "-" + e.target}
                 x1={x1} y1={y1} x2={x2} y2={y2}
                 stroke={isHover ? "#1f2937" : "#94a3b8"}
                 strokeWidth={isHover ? 3 : 1 + e.strength * 1.2}

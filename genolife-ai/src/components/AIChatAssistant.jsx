@@ -171,7 +171,7 @@ export default function AIChatAssistant() {
 
               {messages.map((m, i) => (
                 <div
-                  key={i}
+                  key={`msg-${i}-${m.role}`}
                   className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
