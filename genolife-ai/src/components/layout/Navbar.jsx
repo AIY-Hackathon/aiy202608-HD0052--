@@ -1,21 +1,24 @@
 import { motion } from "framer-motion";
 import { useLocation } from "./PageTransition";
+import { useLanguage } from "../../i18n";
+import { Home } from "lucide-react";
 
 const links = [
-  { id: "gene-map", label: "Genetic Profile", step: "01", icon: "🧬" },
-  { id: "simulation", label: "Risk Simulation", step: "02", icon: "📊" },
-  { id: "planner", label: "Health Plan", step: "03", icon: "📋" },
+  { id: "gene-map", labelKey: "analysis", step: "01", icon: "🧬" },
+  { id: "simulation", labelKey: "simulation", step: "02", icon: "📊" },
+  { id: "report", labelKey: "report", step: "03", icon: "📋" },
 ];
 
 export default function Navbar() {
   const { currentPage, goTo } = useLocation();
+  const { t, lang, toggleLang } = useLanguage();
 
   return (
     <nav className="glass-nav fixed top-0 inset-x-0 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
         {/* Logo */}
         <button
-          onClick={() => goTo("gene-map")}
+          onClick={() => goTo("home")}
           className="flex items-center gap-2.5 cursor-pointer"
           style={{ background: "none", border: "none" }}
         >
@@ -33,8 +36,28 @@ export default function Navbar() {
           </div>
         </button>
 
-        {/* Nav pills — numbered workflow */}
+        {/* Nav pills — numbered workflow + home */}
         <div className="flex items-center gap-1 bg-gray-100/60 rounded-full p-1">
+          {/* 首页按钮 */}
+          <button
+            onClick={() => goTo("home")}
+            style={{ border: "none", background: currentPage === "home" ? "white" : "none" }}
+            className={`relative flex items-center gap-1.5 px-3 py-2 rounded-full transition-all duration-200 cursor-pointer ${
+              currentPage === "home"
+                ? "bg-white text-primary shadow-sm"
+                : "text-text-tertiary hover:text-text"
+            }`}
+          >
+            <Home size={14} />
+            {currentPage === "home" && (
+              <motion.span
+                layoutId="nav-active-dot"
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent"
+                transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              />
+            )}
+          </button>
+
           {links.map((link) => {
             const isActive = currentPage === link.id;
             return (
@@ -57,7 +80,7 @@ export default function Navbar() {
                   {link.step}
                 </span>
                 {/* Label */}
-                <span className="text-[12px] font-semibold">{link.label}</span>
+                <span className="text-[12px] font-semibold">{t("nav", link.labelKey)}</span>
                 {/* Active indicator dot */}
                 {isActive && (
                   <motion.span
@@ -70,6 +93,16 @@ export default function Navbar() {
             );
           })}
         </div>
+
+        {/* 语言切换 */}
+        <button
+          onClick={toggleLang}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold text-text-secondary hover:text-text bg-gray-100/60 hover:bg-gray-200/60 cursor-pointer transition-colors"
+          style={{ border: "none" }}
+        >
+          <span className="text-[14px]">{lang === "zh" ? "🌐" : "🌐"}</span>
+          {lang === "zh" ? "EN" : "中文"}
+        </button>
       </div>
     </nav>
   );

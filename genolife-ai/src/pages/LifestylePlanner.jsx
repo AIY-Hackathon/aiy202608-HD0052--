@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AIBadge from "../components/shared/AIBadge";
+import { useLanguage } from "../i18n";
 import { getRecommendations } from "../api/client";
 import { thirtyDayPlan as mockPlan } from "../data/mockData";
 import { ChevronDown, Target, Clock, Star, CheckCircle2, TrendingUp } from "lucide-react";
@@ -13,6 +14,7 @@ function SkeletonBlock({ className = "" }) {
 }
 
 export default function LifestylePlanner() {
+  const { t } = useLanguage();
   const [checkedTasks, setCheckedTasks] = useState(new Set());
   const [expandedWeek, setExpandedWeek] = useState(0);
 
@@ -68,11 +70,11 @@ export default function LifestylePlanner() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-light/60 text-primary mb-8">
           <Target size={14} />
-          <span className="text-[12px] font-bold uppercase tracking-[0.12em]">30-Day Health Plan</span>
+          <span className="text-[12px] font-bold uppercase tracking-[0.12em]">{t("simulation", "planTitle")}</span>
         </div>
 
         <h2 className="font-display font-bold text-[32px] text-text mb-2 tracking-tight">
-          Your personalized action plan
+          {t("simulation", "planSubtitle")}
         </h2>
         <p className="text-[15px] text-text-secondary mb-8 max-w-xl leading-relaxed">
           A gene-informed 30-day program designed to work with your unique biology — not against it.
@@ -87,7 +89,7 @@ export default function LifestylePlanner() {
               <Target size={20} className="text-accent" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em]">Primary Goal</p>
+              <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.12em]">{t("simulation", "primaryGoal")}</p>
               <p className="text-[15px] font-semibold text-text leading-snug">{thirtyDayPlan.goal}</p>
             </div>
             <AIBadge />
@@ -109,7 +111,7 @@ export default function LifestylePlanner() {
             <div className="w-8 h-8 rounded-xl bg-accent-light flex items-center justify-center">
               <CheckCircle2 size={16} className="text-accent" />
             </div>
-            <h3 className="font-display font-bold text-[17px] text-text">Your Progress</h3>
+            <h3 className="font-display font-bold text-[17px] text-text">{t("simulation", "yourProgress")}</h3>
           </div>
           <span className="text-[13px] font-semibold text-text-secondary tabular-nums">
             {completedTasks} / {totalTasks} tasks
@@ -136,8 +138,8 @@ export default function LifestylePlanner() {
         <div className="flex items-center gap-2 mt-4">
           <TrendingUp size={14} className="text-accent" />
           <p className="text-[12px] text-text-tertiary">
-            Estimated health score improvement:{" "}
-            <span className="font-bold text-accent">+{estimatedScoreGain}</span> points
+            {t("simulation", "estimatedImprovement")}{" "}
+            <span className="font-bold text-accent">+{estimatedScoreGain}</span> {t("simulation", "points")}
           </p>
         </div>
       </motion.section>
@@ -171,6 +173,14 @@ export default function LifestylePlanner() {
               const weekTaskIds = week.tasks.map((_, ti) => `${wi}-${ti}`);
               const weekProgress = weekTaskIds.filter((id) => checkedTasks.has(id)).length;
 
+              // Map week index to i18n keys
+              const weekKeys = ["foundation", "activation", "integration", "sustain"];
+              const weekLabel = t("simulation", weekKeys[wi] || week.label);
+              const weekTheme = t("simulation", weekKeys[wi] + "Desc" || week.theme);
+              // Map task index to i18n task keys
+              const taskKeys = weekKeys[wi] + "Tasks";
+              const taskDescKeys = weekKeys[wi] + "TaskDescs";
+
               return (
                 <motion.div
                   key={wi}
@@ -200,9 +210,9 @@ export default function LifestylePlanner() {
                         <p className={`text-[13px] font-bold uppercase tracking-[0.08em] ${
                           weekComplete ? "text-accent" : "text-text-tertiary"
                         }`}>
-                          {week.label}
+                          {weekLabel}
                         </p>
-                        <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{week.theme}</p>
+                        <p className="text-[14px] text-text-secondary mt-0.5 font-medium">{weekTheme}</p>
                       </div>
                     </div>
 
@@ -243,6 +253,11 @@ export default function LifestylePlanner() {
                           {week.tasks.map((task, ti) => {
                             const taskId = `${wi}-${ti}`;
                             const done = checkedTasks.has(taskId);
+                            // Try to get i18n task name/desc, fallback to mock data
+                            const i18nTaskName = t("simulation", taskKeys) && Array.isArray(t("simulation", taskKeys)) ? t("simulation", taskKeys)[ti] : null;
+                            const i18nTaskDesc = t("simulation", taskDescKeys) && Array.isArray(t("simulation", taskDescKeys)) ? t("simulation", taskDescKeys)[ti] : null;
+                            const taskTitle = i18nTaskName || task.title;
+                            const taskDesc = i18nTaskDesc || task.desc;
                             return (
                               <motion.div
                                 key={taskId}
@@ -277,11 +292,11 @@ export default function LifestylePlanner() {
                                     <span className={`font-semibold text-[14px] ${
                                       done ? "text-accent" : "text-text"
                                     }`}>
-                                      {task.title}
+                                      {taskTitle}
                                     </span>
                                   </div>
                                   <p className="text-[13px] text-text-secondary leading-relaxed">
-                                    {task.desc}
+                                    {taskDesc}
                                   </p>
                                 </div>
                                 {done && (
@@ -319,9 +334,9 @@ export default function LifestylePlanner() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
-            { icon: Clock, title: "Morning light", desc: "10 min of outdoor light within 30 min of waking — helps reset your CLOCK gene rhythm for better sleep." },
-            { icon: Target, title: "Move daily", desc: "At least 30 min of movement. Your ACTN3 genotype responds well to short, high-intensity bursts." },
-            { icon: Star, title: "Track & reflect", desc: "A quick evening journal entry builds self-awareness and reinforces positive behavior changes." },
+            { icon: Clock, title: t("simulation", "morningLightTitle"), desc: t("simulation", "morningLightDesc") },
+            { icon: Target, title: t("simulation", "moveDailyTitle"), desc: t("simulation", "moveDailyDesc") },
+            { icon: Star, title: t("simulation", "trackReflectTitle"), desc: t("simulation", "trackReflectDesc") },
           ].map((tip, i) => (
             <motion.div
               key={i}
