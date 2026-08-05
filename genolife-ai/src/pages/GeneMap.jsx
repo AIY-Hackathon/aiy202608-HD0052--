@@ -416,11 +416,11 @@ export default function GeneMap() {
               <div className="absolute top-full mt-2 left-0 w-80 bg-white rounded-xl border border-gray-200 shadow-xl z-40 overflow-hidden">
                 <div className="max-h-60 overflow-y-auto">
                   {reportHistory.map((r) => (
-                    <button
+                    <div
                       key={r.reportId}
                       onClick={() => switchReport(r.reportId)}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100 last:border-0 ${activeReportId === r.reportId ? "bg-primary-light/30" : ""}`}
-                      style={{ background: activeReportId === r.reportId ? "var(--color-primary-light, #eef2ff)" : "none", border: "none" }}
+                      style={{ background: activeReportId === r.reportId ? "var(--color-primary-light, #eef2ff)" : "none" }}
                     >
                       {activeReportId === r.reportId ? (
                         <CheckCircle size={16} className="text-accent flex-shrink-0" />
@@ -441,7 +441,7 @@ export default function GeneMap() {
                       >
                         <Trash2 size={14} />
                       </button>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
