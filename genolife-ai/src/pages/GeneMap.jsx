@@ -232,10 +232,12 @@ export default function GeneMap() {
     return () => { cancelled = true; };
   }, [uploadResult?.report_id, selectedPopulation]);
 
-  // ── 数据源：只看后端 + engine，不复用 mock ──
-  const summary = profileData?.summary || null;
-  const genes = profileData?.geneCards || [];
-  const risks = profileData?.riskDimensions || [];
+  // ── 数据源：优先用当前报告的 analysisData.profile（随切换刷新），
+  //    无 analysisData 时用 profileData（GET /api/profile，组件 mount 时加载一次）
+  const activeProfile = analysisData?.profile || profileData;
+  const summary = activeProfile?.summary || null;
+  const genes = activeProfile?.geneCards || [];
+  const risks = activeProfile?.riskDimensions || [];
 
   // 基因档案 traits（从后端 geneCards 动态生成）
   const profileTraits = genes.slice(0, 4).map((g) => ({
