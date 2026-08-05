@@ -6,14 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173,
-      "cwd": "/Users/stevenl/Documents/AIYProgram/genolife-ai"
+      "cwd": "genolife-ai"
     },
     {
       "name": "GenoLife AI 后端",
-      "runtimeExecutable": "uvicorn",
-      "runtimeArgs": ["backend.main:app", "--host", "0.0.0.0", "--port", "8000"],
-      "port": 8000,
-      "cwd": "/Users/stevenl/Documents/AIYProgram"
+      "runtimeExecutable": ".venv/Scripts/python",
+      "runtimeArgs": ["-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"],
+      "port": 8000
     }
   ]
 }

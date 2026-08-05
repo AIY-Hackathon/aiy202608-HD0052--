@@ -7,6 +7,12 @@ import { exportReport, getProfile, exportTextReport } from "../api/client";
 import DOMPurify from "dompurify";
 import ReactMarkdown from "react-markdown";
 
+/* ── 防御性包装：剥离 className 避免 react-markdown v10 弃用断言 ── */
+function SafeMarkdown({ children, ...rest }) {
+  const { className: _cls, ...safeRest } = rest;
+  return <ReactMarkdown {...safeRest}>{children}</ReactMarkdown>;
+}
+
 export default function ReportPage() {
   const { reportId, uploaded } = useLocation();
   const { t } = useLanguage();
@@ -362,7 +368,7 @@ export default function ReportPage() {
           <div className="premium-card p-8 bg-white overflow-auto max-h-[600px] shadow-inner">
             {previewMd ? (
               <div className="prose prose-sm max-w-none text-[14px] leading-relaxed text-text-secondary">
-                <ReactMarkdown>{previewMd}</ReactMarkdown>
+                <SafeMarkdown>{previewMd}</SafeMarkdown>
               </div>
             ) : (
               <div

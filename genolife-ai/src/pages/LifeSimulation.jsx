@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import HealthScoreRing from "../components/shared/HealthScoreRing";
 import AnimatedNumber from "../components/shared/AnimatedNumber";
 import SliderControl from "../components/shared/SliderControl";
+import CategoricalControl from "../components/shared/CategoricalControl";
 import RecommendationCard from "../components/shared/RecommendationCard";
 import AIBadge from "../components/shared/AIBadge";
 import RiskTrendLine from "../components/charts/RiskTrendLine";
@@ -103,7 +104,10 @@ export default function LifeSimulation() {
     setFactors((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const handleReset = () => setFactors(simulationDefaults);
+  const handleReset = () => {
+    setFactors(simulationDefaults);
+    setApiResult(null);
+  };
   const thirtyDayPlan = plan || mockPlan;
 
   const toggleRec = (id) => {
@@ -240,16 +244,26 @@ export default function LifeSimulation() {
             </button>
           </div>
 
-          {simulationFactors.map((factor) => (
-            <SliderControl
-              key={factor.key}
-              factor={factor}
-              value={factors[factor.key]}
-              label={t("simulation", `slider_${factor.key}_label`)}
-              description={t("simulation", `slider_${factor.key}_desc`)}
-              onChange={handleFactorChange}
-            />
-          ))}
+          {simulationFactors.map((factor) =>
+            factor.type === "categorical" ? (
+              <CategoricalControl
+                key={factor.key}
+                factor={factor}
+                value={factors[factor.key]}
+                label={t("simulation", `slider_${factor.key}_label`)}
+                onChange={handleFactorChange}
+              />
+            ) : (
+              <SliderControl
+                key={factor.key}
+                factor={factor}
+                value={factors[factor.key]}
+                label={t("simulation", `slider_${factor.key}_label`)}
+                description={t("simulation", `slider_${factor.key}_desc`)}
+                onChange={handleFactorChange}
+              />
+            )
+          )}
         </div>
 
         {/* RIGHT: Charts */}

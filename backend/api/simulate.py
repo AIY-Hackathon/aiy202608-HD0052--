@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from fastapi import APIRouter
 
 from backend.schemas import ApiResponse, SimulateRequest
+from backend.services import prs_calculator as engine
 
 router = APIRouter(prefix="/api", tags=["simulate"])
 
@@ -62,6 +63,35 @@ def _load_genetic_profile(report_id: str | None = None) -> dict[str, float]:
         report_id: 可选，指定报告 ID。未传时使用最近完成的报告。
     """
     try:
+        variants = _load_variants(report_id)
+        if not variants:
+            return _default_profile()
+
+        profile: dict[str, float] = {}
+        for v in variants:
+            gene = v.get("gene_name")
+            if not gene:
+                continue
+            sig = (v.get("clinvar_significance") or "").lower()
+            if "pathogenic" in sig:
+                sens = 0.8
+            elif "uncertain" in sig:
+                sens = 0.5
+            elif "benign" in sig:
+                sens = 0.2
+            else:
+                sens = 0.3 + min(v.get("risk_score") or 0.3, 0.5)
+            profile[gene] = round(min(sens, 1.0), 2)
+
+        return profile if profile else _default_profile()
+    except Exception as e:
+        print(f"[simulate] 遗传基线加载失败（用默认）: {e}")
+        return _default_profile()
+
+
+def _load_variants(report_id: str | None = None) -> list[dict]:
+    """从数据库加载完整变异数据（含 gene_name, clinvar_significance, odds_ratio, allele_dosage 等）。"""
+    try:
         from backend.database import SessionLocal
         from backend.models import GeneticReport, GeneticVariant
         from sqlalchemy import select, desc
@@ -72,7 +102,6 @@ def _load_genetic_profile(report_id: str | None = None) -> dict[str, float]:
                 if report_id:
                     report = await session.get(GeneticReport, report_id)
                     if not report or report.parsing_status != "completed":
-                        # 指定报告不存在或未完成，回退到最新完成报告
                         result = await session.execute(
                             select(GeneticReport)
                             .where(GeneticReport.parsing_status == "completed")
@@ -99,34 +128,16 @@ def _load_genetic_profile(report_id: str | None = None) -> dict[str, float]:
                         "gene_name": v.gene_name,
                         "clinvar_significance": v.clinvar_significance,
                         "risk_score": v.risk_score,
+                        "odds_ratio": v.odds_ratio,
+                        "allele_dosage": v.allele_dosage,
                     }
                     for v in variants
                 ]
 
-        variants = asyncio.run(_query())
-        if not variants:
-            return _default_profile()
-
-        profile: dict[str, float] = {}
-        for v in variants:
-            gene = v.get("gene_name")
-            if not gene:
-                continue
-            sig = (v.get("clinvar_significance") or "").lower()
-            if "pathogenic" in sig:
-                sens = 0.8
-            elif "uncertain" in sig:
-                sens = 0.5
-            elif "benign" in sig:
-                sens = 0.2
-            else:
-                sens = 0.3 + min(v.get("risk_score") or 0.3, 0.5)
-            profile[gene] = round(min(sens, 1.0), 2)
-
-        return profile if profile else _default_profile()
+        return asyncio.run(_query())
     except Exception as e:
-        print(f"[simulate] 遗传基线加载失败（用默认）: {e}")
-        return _default_profile()
+        print(f"[simulate] 变异加载失败: {e}")
+        return []
 
 
 def _default_profile() -> dict[str, float]:
@@ -139,7 +150,7 @@ def _default_profile() -> dict[str, float]:
     }
 
 
-def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: dict[str, float] | None = None) -> dict | None:
+def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: dict[str, float] | None = None, genetic_baseline: int = 100) -> dict | None:
     """调用 G×E 引擎，失败时返回 None。
 
     Args:
@@ -202,8 +213,8 @@ def _run_gxe(genetic: dict[str, float], env: dict[str, float], optimized_env: di
         ]
 
         return {
-            "healthScore": sim["baseline_hti"],
-            "optimizedScore": opt_sim["baseline_hti"] if opt_sim else sim["baseline_hti"],
+            "healthScore": max(35, min(100, sim["baseline_hti"] + (genetic_baseline - 72))),
+            "optimizedScore": max(35, min(100, (opt_sim["baseline_hti"] if opt_sim else sim["baseline_hti"]) + (genetic_baseline - 72))),
             "riskDimensions": risk_dimensions,
             "trendData": trend_data,
             "recommendations": recommendations,
@@ -222,21 +233,21 @@ def simulate(req: SimulateRequest):
     """运行 G×E 健康模拟，返回健康评分与风险维度。"""
     factors = req.factors or {}
     genetic = _load_genetic_profile(req.report_id)
+    variants = _load_variants(req.report_id)
     env = _environment_from_factors(factors)
     optimized_env = _environment_from_factors(OPTIMIZED_FACTORS)
 
-    result = _run_gxe(genetic, env, optimized_env)
+    result = _run_gxe(genetic, env, optimized_env, genetic_baseline=engine.compute_genetic_baseline(variants) if variants else 100)
     if result:
         return ApiResponse.ok(result)
 
-    # 降级：prs_calculator 简化公式
-    from backend.services import prs_calculator as fallback
-
-    health_score = fallback.calculate_health_score(factors)
-    optimized_score = fallback.calculate_health_score(OPTIMIZED_FACTORS)
-    risk_dimensions = fallback.calculate_dimension_scores_with_factors([], factors)
-    trend_data = fallback.generate_trend_data([], factors)
-    recommendations = fallback.generate_recommendations(factors)
+    # 降级：prs_calculator 简化公式（使用统一遗传基线）
+    genetic_baseline = engine.compute_genetic_baseline(variants) if variants else 100
+    health_score = engine.calculate_health_score(factors, genetic_baseline=genetic_baseline)
+    optimized_score = engine.calculate_health_score(OPTIMIZED_FACTORS, genetic_baseline=genetic_baseline)
+    risk_dimensions = engine.calculate_dimension_scores_with_factors(variants, factors)
+    trend_data = engine.generate_trend_data(variants, factors)
+    recommendations = engine.generate_recommendations(factors)
 
     return ApiResponse.ok({
         "healthScore": health_score,

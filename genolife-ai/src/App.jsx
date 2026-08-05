@@ -88,9 +88,9 @@ export default function App() {
   return (
     <LanguageProvider>
       <LocationProvider>
+        <BreathingBackground />
+        <Navbar />
         <ErrorBoundary>
-          <BreathingBackground />
-          <Navbar />
           <main className="min-h-screen">
             <PageRenderer />
           </main>

@@ -7,6 +7,7 @@
     "install": "cd genolife-ai && npm install"
   },
   "dependencies": {
+    "pptxgenjs": "^4.0.1",
     "react-markdown": "^10.1.0",
     "three": "^0.185.1"
   }

@@ -204,11 +204,35 @@ def calculate_dimension_scores(variants: list[dict]) -> list[dict]:
     return result
 
 
+# ============ 遗传基线计算（统一所有页面的遗传评分基准）============
+
+def compute_genetic_baseline(variants: list[dict]) -> int:
+    """计算遗传基线分数（0-100），统一用于所有页面的评分逻辑。
+
+    理想健康基因 → ~100；有致病变异 → 根据严重度相应扣减。
+
+    仅累计超出基线 50 的维度风险分作为扣分项，
+    良性变异会使维度分低于 50，不产生扣分。
+    """
+    if not variants:
+        return 100  # 无数据时默认理想基线
+
+    dim_scores = calculate_dimension_scores(variants)
+    risk_penalty = 0.0
+    for d in dim_scores:
+        excess = d["score"] - 50
+        if excess > 0:
+            risk_penalty += excess * 1.2
+
+    baseline = round(100 - risk_penalty)
+    return max(35, min(100, baseline))
+
+
 # ============ 健康评分（对齐前端公式 — 婴儿成长因子版）============
 
 def calculate_health_score(
     factors: dict[str, float] | None = None,
-    genetic_baseline: int = 72,
+    genetic_baseline: int = 100,
 ) -> int:
     """计算 0-100 健康评分（公式对齐前端 calculateHealthScore）。
 
@@ -234,7 +258,7 @@ def calculate_health_score(
         + adherence_impact + safety_impact
     )
     score = round(genetic_baseline + total_deviation)
-    return max(35, min(98, score))
+    return max(35, min(100, score))
 
 
 def calculate_dimension_scores_with_factors(

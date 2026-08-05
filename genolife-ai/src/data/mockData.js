@@ -207,11 +207,17 @@ export const simulationFactors = [
     key: "nutrition_type",
     label: "喂养方式",
     icon: "🍼",
+    type: "categorical",
+    options: [
+      { label: "母乳喂养", value: 10, desc: "最佳营养和免疫保护" },
+      { label: "混合喂养", value: 6, desc: "母乳+配方奶组合" },
+      { label: "配方喂养", value: 3, desc: "科学配方奶喂养" },
+    ],
     min: 0,
     max: 10,
     step: 1,
     unit: "/10",
-    description: "喂养方式评分（纯母乳=10，混合=6，配方=3）",
+    description: "选择宝宝的喂养方式",
   },
   {
     key: "sleep_quality",
@@ -259,7 +265,7 @@ export const simulationFactors = [
  * 计算健康评分（婴儿成长因子版）。
  * 每个因子对遗传基线的偏离产生贡献。
  */
-export function calculateHealthScore(factors, geneticBaseline = 72) {
+export function calculateHealthScore(factors, geneticBaseline = 100) {
   const { nutrition_type, sleep_quality, development_stimulation, medical_adherence, environmental_safety } = factors;
 
   const nutritionImpact = ((nutrition_type - 7) / 10) * 8;
