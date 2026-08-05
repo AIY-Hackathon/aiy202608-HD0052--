@@ -75,6 +75,37 @@ def parse_info(info_str: str) -> dict:
     return result
 
 
+def _extract_gene_name(info: dict) -> str | None:
+    """从多种 INFO 字段来源提取基因名。
+
+    优先级：
+      1. ClinVar VCF: GENEINFO=PAH:5053
+      2. ANNOVAR: Gene.refGene, Gene.ensGene
+      3. VEP: SYMBOL, Gene
+      4. 通用: GENE
+    """
+    # ClinVar VCF
+    geneinfo = info.get("GENEINFO") or info.get("geneinfo")
+    if geneinfo and isinstance(geneinfo, str):
+        gene = geneinfo.split(":")[0].strip()
+        if gene:
+            return gene
+
+    # ANNOVAR 格式
+    for key in ("Gene.refGene", "Gene.ensGene", "Gene.refgene", "Gene.ensgene"):
+        val = info.get(key)
+        if val and isinstance(val, str) and val.strip() and val.strip() != ".":
+            return val.strip()
+
+    # VEP / Ensembl VEP 格式
+    for key in ("SYMBOL", "GENE", "Gene", "gene"):
+        val = info.get(key)
+        if val and isinstance(val, str) and val.strip() and val.strip() != ".":
+            return val.strip()
+
+    return None
+
+
 def variant_to_dict(row: pd.Series) -> dict:
     """将一行 VCF 数据转换为标准变异字典（对齐 schemas.VariantOut）。
 
@@ -92,8 +123,8 @@ def variant_to_dict(row: pd.Series) -> dict:
         "rs_id": None if row["ID"] in (".", "") else str(row["ID"]),
         "reference": str(row["REF"]),
         "alternative": str(row["ALT"]),
-        # INFO 中提取的注释
-        "gene_name": info.get("GENEINFO", "").split(":")[0] or None,
+        # INFO 中提取的注释（多来源 gene_name）
+        "gene_name": _extract_gene_name(info),
         "clinvar_significance": info.get("CLNSIG") or None,
         "clinvar_review_status": info.get("CLNREVSTAT") or None,
     }

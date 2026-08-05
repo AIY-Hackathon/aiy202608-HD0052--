@@ -317,20 +317,31 @@ def risk_level_from_significance(sig: str | None) -> str:
 def generate_gene_cards(variants: list[dict], top_n: int = 9) -> list[dict]:
     """从变异生成前端 geneCards 结构。"""
     gene_info: dict[str, list[dict]] = {}
+    total_with_gene = 0
+    total_without_gene = 0
     for v in variants:
         gene = _normalize_gene(v.get("gene_name", ""))
         if not gene:
+            total_without_gene += 1
             continue
+        total_with_gene += 1
         if gene not in gene_info:
             gene_info[gene] = []
         gene_info[gene].append(v)
+
+    print(f"[prs_calculator] generate_gene_cards: "
+          f"total={len(variants)} with_gene={total_with_gene} without_gene={total_without_gene} "
+          f"unique_genes={list(gene_info.keys())}")
 
     display_genes = [g for g in DEFAULT_GENE_CARDS if g in gene_info]
     display_genes += [g for g in gene_info if g not in DEFAULT_GENE_CARDS]
     display_genes = display_genes[:top_n]
 
     if not display_genes:
-        display_genes = DEFAULT_GENE_CARDS[:top_n]
+        print("[prs_calculator] 未匹配到已知基因 — geneCards 返回空列表")
+
+    # VCF 中没有匹配到已知基因时，返回空列表，让前端走向 ScreeningSummary
+    # 不再 fallback 到 DEFAULT_GENE_CARDS，避免注入不存在的疾病
 
     cards = []
     for gene in display_genes:

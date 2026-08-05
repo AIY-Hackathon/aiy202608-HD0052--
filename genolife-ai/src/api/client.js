@@ -23,6 +23,7 @@ import {
   calculateRiskDimensions,
   generateTrendData,
   generateRecommendations,
+  matchMockProfile,
 } from "../data/mockData";
 
 // API 地址（Vite 环境变量）
@@ -121,36 +122,37 @@ export async function getAnalysis(reportId, options = {}) {
   const { population } = options;
   if (await shouldUseMock()) {
     await delay(300);
+    const filename = reportId || "";
+    const mockProfile = matchMockProfile(filename);
+    const cards = mockProfile?.geneCards || [];
+    const dims = mockProfile?.riskDimensions || riskDimensions;
+    const summary = mockProfile?.summary || { score: 100, level: "low", levelLabel: "低遗传风险" };
+    const variants = mockProfile?.variants || cards.map((g, i) => ({
+      id: `var_${i}`,
+      chromosome: "7",
+      position: 117149150 + i * 1000,
+      reference: "A",
+      alternative: "G",
+      rs_id: `rs${100000 + i}`,
+      gene_name: g.symbol,
+      clinvar_significance: g.clinvarSignificance || "Benign",
+      risk_score: g.riskLevel === "elevated" ? 0.87 : 0.3,
+    }));
     return {
       report: {
         id: reportId,
-        filename: "example.vcf",
+        filename: filename || "example.vcf",
         format: "vcf",
         status: "completed",
-        variant_count: geneCards.length,
+        variant_count: variants.length,
       },
-      variants: geneCards.map((g, i) => ({
-        id: `var_${i}`,
-        chromosome: "7",
-        position: 117149150 + i * 1000,
-        reference: "A",
-        alternative: "G",
-        rs_id: `rs${100000 + i}`,
-        gene_name: g.symbol,
-        clinvar_significance:
-          g.riskLevel === "elevated"
-            ? "Pathogenic"
-            : g.riskLevel === "moderate"
-              ? "Uncertain_significance"
-              : "Benign",
-        risk_score: g.riskLevel === "elevated" ? 0.87 : 0.3,
-      })),
+      variants,
       risk_scores: { alzheimer: 1.5, metabolic: 1.2 },
-      overall_risk_level: "moderate",
+      overall_risk_level: summary.level,
       profile: {
-        geneCards,
-        riskDimensions,
-        summary: { score: 72, level: "moderate", levelLabel: "中等遗传风险" },
+        geneCards: cards,
+        riskDimensions: dims,
+        summary,
       },
       ancestry: null,
     };
@@ -164,11 +166,15 @@ export async function getAnalysis(reportId, options = {}) {
 export async function uploadReport(file) {
   if (await shouldUseMock()) {
     await delay(800);
+    const filename = file?.name || "example.vcf";
+    // 将文件名中的基因标识编码进 report_id，供 getAnalysis mock 匹配
+    const geneKey = filename.replace(/\.(vcf|gz|txt)$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+    const matched = matchMockProfile(filename);
     return {
-      report_id: `rpt_${Date.now()}`,
-      variant_count: geneCards.length,
+      report_id: `rpt_${geneKey}_${Date.now()}`,
+      variant_count: (matched?.geneCards || geneCards).length,
       status: "completed",
-      original_filename: file?.name || "example.vcf",
+      original_filename: filename,
     };
   }
 

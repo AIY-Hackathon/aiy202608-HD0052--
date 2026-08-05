@@ -14,7 +14,7 @@ export default function Navbar() {
 
   const links = [
     { id: "gene-map", labelKey: "analysis", step: "01", icon: "🧬" },
-    { id: "simulation", labelKey: "simulation", step: "02", icon: "📊" },
+    { id: "action-map", labelKey: "actionMap", step: "02", icon: "🧭" },
     step03,
     { id: "report", labelKey: "report", step: "04", icon: "📋" },
   ];

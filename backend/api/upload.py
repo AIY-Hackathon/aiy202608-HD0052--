@@ -77,6 +77,10 @@ def _save_upload(file: UploadFile) -> tuple[str, str, int]:
 def _annotate_variants(variants: list[dict]) -> list[dict]:
     """为每个变异添加 ClinVar 注释（本地优先）。"""
     client = _get_clinvar_client()
+
+    before_gene = sum(1 for v in variants if v.get("gene_name"))
+    before_sig = sum(1 for v in variants if v.get("clinvar_significance"))
+
     for v in variants:
         try:
             annotation = client.annotate(
@@ -93,6 +97,23 @@ def _annotate_variants(variants: list[dict]) -> list[dict]:
                     v["rs_id"] = annotation.get("rs_id")
         except Exception as e:
             print(f"[upload] 变异 {v['chromosome']}:{v['position']} 注释失败: {e}")
+
+    after_gene = sum(1 for v in variants if v.get("gene_name"))
+    after_sig = sum(1 for v in variants if v.get("clinvar_significance"))
+
+    print(f"[upload] 注释统计: {len(variants)} variants | "
+          f"gene_name: {before_gene}→{after_gene} | "
+          f"clinvar_sig: {before_sig}→{after_sig}")
+
+    # 输出检测到的基因符号
+    detected_genes = sorted(set(
+        v["gene_name"] for v in variants if v.get("gene_name")
+    ))
+    if detected_genes:
+        print(f"[upload] 检测到基因: {', '.join(detected_genes)}")
+    else:
+        print("[upload] 未检测到已知基因 — geneCards 将为空")
+
     return variants
 
 

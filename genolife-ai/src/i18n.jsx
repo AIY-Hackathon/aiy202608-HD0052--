@@ -9,7 +9,7 @@ const LanguageContext = createContext(null);
 export const translations = {
   en: {
     // 导航
-    nav: { analysis: "Genetic Analysis", simulation: "Health Simulation", planner: "Plan", report: "Export Report", privacy: "Privacy & Ethics" },
+    nav: { analysis: "Genetic Analysis", actionMap: "Action Map", simulation: "Health Simulation", planner: "Plan", report: "Export Report", privacy: "Privacy & Ethics" },
     // 通用
     common: {
       uploadFirst: "Please upload your genetic report to view analysis",
@@ -360,7 +360,7 @@ export const translations = {
   },
   zh: {
     // 导航
-    nav: { analysis: "基因分析", simulation: "健康模拟", planner: "计划", report: "报告导出", privacy: "隐私与伦理" },
+    nav: { analysis: "基因分析", actionMap: "行动地图", simulation: "健康模拟", planner: "计划", report: "报告导出", privacy: "隐私与伦理" },
     // 通用
     common: {
       uploadFirst: "请先上传您的基因报告以查看分析",

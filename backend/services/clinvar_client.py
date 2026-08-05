@@ -14,6 +14,7 @@ ClinVar 查询客户端 — A1.4
 from __future__ import annotations
 
 import os
+import re
 from bisect import bisect_left
 
 # 本地 ClinVar VCF 路径（环境变量可覆盖）
@@ -154,6 +155,8 @@ class ClinVarIndex:
 class ClinVarClient:
     """ClinVar 查询客户端（本地优先，在线回退）。"""
 
+    _db_unavailable_logged = False  # 全局标记，避免每次请求都刷日志
+
     def __init__(self, use_cache: bool = True):
         self._index = ClinVarIndex()
         self.use_cache = use_cache
@@ -187,23 +190,27 @@ class ClinVarClient:
             if matches:
                 best = matches[0]
                 result = best.to_dict()
-                # 若传了 ref/alt，做等位基因匹配
                 if ref and alt:
                     for m in matches:
                         if ref in m.clinical_significance or alt in m.clinical_significance:
-                            pass  # 简化处理，取第一个
+                            pass
                 if self._redis:
                     import json
-                    self._redis.setex(key, 86400, json.dumps(result))  # 24h TTL
+                    self._redis.setex(key, 86400, json.dumps(result))
                 return result
         except FileNotFoundError:
-            pass
+            if not ClinVarClient._db_unavailable_logged:
+                print("[ClinVarClient] ClinVar database unavailable — 本地数据库文件缺失，将回退到在线查询")
+                ClinVarClient._db_unavailable_logged = True
+        except Exception as e:
+            print(f"[ClinVarClient] 本地 ClinVar 查询异常: {e}")
 
         # 3. 在线回退（NCBI E-utilities）
+        print(f"[ClinVarClient] 回退到 NCBI E-utilities 在线查询 ({chromosome}:{position})")
         return self._query_online(chromosome, position)
 
     def _query_online(self, chromosome: str, position: int) -> dict | None:
-        """在线回退：调用 NCBI E-utilities API。"""
+        """在线回退：调用 NCBI E-utilities API，解析 gene_name。"""
         try:
             import urllib.request
             import json
@@ -234,10 +241,14 @@ class ClinVarClient:
             result = data.get("result", {})
             uid = id_list[0]
             info = result.get(uid, {})
+
+            # 从 title 中提取基因名（格式通常是 "NM_xxx(GENE):c.xxx"）
+            gene_name = self._extract_gene_from_title(info.get("title", ""))
+
             return {
                 "chromosome": chromosome,
                 "position": position,
-                "gene_name": None,
+                "gene_name": gene_name,
                 "clinical_significance": info.get("clinical_significance"),
                 "review_status": info.get("review_status"),
                 "rs_id": None,
@@ -247,3 +258,25 @@ class ClinVarClient:
         except Exception as e:
             print(f"[ClinVarClient] 在线查询失败: {e}")
             return None
+
+    @staticmethod
+    def _extract_gene_from_title(title: str) -> str | None:
+        """从 NCBI ClinVar title 中提取基因符号。
+
+        常见格式：
+          - NM_000277.3(PAH):c.1222C>T
+          - NM_000277(PAH):c.1222C>A (p.Arg408Trp)
+          - NC_000012.12:g.102895046A>G
+          基因名在括号中，位于转录本 ID 之后。
+        """
+        if not title:
+            return None
+        # 匹配 NM_xxx(GENE) 或 NR_xxx(GENE) 格式
+        m = re.search(r'[N][MR]_\d+\.?\d*\((\w+)\)', title)
+        if m:
+            return m.group(1)
+        # 有些 title 直接以 "GENE:" 开头
+        m = re.search(r'^(\w+):', title)
+        if m:
+            return m.group(1)
+        return None

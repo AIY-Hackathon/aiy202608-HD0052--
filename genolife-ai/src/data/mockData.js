@@ -186,6 +186,254 @@ export const geneCards = [
   },
 ];
 
+/**
+ * 测试用疾病 Profile — 模拟真实 analysisData.profile.geneCards 结构。
+ *
+ * 每个 geneCard 包含：
+ *   - symbol: 基因符号（用于匹配遗传知识库）
+ *   - name: 疾病名称
+ *   - riskLevel: elevated | moderate | low
+ *   - clinvarSignificance: Pathogenic | Likely_pathogenic | Uncertain_significance | Benign
+ *
+ * 通过文件名/reportId 中包含 profile key（如 "pah", "smn1"）触发对应 profile。
+ * 无匹配时返回 null → 前端走向 ScreeningSummary。
+ */
+export const MOCK_DISEASE_PROFILES = {
+  // ──── PKU ────
+  pah: {
+    genes: ["PAH"],
+    summary: { score: 55, level: "elevated", levelLabel: "高遗传风险" },
+    geneCards: [
+      {
+        id: "pah", symbol: "PAH", name: "苯丙酮尿症(PKU)",
+        category: "代谢与内分泌", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "PAH 基因编码苯丙氨酸羟化酶。致病变异导致PKU。",
+        interpretation: "PAH 致病变异影响苯丙氨酸代谢。未经治疗的PKU导致严重智力障碍，但严格的苯丙氨酸限制饮食可完全预防神经系统损伤。中国PKU发病率约1/11,000。",
+        recommendations: ["严格遵循新生儿筛查随访和专科医生饮食指导", "记录喂养情况和生长发育曲线", "定期监测血苯丙氨酸水平"],
+        icon: "⚡",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "12", position: 103234000, reference: "A", alternative: "G",
+      rs_id: "rs62514927", gene_name: "PAH", clinvar_significance: "Pathogenic", risk_score: 0.92,
+    }],
+    riskDimensions: [
+      { key: "metabolic", label: "代谢与内分泌", score: 35, baseline: 50 },
+      { key: "neurodevelopmental", label: "神经发育", score: 40, baseline: 50 },
+    ],
+  },
+
+  // ──── SMA ────
+  smn1: {
+    genes: ["SMN1"],
+    summary: { score: 40, level: "elevated", levelLabel: "高遗传风险" },
+    geneCards: [
+      {
+        id: "smn1", symbol: "SMN1", name: "脊髓性肌萎缩(SMA)",
+        category: "神经发育", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "SMN1 纯合缺失/致病变异导致SMA——婴幼儿最常见的致死性神经肌肉疾病。",
+        interpretation: "SMA 是最具时间紧迫性的G×E交互案例。症状前治疗与症状后治疗的预后差异巨大。中国人群SMA携带率约1/40-1/50。",
+        recommendations: ["尽早开始早期干预和康复训练", "与儿科神经专科医生保持定期随访", "关注运动发育里程碑"],
+        icon: "🧠",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "5", position: 70923300, reference: "A", alternative: "C",
+      rs_id: "rs386134241", gene_name: "SMN1", clinvar_significance: "Pathogenic", risk_score: 0.95,
+    }],
+    riskDimensions: [
+      { key: "neurodevelopmental", label: "神经发育", score: 25, baseline: 50 },
+      { key: "metabolic", label: "代谢与内分泌", score: 55, baseline: 50 },
+    ],
+  },
+
+  // ──── CF ────
+  cftr: {
+    genes: ["CFTR"],
+    summary: { score: 50, level: "elevated", levelLabel: "高遗传风险" },
+    geneCards: [
+      {
+        id: "cftr", symbol: "CFTR", name: "囊性纤维化(CF)",
+        category: "代谢与内分泌", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "CFTR 致病变异导致囊性纤维化——影响呼吸和消化系统的多系统疾病。",
+        interpretation: "CF的G×E交互涉及多方面环境调节。新生儿筛查+CFTR调节剂治疗可显著改善预后。",
+        recommendations: ["遵循营养支持和胰酶替代治疗", "定期呼吸道清理和肺功能评估", "避免呼吸道感染"],
+        icon: "⚡",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "7", position: 117149050, reference: "T", alternative: "G",
+      rs_id: "rs113993960", gene_name: "CFTR", clinvar_significance: "Pathogenic", risk_score: 0.88,
+    }],
+    riskDimensions: [
+      { key: "metabolic", label: "代谢与内分泌", score: 35, baseline: 50 },
+      { key: "neurodevelopmental", label: "神经发育", score: 55, baseline: 50 },
+    ],
+  },
+
+  // ──── G6PD ────
+  g6pd: {
+    genes: ["G6PD"],
+    summary: { score: 52, level: "moderate", levelLabel: "中等遗传风险" },
+    geneCards: [
+      {
+        id: "g6pd", symbol: "G6PD", name: "G6PD缺乏症",
+        category: "心血管与血液", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "G6PD 缺乏症是全球最常见的遗传性酶缺乏症。",
+        interpretation: "G6PD 缺乏症是最经典的基因×环境交互案例之一。避免触发因素可完全预防溶血发作。全球约4亿人携带G6PD缺乏变异。",
+        recommendations: ["避免蚕豆和特定药物", "告知医生G6PD缺乏情况", "关注黄疸和贫血迹象"],
+        icon: "🩸",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "X", position: 153759000, reference: "G", alternative: "A",
+      rs_id: "rs1050828", gene_name: "G6PD", clinvar_significance: "Pathogenic", risk_score: 0.78,
+    }],
+    riskDimensions: [
+      { key: "cardiovascular", label: "心血管与血液", score: 30, baseline: 50 },
+      { key: "metabolic", label: "代谢与内分泌", score: 55, baseline: 50 },
+    ],
+  },
+
+  // ──── CAH — CYP21A2 ────
+  cyp21a2: {
+    genes: ["CYP21A2"],
+    summary: { score: 48, level: "elevated", levelLabel: "高遗传风险" },
+    geneCards: [
+      {
+        id: "cyp21a2", symbol: "CYP21A2", name: "先天性肾上腺皮质增生(CAH)",
+        category: "代谢与内分泌", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "CYP21A2 致病变异导致CAH——类固醇激素合成障碍。",
+        interpretation: "CAH的G×E交互核心在于激素替代治疗的依从性。新生儿筛查显著降低了CAH相关死亡率。",
+        recommendations: ["严格遵循激素替代治疗", "应激剂量调整", "定期内分泌科随访"],
+        icon: "⚡",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "6", position: 32006800, reference: "A", alternative: "G",
+      rs_id: "rs77554567", gene_name: "CYP21A2", clinvar_significance: "Pathogenic", risk_score: 0.90,
+    }],
+    riskDimensions: [
+      { key: "metabolic", label: "代谢与内分泌", score: 30, baseline: 50 },
+    ],
+  },
+
+  // ──── SCID — IL2RG ────
+  scid: {
+    genes: ["IL2RG"],
+    summary: { score: 35, level: "elevated", levelLabel: "高遗传风险" },
+    geneCards: [
+      {
+        id: "il2rg", symbol: "IL2RG", name: "X连锁严重联合免疫缺陷(SCID)",
+        category: "免疫与感染", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "IL2RG 致病变异导致SCID-X1——出生数月内面临致死性感染风险。",
+        interpretation: "SCID-X1 是最具决定性的G×E交互案例。3.5月龄前移植生存率>95%。",
+        recommendations: ["严格感染预防措施", "按时疫苗接种", "出现感染迹象立即就医"],
+        icon: "🛡️",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "X", position: 70328300, reference: "T", alternative: "C",
+      rs_id: "rs193922400", gene_name: "IL2RG", clinvar_significance: "Pathogenic", risk_score: 0.97,
+    }],
+    riskDimensions: [
+      { key: "immunodeficiency", label: "免疫与感染", score: 20, baseline: 50 },
+    ],
+  },
+
+  // ──── CHARGE — CHD7 ────
+  chd7: {
+    genes: ["CHD7"],
+    summary: { score: 55, level: "moderate", levelLabel: "中等遗传风险" },
+    geneCards: [
+      {
+        id: "chd7", symbol: "CHD7", name: "CHARGE综合征",
+        category: "心血管与血液", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "CHD7 致病变异导致CHARGE综合征——多系统先天性疾病。",
+        interpretation: "CHARGE综合征需要多学科综合管理——心脏手术、听力辅助、胃造口喂养和发育支持。",
+        recommendations: ["多学科评估", "关注喂养和生长发育", "个体化照护计划"],
+        icon: "❤️",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "8", position: 61541600, reference: "G", alternative: "A",
+      rs_id: "rs121434392", gene_name: "CHD7", clinvar_significance: "Pathogenic", risk_score: 0.93,
+    }],
+    riskDimensions: [
+      { key: "cardiovascular", label: "心血管与血液", score: 35, baseline: 50 },
+    ],
+  },
+
+  // ──── Congenital Hearing Loss — GJB2 ────
+  gjb2: {
+    genes: ["GJB2"],
+    summary: { score: 58, level: "moderate", levelLabel: "中等遗传风险" },
+    geneCards: [
+      {
+        id: "gjb2", symbol: "GJB2", name: "先天性听力损失",
+        category: "感官与结构", riskLevel: "elevated",
+        clinvarSignificance: "Likely_pathogenic",
+        summary: "GJB2 致病变异是遗传性先天性听力损失最常见的原因。",
+        interpretation: "新生儿听力筛查+早期助听器/人工耳蜗（<12月龄）+语言康复可使语言发育接近正常水平。",
+        recommendations: ["新生儿听力筛查和诊断性听力学评估", "尽早适配助听器或评估人工耳蜗", "早期言语康复训练"],
+        icon: "👂",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "13", position: 20763600, reference: "C", alternative: "T",
+      rs_id: "rs80338939", gene_name: "GJB2", clinvar_significance: "Likely_pathogenic", risk_score: 0.72,
+    }],
+    riskDimensions: [
+      { key: "sensory", label: "感官与结构", score: 30, baseline: 50 },
+    ],
+  },
+
+  // ──── Thalassemia — HBB ────
+  hbb: {
+    genes: ["HBB"],
+    summary: { score: 54, level: "moderate", levelLabel: "中等遗传风险" },
+    geneCards: [
+      {
+        id: "hbb", symbol: "HBB", name: "镰状细胞病/地中海贫血",
+        category: "心血管与血液", riskLevel: "elevated",
+        clinvarSignificance: "Pathogenic",
+        summary: "HBB 致病变异导致镰状细胞病和β-地中海贫血。",
+        interpretation: "新生儿筛查+预防性抗生素+疫苗接种+羟基脲治疗显著降低了儿童死亡率。早期诊断和预防性管理完全改变了疾病自然史。",
+        recommendations: ["定期血液科专科随访", "预防性抗生素和疫苗接种", "关注贫血、疼痛和感染迹象"],
+        icon: "🩸",
+      },
+    ],
+    variants: [{
+      id: "var_0", chromosome: "11", position: 5248250, reference: "A", alternative: "T",
+      rs_id: "rs334", gene_name: "HBB", clinvar_significance: "Pathogenic", risk_score: 0.86,
+    }],
+    riskDimensions: [
+      { key: "cardiovascular", label: "心血管与血液", score: 32, baseline: 50 },
+    ],
+  },
+};
+
+/**
+ * 根据 VCF 文件名或 reportId 匹配测试 profile。
+ * 遍历 profile key，如果文件名或 reportId 中包含 key（不区分大小写）即匹配。
+ * 无匹配时返回 null → 前端用空 geneCards → ScreeningSummary。
+ */
+export function matchMockProfile(filenameOrId) {
+  if (!filenameOrId) return null;
+  const lower = filenameOrId.toLowerCase();
+  for (const [key, profile] of Object.entries(MOCK_DISEASE_PROFILES)) {
+    if (lower.includes(key)) return profile;
+  }
+  return null;
+}
+
 export const riskDimensions = [
   { key: "metabolic", label: "代谢与内分泌", score: 55, baseline: 50 },
   { key: "cardiovascular", label: "心血管与血液", score: 42, baseline: 50 },

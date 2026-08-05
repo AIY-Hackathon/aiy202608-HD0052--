@@ -7,7 +7,7 @@ import BreathingBackground from "./components/effects/BreathingBackground";
 import MusicPlayer from "./components/MusicPlayer";
 import AIChatAssistant from "./components/AIChatAssistant";
 import GeneMap from "./pages/GeneMap";
-import LifeSimulation from "./pages/LifeSimulation";
+import GeneticActionMap from "./components/GeneticActionMap";
 import ReportPage from "./pages/Report";
 import HomePage from "./pages/HomePage";
 import HealthyGrowthCenter from "./pages/HealthyGrowthCenter";
@@ -52,7 +52,7 @@ class ErrorBoundary extends Component {
 const pages = {
   home: HomePage,
   "gene-map": GeneMap,
-  simulation: LifeSimulation,
+  "action-map": GeneticActionMap,
   report: ReportPage,
   "healthy-growth": HealthyGrowthCenter,
   "genetic-assistance": GeneticAssistanceCenter,

@@ -986,7 +986,7 @@ export default function GeneMap() {
             </p>
           </div>
           <button
-            onClick={() => goTo("simulation")}
+            onClick={() => goTo("action-map")}
             className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-white text-[14px] font-semibold hover:bg-primary-600 transition-colors shadow-lg shadow-primary/20 cursor-pointer"
             style={{ border: "none" }}
           >
