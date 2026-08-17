@@ -1,3 +1,26 @@
+<div align="center">
+
+# 🏆 AIY 黑客松 2026 深圳站 · 组委会官方存档
+
+<p>
+  <img alt="团队编号" src="https://img.shields.io/badge/团队编号-HD0052-B7791F?style=for-the-badge">
+  <img alt="组别" src="https://img.shields.io/badge/组别-%E9%AB%98%E4%B8%AD%E7%BB%84_HD-B7791F?style=for-the-badge">
+  <img alt="赛道" src="https://img.shields.io/badge/赛道-%E5%9F%BA%E5%9B%A0%E5%81%A5%E5%BA%B7%20%C2%B7%20AI%20for%20Science-4A5568?style=for-the-badge">
+</p>
+
+**队名：玛卡巴卡**　|　**作品：GenoLife AI — 新生儿基因筛查智能解读平台**
+
+> 帮助 0-6 岁婴幼儿家长理解基因筛查结果、模拟发育可能、制定个性化早期照护策略
+
+本项目为 AIY 黑客松参赛作品，作品归团队所有；AIY 组委会仅作收录与展示。
+Fork 自选手原始仓库：[liang03060101-stack/aiy202608-HD0052--](https://github.com/liang03060101-stack/aiy202608-HD0052--)
+
+</div>
+
+---
+
+<!-- 以下为选手提交的原始 README 内容 -->
+
 # GenoLife AI — 新生儿基因筛查智能解读平台
 
 > 帮助0-6岁婴幼儿家长理解基因筛查结果、模拟发育可能、制定个性化早期照护策略
